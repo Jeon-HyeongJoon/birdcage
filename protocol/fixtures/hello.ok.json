@@ -1,0 +1,27 @@
+{
+  "v": 0,
+  "type": "hello.ok",
+  "id": "1",
+  "data": {
+    "helperVersion": "0.1.0",
+    "protocol": 0,
+    "profile": "compat",
+    "libraryDir": "/Users/me/Movies/Birdcage",
+    "tools": [
+      {
+        "name": "yt-dlp",
+        "path": "/x/yt-dlp_macos",
+        "version": "2026.08.19",
+        "source": "installed"
+      },
+      {
+        "name": "deno",
+        "path": "",
+        "version": "",
+        "source": "",
+        "error": "tool not found: deno"
+      }
+    ],
+    "jobs": []
+  }
+}

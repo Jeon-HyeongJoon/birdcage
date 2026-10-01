@@ -1,0 +1,8 @@
+.DS_Store
+node_modules/
+# Helper 테스트 성능 기록 (scripts/test-helper.sh)
+helper/.perf/
+# 패널 빌드 산출물
+panel/cep/dist/
+panel/cep/src/bin/
+panel/cep/.debug

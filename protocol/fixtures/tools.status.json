@@ -1,0 +1,16 @@
+{
+  "v": 0,
+  "type": "tools.status",
+  "id": "4",
+  "data": {
+    "installing": false,
+    "tools": [
+      {
+        "name": "yt-dlp",
+        "path": "/x",
+        "version": "2026.08.19",
+        "source": "installed"
+      }
+    ]
+  }
+}

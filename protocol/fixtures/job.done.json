@@ -1,0 +1,100 @@
+{
+  "v": 0,
+  "type": "job.done",
+  "data": {
+    "job": {
+      "jobId": "j0a1b2c3d4e5f",
+      "url": "https://www.youtube.com/watch?v=BaW_jenozKc",
+      "state": "done",
+      "options": {
+        "maxHeight": 1080,
+        "profile": "compat"
+      },
+      "progress": 1,
+      "download": {
+        "status": "finished",
+        "downloadedBytes": 2160000,
+        "totalBytes": 2160000,
+        "speedBps": 1500000,
+        "formatId": "140",
+        "fraction": 1
+      },
+      "info": {
+        "id": "BaW_jenozKc",
+        "title": "youtube-dl test video",
+        "uploader": "Philipp Hagemeister",
+        "extractor": "Youtube",
+        "webpageUrl": "https://www.youtube.com/watch?v=BaW_jenozKc",
+        "durationSec": 10,
+        "selected": [
+          {
+            "id": "137",
+            "ext": "mp4",
+            "vcodec": "avc1.640028",
+            "width": 1920,
+            "height": 1080,
+            "fps": 30,
+            "sizeBytes": 2000000
+          },
+          {
+            "id": "140",
+            "ext": "m4a",
+            "acodec": "mp4a.40.2",
+            "sizeBytes": 160000
+          }
+        ]
+      },
+      "media": {
+        "container": "mov,mp4,m4a,3gp,3g2,mj2",
+        "durationSec": 10,
+        "sizeBytes": 2150000,
+        "video": {
+          "index": 0,
+          "codec": "h264",
+          "profile": "High",
+          "pixFmt": "yuv420p",
+          "width": 1920,
+          "height": 1080,
+          "fps": 30
+        },
+        "audio": {
+          "index": 0,
+          "codec": "aac",
+          "profile": "LC",
+          "sampleRate": 44100,
+          "channels": 2
+        }
+      },
+      "plan": {
+        "profile": "compat",
+        "video": "copy",
+        "audio": "copy",
+        "passthrough": true,
+        "reasons": [
+          "already Premiere-ready"
+        ]
+      },
+      "file": "/Users/me/Movies/Birdcage/Youtube/youtube-dl test video [BaW_jenozKc].mp4",
+      "timings": [
+        {
+          "stage": "probe",
+          "ms": 1830.5
+        },
+        {
+          "stage": "download",
+          "ms": 2210.2
+        },
+        {
+          "stage": "analyze",
+          "ms": 61.3
+        },
+        {
+          "stage": "normalize",
+          "ms": 3.1
+        }
+      ],
+      "createdAt": "2026-10-01T12:00:00Z",
+      "updatedAt": "2026-10-01T12:00:05Z"
+    }
+  }
+}

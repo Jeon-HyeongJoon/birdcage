@@ -1,0 +1,57 @@
+{
+  "v": 0,
+  "type": "job.failed",
+  "data": {
+    "job": {
+      "jobId": "j0a1b2c3d4e5f",
+      "url": "https://www.youtube.com/watch?v=BaW_jenozKc",
+      "state": "failed",
+      "options": {
+        "maxHeight": 1080,
+        "profile": "compat"
+      },
+      "progress": 1,
+      "download": {
+        "status": "finished",
+        "downloadedBytes": 2160000,
+        "totalBytes": 2160000,
+        "speedBps": 1500000,
+        "formatId": "140",
+        "fraction": 1
+      },
+      "info": {
+        "id": "BaW_jenozKc",
+        "title": "youtube-dl test video",
+        "uploader": "Philipp Hagemeister",
+        "extractor": "Youtube",
+        "webpageUrl": "https://www.youtube.com/watch?v=BaW_jenozKc",
+        "durationSec": 10,
+        "selected": [
+          {
+            "id": "137",
+            "ext": "mp4",
+            "vcodec": "avc1.640028",
+            "width": 1920,
+            "height": 1080,
+            "fps": 30,
+            "sizeBytes": 2000000
+          },
+          {
+            "id": "140",
+            "ext": "m4a",
+            "acodec": "mp4a.40.2",
+            "sizeBytes": 160000
+          }
+        ]
+      },
+      "failure": {
+        "kind": "private",
+        "message": "비공개 영상입니다.",
+        "detail": "ERROR: [youtube] x: Private video",
+        "policy": "stop"
+      },
+      "createdAt": "2026-10-01T12:00:00Z",
+      "updatedAt": "2026-10-01T12:00:05Z"
+    }
+  }
+}

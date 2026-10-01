@@ -1,0 +1,15 @@
+{
+  "v": 0,
+  "type": "hello",
+  "id": "1",
+  "data": {
+    "client": "birdcage-cep",
+    "clientVersion": "0.1.0",
+    "host": {
+      "app": "PPRO",
+      "version": "15.2.0",
+      "api": "cep",
+      "os": "mac"
+    }
+  }
+}

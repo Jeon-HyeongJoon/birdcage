@@ -1,0 +1,9 @@
+{
+  "v": 0,
+  "type": "error",
+  "id": "5",
+  "data": {
+    "code": "bad_request",
+    "message": "invalid url"
+  }
+}
