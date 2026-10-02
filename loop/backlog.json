@@ -118,7 +118,7 @@
       "id": "T-005",
       "title": "Premiere 15.2에서 CEP 패널 로드·다운로드·Birdcage/\u003c플랫폼\u003e 빈 임포트 확인",
       "mode": "human",
-      "status": "open",
+      "status": "blocked",
       "passes": false,
       "priority": 1,
       "acceptance": [
@@ -127,7 +127,8 @@
           "maxLevel": "L5",
           "what": "패널이 뜨고 링크 1건이 빈에 임포트됨"
         }
-      ]
+      ],
+      "blockedBy": "blocked: T-005 사전 조건 검증: Premiere 15.2·Rosetta·Orca 권한 확인, PlayerDebugMode와 CEP 링크 설치, universal Helper 및 CEP 패널 빌드 통과. 그러나 설치된 Premiere 앱의 LogSession.framework가 미서명이라 앱 전체 서명이 no usable signature로 거부되고 Rosetta/dyld 단계에서 UI 없이 정지해 패널 실기 검증을 진행할 수 없다."
     },
     {
       "id": "T-006",

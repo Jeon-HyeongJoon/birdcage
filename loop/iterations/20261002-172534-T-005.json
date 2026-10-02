@@ -1,0 +1,51 @@
+{
+  "$schema": "../schema/iteration.schema.json",
+  "id": "20261002-172534-T-005",
+  "task": "T-005",
+  "session": {
+    "kind": "verifier"
+  },
+  "startedAt": "2026-10-02T17:25:34Z",
+  "endedAt": "2026-10-02T17:33:05Z",
+  "base": {
+    "branch": "test/t-005-premiere-e2e",
+    "commit": "25b96d8891c3",
+    "dirty": true
+  },
+  "head": {
+    "branch": "test/t-005-premiere-e2e",
+    "commit": "25b96d8891c3",
+    "dirty": true
+  },
+  "state": "blocked",
+  "hypothesis": "Premiere 15.2 실행 조건과 CEP 개발 설정을 충족하면 Birdcage 패널이 로드되고 공개 YouTube 링크 1건이 다운로드된 뒤 Birdcage/Youtube 빈에 임포트되며, 사람 확인 스크린샷을 L5 증적으로 남길 수 있다.",
+  "summary": "T-005 사전 조건 검증: Premiere 15.2·Rosetta·Orca 권한 확인, PlayerDebugMode와 CEP 링크 설치, universal Helper 및 CEP 패널 빌드 통과. 그러나 설치된 Premiere 앱의 LogSession.framework가 미서명이라 앱 전체 서명이 no usable signature로 거부되고 Rosetta/dyld 단계에서 UI 없이 정지해 패널 실기 검증을 진행할 수 없다.",
+  "metrics": {
+    "durationMin": 7.5,
+    "evidence": 3,
+    "evidenceByLevel": {
+      "L2": 2,
+      "L3": 1
+    },
+    "pass": 2,
+    "fail": 1,
+    "skip": 0
+  },
+  "retro": {
+    "lessons": [
+      "Premiere 실기 검증 하네스는 앱 실행 전 codesign --verify 사전 점검으로 손상 설치를 빠르게 분류해야 한다."
+    ]
+  },
+  "next": [
+    "사람: Adobe 설치 관리자로 Premiere Pro 15.2를 복구 또는 재설치해 유효한 앱 서명을 확보한다. 임의 ad-hoc 재서명은 하지 않는다.",
+    "새 verifier 세션에서 codesign 사전 점검 후 T-005 패널 로드·다운로드·Birdcage/Youtube 빈 임포트와 스크린샷 SHA-256 증적을 재시도한다."
+  ],
+  "approvals": [
+    {
+      "action": "system.settings",
+      "by": "전형준",
+      "at": "2026-10-02T17:30:09Z",
+      "note": "사용자 승인: 대화에서 '진행해' 응답(2026-10-03) — PlayerDebugMode, CEP 링크, Birdcage 사용자 데이터 도구 설치 및 Premiere 실기 검증"
+    }
+  ]
+}
