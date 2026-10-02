@@ -9,6 +9,7 @@ import {
   HelloOK,
   JobAccepted,
   JobList,
+  MediaInfoMsg,
   ProtocolError,
   ServerMessages,
   ServerType,
@@ -101,9 +102,15 @@ export class HelperClient {
     return () => set!.delete(fn);
   }
 
-  async createJob(url: string, maxHeight?: number): Promise<string> {
-    const env = await this.request("job.create", { url, maxHeight }, ["job.accepted"]);
+  async createJob(url: string, maxHeight?: number, extra: { probeId?: string; formatId?: string } = {}): Promise<string> {
+    const env = await this.request("job.create", { url, maxHeight, ...extra }, ["job.accepted"]);
     return (env.data as JobAccepted).jobId;
+  }
+
+  /** Probes a link (yt-dlp -J takes seconds; the helper answers with media.info). */
+  async probe(url: string, maxHeight?: number): Promise<MediaInfoMsg> {
+    const env = await this.request("media.probe", { url, maxHeight }, ["media.info"], 90000);
+    return env.data as MediaInfoMsg;
   }
 
   cancelJob(jobId: string): void {
@@ -135,13 +142,13 @@ export class HelperClient {
     this.sock.send(encode(type, id, data));
   }
 
-  private request<K extends keyof ClientMessages>(type: K, data: ClientMessages[K], expect: ServerType[]): Promise<Envelope> {
+  private request<K extends keyof ClientMessages>(type: K, data: ClientMessages[K], expect: ServerType[], timeoutMs?: number): Promise<Envelope> {
     const id = `r${++this.seq}`;
     return new Promise<Envelope>((resolve, reject) => {
       const timer = setTimeout(() => {
         this.pending.delete(id);
         reject(new Error(`${type}: no reply from helper`));
-      }, this.opts.requestTimeoutMs ?? 15000);
+      }, timeoutMs ?? this.opts.requestTimeoutMs ?? 15000);
       this.pending.set(id, { expect, resolve, reject, timer });
       try {
         this.send(type, id, data);

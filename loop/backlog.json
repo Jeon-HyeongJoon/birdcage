@@ -386,8 +386,8 @@
       "id": "T-018",
       "title": "링크 조회·영상 정보·해상도 선택: media.probe/media.info, 조회 결과 재사용(재추출 생략), 화질별 크기·변환 필요 표시, 썸네일, 시퀀스 정보로 추천·fps 불일치 경고",
       "mode": "compile",
-      "status": "open",
-      "passes": false,
+      "status": "done",
+      "passes": true,
       "priority": 1,
       "dependsOn": [
         "T-017"
@@ -408,6 +408,9 @@
           "maxLevel": "L3",
           "what": "온라인 E2E: 조회 후 다운로드가 재추출 없이 끝남(G-e2e)"
         }
+      ],
+      "evidence": [
+        "E-20261002-184857-002"
       ]
     },
     {

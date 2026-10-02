@@ -1,0 +1,69 @@
+{
+  "v": 0,
+  "type": "media.info",
+  "id": "6",
+  "data": {
+    "url": "https://youtu.be/BaW_jenozKc",
+    "probeId": "p0a1b2c3d4e5f",
+    "info": {
+      "id": "BaW_jenozKc",
+      "title": "youtube-dl test video",
+      "uploader": "Philipp Hagemeister",
+      "extractor": "Youtube",
+      "webpageUrl": "https://www.youtube.com/watch?v=BaW_jenozKc",
+      "durationSec": 10,
+      "thumbnail": "https://i.ytimg.com/vi/BaW_jenozKc/mqdefault.jpg",
+      "variants": [
+        {
+          "formatId": "313+140",
+          "res": 2160,
+          "width": 3840,
+          "height": 2160,
+          "fps": 30,
+          "vcodec": "vp09.00.51.08",
+          "acodec": "mp4a.40.2",
+          "sizeBytes": 21000000,
+          "transcode": true
+        },
+        {
+          "formatId": "137+140",
+          "res": 1080,
+          "width": 1920,
+          "height": 1080,
+          "fps": 30,
+          "vcodec": "avc1.640028",
+          "acodec": "mp4a.40.2",
+          "sizeBytes": 2160000,
+          "transcode": false
+        },
+        {
+          "formatId": "18",
+          "res": 360,
+          "width": 640,
+          "height": 360,
+          "fps": 30,
+          "vcodec": "avc1.42001E",
+          "acodec": "mp4a.40.2",
+          "transcode": false
+        }
+      ],
+      "bestAudio": {
+        "id": "140",
+        "ext": "m4a",
+        "acodec": "mp4a.40.2",
+        "sizeBytes": 160000
+      },
+      "subtitles": [
+        {
+          "lang": "en",
+          "name": "English"
+        },
+        {
+          "lang": "en-orig",
+          "name": "English (Original)",
+          "auto": true
+        }
+      ]
+    }
+  }
+}

@@ -46,8 +46,53 @@ type Info struct {
 	IsLive      bool    `json:"isLive,omitempty"`
 	// Selected lists the formats the engine will download (video+audio or a single muxed one).
 	Selected []Format `json:"selected,omitempty"`
+	// Thumbnail is a small (≥192px wide) preview image URL the panel loads directly.
+	Thumbnail string `json:"thumbnail,omitempty"`
+	// Variants are the downloadable qualities, best first (one per resolution).
+	Variants []Variant `json:"variants,omitempty"`
+	// BestAudio is the best audio-only format (audio-only downloads, size display).
+	BestAudio *Format `json:"bestAudio,omitempty"`
+	// Subtitles lists available subtitle tracks (manual first; automatic only in the original language).
+	Subtitles []Subtitle `json:"subtitles,omitempty"`
 	// InfoPath is the engine's cached info file reused by Download (yt-dlp --load-info-json).
 	InfoPath string `json:"-"`
+}
+
+// Variant is one selectable quality: a video format plus (for DASH) the audio it merges with.
+//
+// Res는 yt-dlp의 res와 같이 짧은 변(세로 영상 1080×1920 → 1080)이라 "1080p"가 방향과 무관하다.
+type Variant struct {
+	FormatID  string  `json:"formatId"` // yt-dlp -f value, e.g. "137+140" or "18"
+	Res       int     `json:"res"`
+	Width     int     `json:"width,omitempty"`
+	Height    int     `json:"height,omitempty"`
+	FPS       float64 `json:"fps,omitempty"`
+	VCodec    string  `json:"vcodec"`
+	ACodec    string  `json:"acodec,omitempty"`
+	HDR       bool    `json:"hdr,omitempty"`
+	SizeBytes int64   `json:"sizeBytes,omitempty"` // video+audio, exact or approximate (0 = unknown)
+	// Transcode reports that the video codec is not Premiere-ready for the session profile
+	// (판단은 코덱만으로 한다. VFR은 받은 뒤 ffprobe로만 알 수 있다).
+	Transcode bool `json:"transcode"`
+	// Parts are the formats downloaded for this variant (progress aggregation).
+	Parts []Format `json:"-"`
+}
+
+// Subtitle is one available subtitle track.
+type Subtitle struct {
+	Lang string `json:"lang"`
+	Name string `json:"name,omitempty"`
+	Auto bool   `json:"auto,omitempty"` // automatic captions (speech recognition)
+}
+
+// Variant returns the variant with the given format id.
+func (i *Info) Variant(formatID string) (Variant, bool) {
+	for _, v := range i.Variants {
+		if v.FormatID == formatID {
+			return v, true
+		}
+	}
+	return Variant{}, false
 }
 
 // Format summarizes one selected stream/format.
@@ -93,6 +138,7 @@ type Progress struct {
 type DownloadRequest struct {
 	Info      *Info
 	MaxHeight int    // 0 = no cap
+	FormatID  string // explicit variant (Variant.FormatID); "" = select by MaxHeight
 	WorkDir   string // engine writes its output here
 }
 

@@ -28,16 +28,21 @@ const job: Shape = {
 const nested: Record<string, Shape> = {
   "job.options": { maxHeight: "number", profile: "string" },
   "job.download": { status: "string", downloadedBytes: "number", fraction: "number", totalBytes: "number?", speedBps: "number?" },
-  "job.info": { id: "string", title: "string", extractor: "string", webpageUrl: "string", selected: "array?" },
+  "job.info": { id: "string", title: "string", extractor: "string", webpageUrl: "string", selected: "array?", thumbnail: "string?", variants: "array?", subtitles: "array?" },
   "job.media": { container: "string", durationSec: "number", sizeBytes: "number", video: "object?", audio: "object?" },
   "job.plan": { profile: "string", video: "string", audio: "string", passthrough: "boolean", reasons: "array" },
   "job.failure": { kind: "string", message: "string", policy: "string", detail: "string?" },
 };
 
+const variant: Shape = { formatId: "string", res: "number", vcodec: "string", transcode: "boolean", sizeBytes: "number?", fps: "number?", hdr: "boolean?" };
+const subtitle: Shape = { lang: "string", name: "string?", auto: "boolean?" };
+
 const payloads: Record<string, Shape> = {
   hello: { client: "string", clientVersion: "string", host: "object" },
   "hello.ok": { helperVersion: "string", protocol: "number", profile: "string", libraryDir: "string", tools: "array", jobs: "array" },
-  "job.create": { url: "string", maxHeight: "number?" },
+  "job.create": { url: "string", maxHeight: "number?", probeId: "string?", formatId: "string?" },
+  "media.probe": { url: "string", maxHeight: "number?" },
+  "media.info": { url: "string", probeId: "string?", info: "object?", failure: "object?" },
   "job.accepted": { jobId: "string" },
   "job.cancel": { jobId: "string" },
   "job.update": { job: "object" },
@@ -70,18 +75,31 @@ function check(obj: unknown, shape: Shape, where: string, errs: string[]): void 
   }
 }
 
+function checkFailure(f: unknown, where: string, errs: string[]): void {
+  check(f, nested["job.failure"], where, errs);
+  // 실패 종류·정책은 SSOT(specs/failures.json)와 일치해야 한다.
+  const o = f as { kind?: string; policy?: string };
+  if (o && typeof o.kind === "string") {
+    if (!(FAILURE_KINDS as readonly string[]).includes(o.kind)) errs.push(`${where}.kind: unknown kind ${o.kind}`);
+    else if (o.policy !== FAILURE_POLICY[o.kind as FailureKind]) errs.push(`${where}.policy: ${o.policy} != spec ${FAILURE_POLICY[o.kind as FailureKind]}`);
+  }
+}
+
+function checkInfo(info: unknown, where: string, errs: string[]): void {
+  check(info, nested["job.info"], where, errs);
+  const o = (info ?? {}) as Record<string, unknown>;
+  if (Array.isArray(o.variants)) o.variants.forEach((v, i) => check(v, variant, `${where}.variants[${i}]`, errs));
+  if (Array.isArray(o.subtitles)) o.subtitles.forEach((v, i) => check(v, subtitle, `${where}.subtitles[${i}]`, errs));
+}
+
 function checkJob(j: unknown, where: string, errs: string[]): void {
   check(j, job, where, errs);
   const o = (j ?? {}) as Record<string, unknown>;
-  for (const k of ["options", "download", "info", "media", "plan", "failure"]) {
+  for (const k of ["options", "download", "media", "plan"]) {
     if (o[k] !== undefined) check(o[k], nested["job." + k], `${where}.${k}`, errs);
   }
-  // 실패 종류·정책은 SSOT(specs/failures.json)와 일치해야 한다.
-  const f = o.failure as { kind?: string; policy?: string } | undefined;
-  if (f && typeof f.kind === "string") {
-    if (!(FAILURE_KINDS as readonly string[]).includes(f.kind)) errs.push(`${where}.failure.kind: unknown kind ${f.kind}`);
-    else if (f.policy !== FAILURE_POLICY[f.kind as FailureKind]) errs.push(`${where}.failure.policy: ${f.policy} != spec ${FAILURE_POLICY[f.kind as FailureKind]}`);
-  }
+  if (o.info !== undefined) checkInfo(o.info, `${where}.info`, errs);
+  if (o.failure !== undefined) checkFailure(o.failure, `${where}.failure`, errs);
 }
 
 /** Returns a list of shape errors (empty when the payload looks right). */
@@ -92,6 +110,11 @@ export function validatePayload(type: string, data: unknown): string[] {
   check(data, shape, type, errs);
   const d = (data ?? {}) as Record<string, unknown>;
   if (type === "job.update" || type === "job.done" || type === "job.failed") checkJob(d.job, `${type}.job`, errs);
+  if (type === "media.info") {
+    if (d.info !== undefined) checkInfo(d.info, `${type}.info`, errs);
+    if (d.failure !== undefined) checkFailure(d.failure, `${type}.failure`, errs);
+    if ((d.info === undefined) === (d.failure === undefined)) errs.push(`${type}: exactly one of info/failure`);
+  }
   if (Array.isArray(d.jobs)) d.jobs.forEach((j, i) => checkJob(j, `${type}.jobs[${i}]`, errs));
   if (Array.isArray(d.tools)) d.tools.forEach((t, i) => check(t, tool, `${type}.tools[${i}]`, errs));
   return errs;

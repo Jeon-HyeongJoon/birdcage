@@ -1,5 +1,6 @@
 // HostAdapter: everything that differs between CEP (Premiere ≤25, 26 for now) and UXP (26+).
 // 코어는 이 인터페이스만 알고, 호스트별 구현은 panel/cep(·이후 panel/uxp)에 둔다.
+import type { SequenceInfo } from "./choice";
 import type { HelperEndpoint } from "./client";
 import type { Host } from "./protocol";
 
@@ -20,4 +21,6 @@ export interface HostAdapter {
   importFile(path: string, bin: string[]): Promise<ImportResult>;
   /** Shows the file in Finder/Explorer (optional). */
   revealFile?(path: string): void;
+  /** The active sequence, or null when none is open (optional: recommendations fall back to settings). */
+  sequenceInfo?(): Promise<SequenceInfo | null>;
 }

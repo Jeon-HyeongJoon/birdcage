@@ -1,5 +1,10 @@
 import type { JobSnapshot, State, ToolStatus } from "@birdcage/core";
 
+// 결정적인 썸네일(네트워크 없음): 16:9 단색 + 대각선 SVG.
+const thumb =
+  "data:image/svg+xml;utf8," +
+  encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="192" height="108"><rect width="192" height="108" fill="#3a5a40"/><path d="M0 108L192 0" stroke="#a3b18a" stroke-width="6"/></svg>');
+
 export type Scenario = {
   state: State;
   missingTools: string[];
@@ -86,6 +91,7 @@ const connected = (jobs: State["jobs"], availableTools = tools): State => ({
   toolsInstalling: false,
   jobs,
   settings: { autoImport: false, maxHeight: 1080 },
+  draft: { url: "", status: "idle" },
 });
 
 export const scenarios: Record<string, Scenario> = {
@@ -105,6 +111,36 @@ export const scenarios: Record<string, Scenario> = {
       toolsInstalling: false,
       jobs: [],
       settings: { autoImport: true, maxHeight: 1080 },
+      draft: { url: "", status: "idle" },
+    },
+    missingTools: [],
+  },
+  probed: {
+    state: {
+      ...connected([{ snap: done }]),
+      sequence: { name: "Seq 01", width: 1920, height: 1080, fps: 29.97 },
+      draft: {
+        url: "https://www.youtube.com/watch?v=jNQXAC9IVRw",
+        status: "ready",
+        probeId: "p1",
+        formatId: "137+140",
+        recommendedId: "137+140",
+        info: {
+          id: "jNQXAC9IVRw",
+          title: "Me at the zoo — 첫 번째 업로드 영상, 제목이 길면 두 줄까지 보이고 나머지는 잘린다",
+          uploader: "jawed",
+          extractor: "Youtube",
+          webpageUrl: "https://www.youtube.com/watch?v=jNQXAC9IVRw",
+          durationSec: 19,
+          thumbnail: thumb,
+          variants: [
+            { formatId: "313+140", res: 2160, width: 3840, height: 2160, fps: 30, vcodec: "vp09.00.51.08", sizeBytes: 210_000_000, transcode: true },
+            { formatId: "137+140", res: 1080, width: 1920, height: 1080, fps: 30, vcodec: "avc1.640028", sizeBytes: 48_000_000, transcode: false },
+            { formatId: "136+140", res: 720, width: 1280, height: 720, fps: 30, vcodec: "avc1.4d401f", sizeBytes: 21_500_000, transcode: false },
+            { formatId: "18", res: 360, width: 640, height: 360, fps: 30, vcodec: "avc1.42001E", transcode: false },
+          ],
+        },
+      },
     },
     missingTools: [],
   },

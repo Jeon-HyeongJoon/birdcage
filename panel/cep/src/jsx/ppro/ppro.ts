@@ -47,6 +47,43 @@ export const birdcageImport = (path: string, binPath: string[]): ImportResult =>
   return { ok: true, bin: binPath, added: added };
 };
 
+/** Ticks per second in Premiere time values. */
+const TICKS = 254016000000;
+
+/**
+ * Active sequence frame size and rate (recommendation and fps warning), or ok=false when none.
+ * frameSize* exist on older versions; getSettings is tried when they are missing.
+ */
+export const birdcageSequenceInfo = () => {
+  const seq = app.project ? app.project.activeSequence : null;
+  if (!seq) return { ok: false };
+  let w = 0;
+  let h = 0;
+  try {
+    w = Number(seq.frameSizeHorizontal);
+    h = Number(seq.frameSizeVertical);
+  } catch (e) {
+    w = 0;
+  }
+  if (!w || !h) {
+    try {
+      const st = seq.getSettings();
+      w = Number(st.videoFrameWidth);
+      h = Number(st.videoFrameHeight);
+    } catch (e) {
+      w = 0;
+    }
+  }
+  let fps = 0;
+  try {
+    const tb = Number(seq.timebase); // ticks per frame
+    if (tb > 0) fps = TICKS / tb;
+  } catch (e) {
+    fps = 0;
+  }
+  return { ok: true, name: String(seq.name), width: w || 0, height: h || 0, fps: fps };
+};
+
 /** Host information the panel cannot read from CEP alone. */
 export const birdcageHostInfo = () => {
   return { version: app.version, build: app.build, projectOpen: !!(app.project && app.project.path) };

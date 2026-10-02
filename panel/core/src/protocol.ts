@@ -53,6 +53,23 @@ export interface HelloOK {
 export interface JobCreate {
   url: string;
   maxHeight?: number;
+  /** media.info probeId: the helper downloads from the cached probe without re-extraction. */
+  probeId?: string;
+  /** Chosen variant (Variant.formatId). */
+  formatId?: string;
+}
+
+export interface MediaProbe {
+  url: string;
+  maxHeight?: number;
+}
+
+/** Answer to media.probe: info on success, a classified failure otherwise. */
+export interface MediaInfoMsg {
+  url: string;
+  probeId?: string;
+  info?: SourceInfo;
+  failure?: Failure;
 }
 
 export interface JobAccepted {
@@ -91,6 +108,26 @@ export interface MediaFormat {
   sizeBytes?: number;
 }
 
+/** One selectable quality (video + the audio it merges with). */
+export interface Variant {
+  formatId: string; // yt-dlp -f value, e.g. "137+140"
+  res: number; // short side: vertical 1080×1920 → 1080
+  width?: number;
+  height?: number;
+  fps?: number;
+  vcodec: string;
+  acodec?: string;
+  hdr?: boolean;
+  sizeBytes?: number; // 0/absent = unknown
+  transcode: boolean; // video codec not Premiere-ready for this session's profile
+}
+
+export interface Subtitle {
+  lang: string;
+  name?: string;
+  auto?: boolean;
+}
+
 /** Source metadata from the engine (yt-dlp). */
 export interface SourceInfo {
   id: string;
@@ -101,6 +138,11 @@ export interface SourceInfo {
   durationSec?: number;
   isLive?: boolean;
   selected?: MediaFormat[];
+  thumbnail?: string;
+  /** Only in media.info (job snapshots omit the choice lists). */
+  variants?: Variant[];
+  bestAudio?: MediaFormat;
+  subtitles?: Subtitle[];
 }
 
 /** ffprobe summary of the final file. */
@@ -162,7 +204,7 @@ export interface JobSnapshot {
   jobId: string;
   url: string;
   state: JobState;
-  options: { maxHeight: number; profile: Profile | "" };
+  options: { maxHeight: number; profile: Profile | ""; probeId?: string; formatId?: string };
   progress: number; // stage progress 0..1, -1 unknown
   download?: DownloadProgress;
   info?: SourceInfo;
@@ -206,6 +248,7 @@ export interface ClientMessages {
   "job.cancel": JobCancel;
   "job.list": undefined;
   "tools.ensure": ToolsEnsure | undefined;
+  "media.probe": MediaProbe;
 }
 
 /** Messages the helper sends. */
@@ -217,6 +260,7 @@ export interface ServerMessages {
   "job.failed": JobEvent;
   "job.list.ok": JobList;
   "tools.status": ToolsStatus;
+  "media.info": MediaInfoMsg;
   error: ProtocolError;
 }
 

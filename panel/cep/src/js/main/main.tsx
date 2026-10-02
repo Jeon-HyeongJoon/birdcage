@@ -1,4 +1,4 @@
-import { useEffect, useState, useSyncExternalStore, FormEvent } from "react";
+import { useEffect, useState, useSyncExternalStore } from "react";
 import {
   Controller,
   HostAdapter,
@@ -12,6 +12,7 @@ import {
   title,
 } from "@birdcage/core";
 import { subscribeBackgroundColor } from "../lib/utils/bolt";
+import { Composer } from "./composer";
 import "./main.scss";
 
 export type PanelController = Pick<
@@ -20,7 +21,10 @@ export type PanelController = Pick<
   | "subscribe"
   | "start"
   | "missingTools"
-  | "submit"
+  | "setUrl"
+  | "probeDraft"
+  | "selectVariant"
+  | "submitDraft"
   | "retryConnection"
   | "installTools"
   | "updateSettings"
@@ -46,8 +50,6 @@ export const App = ({ controller: ctl, host }: { controller: PanelController; ho
     (cb) => ctl.subscribe(cb),
     () => ctl.state,
   );
-  const [url, setUrl] = useState("");
-  const [submitError, setSubmitError] = useState("");
   const [bg, setBg] = useState("#232323");
 
   useEffect(() => {
@@ -56,18 +58,6 @@ export const App = ({ controller: ctl, host }: { controller: PanelController; ho
   }, [ctl]);
 
   const missing = s.connection === "connected" ? ctl.missingTools() : [];
-
-  const submit = async (e: FormEvent) => {
-    e.preventDefault();
-    if (!url.trim()) return;
-    setSubmitError("");
-    try {
-      await ctl.submit(url);
-      setUrl("");
-    } catch (err) {
-      setSubmitError((err as Error).message);
-    }
-  };
 
   return (
     <div className="app" style={{ backgroundColor: bg }}>
@@ -95,24 +85,11 @@ export const App = ({ controller: ctl, host }: { controller: PanelController; ho
         </div>
       )}
 
-      <form className="row" onSubmit={submit}>
-        <input
-          className="url"
-          type="text"
-          placeholder="YouTube · Instagram · TikTok 링크"
-          value={url}
-          onChange={(e) => setUrl(e.target.value)}
-          disabled={s.connection !== "connected"}
-        />
-        <button type="submit" disabled={s.connection !== "connected" || !url.trim()}>
-          받기
-        </button>
-      </form>
-      {submitError && <div className="error">{submitError}</div>}
+      <Composer s={s} ctl={ctl} />
 
-      <div className="row options">
+      <div className="row options muted small">
         <label>
-          최대 화질
+          기본 화질
           <select
             value={s.settings.maxHeight}
             onChange={(e) => ctl.updateSettings({ maxHeight: Number(e.target.value) })}

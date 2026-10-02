@@ -63,3 +63,32 @@ export function mediaSummary(j: JobSnapshot): string {
   if (j.plan) parts.push(j.plan.passthrough ? "원본 그대로" : j.plan.video === "transcode" ? `변환(${j.plan.encoder ?? ""})` : "리먹스");
   return parts.join(" · ");
 }
+
+/** "0:19", "3:25", "1:02:03". */
+export function duration(sec?: number): string {
+  if (sec === undefined || sec < 0 || !isFinite(sec)) return "";
+  const s = Math.floor(sec);
+  const h = Math.floor(s / 3600);
+  const m = Math.floor((s % 3600) / 60);
+  const ss = String(s % 60).padStart(2, "0");
+  return h > 0 ? `${h}:${String(m).padStart(2, "0")}:${ss}` : `${m}:${ss}`;
+}
+
+/** "30fps", "29.97fps". */
+export function fpsLabel(fps?: number): string {
+  if (!fps || fps <= 0) return "";
+  return `${Math.round(fps * 100) / 100}fps`;
+}
+
+/** Platform name for display (yt-dlp extractor key). */
+export function platformLabel(extractor?: string): string {
+  switch ((extractor || "").toLowerCase()) {
+    case "youtube":
+      return "YouTube";
+    case "instagram":
+      return "Instagram";
+    case "tiktok":
+      return "TikTok";
+  }
+  return extractor || "";
+}

@@ -20,6 +20,7 @@ import (
 
 	"github.com/coder/websocket"
 
+	"birdcage/helper/internal/engine"
 	"birdcage/helper/internal/jobs"
 	"birdcage/helper/internal/media"
 	"birdcage/helper/internal/perf"
@@ -216,12 +217,20 @@ func (ss *session) handle(ctx context.Context, data []byte) {
 		if prof == "" {
 			prof = media.ProfileCompat
 		}
-		id, err := ss.srv.Jobs.Submit(jc.URL, jobs.Options{MaxHeight: h, Profile: prof})
+		id, err := ss.srv.Jobs.Submit(jc.URL, jobs.Options{MaxHeight: h, Profile: prof, ProbeID: jc.ProbeID, FormatID: jc.FormatID})
 		if err != nil {
 			ss.fail(ctx, env.ID, "bad_request", err.Error())
 			return
 		}
 		_ = ss.send(ctx, protocol.TypeJobAccepted, env.ID, protocol.JobAccepted{JobID: id})
+
+	case protocol.TypeMediaProbe:
+		var mp protocol.MediaProbe
+		if err := protocol.DecodeData(env, &mp); err != nil {
+			ss.fail(ctx, env.ID, "bad_request", err.Error())
+			return
+		}
+		go ss.probe(ctx, env.ID, mp)
 
 	case protocol.TypeJobCancel:
 		var jc protocol.JobCancel
@@ -250,6 +259,30 @@ func (ss *session) handle(ctx context.Context, data []byte) {
 	default:
 		ss.fail(ctx, env.ID, "unknown_type", env.Type)
 	}
+}
+
+// probe runs outside the read loop (yt-dlp -J takes seconds) and answers with media.info.
+func (ss *session) probe(ctx context.Context, id string, mp protocol.MediaProbe) {
+	h := mp.MaxHeight
+	if h <= 0 {
+		h = ss.srv.DefaultHeight
+	}
+	prof := ss.profile
+	if prof == "" {
+		prof = media.ProfileCompat
+	}
+	msg := protocol.MediaInfo{URL: mp.URL}
+	pid, info, err := ss.srv.Jobs.Probe(ctx, mp.URL, h, prof)
+	if err != nil {
+		var f *engine.Failure
+		if !errors.As(err, &f) {
+			f = engine.Fail(engine.KindInternal, err.Error())
+		}
+		msg.Failure = f
+	} else {
+		msg.ProbeID, msg.Info = pid, info
+	}
+	_ = ss.send(ctx, protocol.TypeMediaInfo, id, msg)
 }
 
 func (ss *session) ensureTools(ctx context.Context, id string, ch tools.Channel) {

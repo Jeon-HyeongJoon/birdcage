@@ -51,6 +51,8 @@ export function job(id: string, state: JobSnapshot["state"], extra: Partial<JobS
 export class FakeHelper {
   sockets: FakeSocket[] = [];
   nextJob = 1;
+  /** media.probe answer (undefined = never answers). */
+  probeReply?: (url: string) => unknown;
   factory = (url: string) => {
     const s = new FakeSocket(url, (sock, env) => this.reply(sock, env));
     this.sockets.push(s);
@@ -76,9 +78,32 @@ export class FakeHelper {
           sock.push("job.accepted", { jobId: `j${this.nextJob++}` }, env.id);
           break;
         }
+        case "media.probe": {
+          const url = (env.data as { url: string }).url;
+          const reply = this.probeReply?.(url);
+          if (reply) sock.push("media.info", reply, env.id);
+          break;
+        }
       }
     });
   }
 }
 
 export const flush = () => new Promise((r) => setTimeout(r, 0));
+
+/** media.info payload builder for probe tests. */
+export function mediaInfo(url: string, variants: Array<Partial<import("../src/protocol").Variant> & { formatId: string; res: number }>) {
+  return {
+    url,
+    probeId: "p1",
+    info: {
+      id: "x",
+      title: "제목",
+      extractor: "Youtube",
+      webpageUrl: url,
+      durationSec: 125,
+      thumbnail: "https://i.ytimg.com/vi/x/mqdefault.jpg",
+      variants: variants.map((v) => ({ vcodec: "avc1.640028", transcode: false, ...v })),
+    },
+  };
+}

@@ -43,6 +43,20 @@ func sampleJob() jobs.Snapshot {
 	}
 }
 
+func sampleMediaInfo() MediaInfo {
+	info := sampleJob().Info
+	info.Selected = nil
+	info.Thumbnail = "https://i.ytimg.com/vi/BaW_jenozKc/mqdefault.jpg"
+	info.Variants = []engine.Variant{
+		{FormatID: "313+140", Res: 2160, Width: 3840, Height: 2160, FPS: 30, VCodec: "vp09.00.51.08", ACodec: "mp4a.40.2", SizeBytes: 21000000, Transcode: true},
+		{FormatID: "137+140", Res: 1080, Width: 1920, Height: 1080, FPS: 30, VCodec: "avc1.640028", ACodec: "mp4a.40.2", SizeBytes: 2160000},
+		{FormatID: "18", Res: 360, Width: 640, Height: 360, FPS: 30, VCodec: "avc1.42001E", ACodec: "mp4a.40.2"},
+	}
+	info.BestAudio = &engine.Format{ID: "140", Ext: "m4a", ACodec: "mp4a.40.2", SizeBytes: 160000}
+	info.Subtitles = []engine.Subtitle{{Lang: "en", Name: "English"}, {Lang: "en-orig", Name: "English (Original)", Auto: true}}
+	return MediaInfo{URL: "https://youtu.be/BaW_jenozKc", ProbeID: "p0a1b2c3d4e5f", Info: info}
+}
+
 func fixtures() map[string]struct {
 	typ, id string
 	data    any
@@ -60,7 +74,9 @@ func fixtures() map[string]struct {
 			Tools: []tools.Status{{Tool: tools.Tool{Name: tools.YtDlp, Path: "/x/yt-dlp_macos", Version: "2026.08.19", Source: "installed"}},
 				{Tool: tools.Tool{Name: tools.Deno}, Error: "tool not found: deno"}},
 			Jobs: []jobs.Snapshot{}}},
-		"job.create":   {TypeJobCreate, "2", JobCreate{URL: "https://youtu.be/BaW_jenozKc", MaxHeight: 1080}},
+		"job.create":   {TypeJobCreate, "2", JobCreate{URL: "https://youtu.be/BaW_jenozKc", MaxHeight: 1080, ProbeID: "p0a1b2c3d4e5f", FormatID: "137+140"}},
+		"media.probe":  {TypeMediaProbe, "6", MediaProbe{URL: "https://youtu.be/BaW_jenozKc", MaxHeight: 1080}},
+		"media.info":   {TypeMediaInfo, "6", sampleMediaInfo()},
 		"job.accepted": {TypeJobAccepted, "2", JobAccepted{JobID: "j0a1b2c3d4e5f"}},
 		"job.cancel":   {TypeJobCancel, "3", JobCancel{JobID: "j0a1b2c3d4e5f"}},
 		"job.done":     {TypeJobDone, "", JobEvent{Job: sampleJob()}},

@@ -87,6 +87,21 @@ func (e *Engine) DownloadArgs(infoPath, workDir string, maxHeight int) []string 
 	return args
 }
 
+// RequestArgs builds the download invocation for a request: DownloadArgs plus the chosen variant.
+// 변형을 고르면 -f에 그 포맷 id를 먼저 두고, 기존 선택기를 대체 경로(/)로 남겨 포맷이 사라진 경우에도 받는다.
+func (e *Engine) RequestArgs(req engine.DownloadRequest) []string {
+	args := e.DownloadArgs(req.Info.InfoPath, req.WorkDir, req.MaxHeight)
+	if req.FormatID != "" {
+		for i := range args[:len(args)-1] {
+			if args[i] == "-f" {
+				args[i+1] = req.FormatID + "/" + args[i+1]
+				break
+			}
+		}
+	}
+	return args
+}
+
 // Probe implements engine.Engine.
 func (e *Engine) Probe(ctx context.Context, url, workDir string, maxHeight int) (*engine.Info, perf.ProcStats, error) {
 	if err := os.MkdirAll(workDir, 0o755); err != nil {
@@ -130,7 +145,7 @@ func (e *Engine) Download(ctx context.Context, req engine.DownloadRequest, onPro
 	})
 	res, err := proc.Run(ctx, proc.Spec{
 		Path:       e.YtDlp,
-		Args:       e.DownloadArgs(req.Info.InfoPath, req.WorkDir, req.MaxHeight),
+		Args:       e.RequestArgs(req),
 		Stdout:     lw,
 		StderrTail: 40,
 	})
@@ -207,6 +222,12 @@ type rawInfo struct {
 	LiveStatus   string      `json:"live_status"`
 	Requested    []rawFormat `json:"requested_formats"`
 	rawFormat
+	Formats    []fullFormat        `json:"formats"`
+	Thumbnail  string              `json:"thumbnail"`
+	Thumbnails []rawThumb          `json:"thumbnails"`
+	Subtitles  map[string][]rawSub `json:"subtitles"`
+	AutoCaps   map[string][]rawSub `json:"automatic_captions"`
+	Language   string              `json:"language"`
 }
 
 // ParseInfo extracts the fields we need from yt-dlp's -J output.
@@ -226,7 +247,10 @@ func ParseInfo(b []byte) (*engine.Info, error) {
 		WebpageURL:  r.WebpageURL,
 		DurationSec: r.Duration,
 		IsLive:      r.IsLive || r.LiveStatus == "is_live" || r.LiveStatus == "is_upcoming",
+		Thumbnail:   pickThumbnail(r.Thumbnails, r.Thumbnail, 192),
+		Subtitles:   subtitleList(r.Subtitles, r.AutoCaps, r.Language),
 	}
+	info.Variants, info.BestAudio = buildVariants(r.Formats)
 	sel := r.Requested
 	if len(sel) == 0 && r.FormatID != "" {
 		sel = []rawFormat{r.rawFormat}

@@ -44,6 +44,10 @@ func (s State) Terminal() bool { return s == Done || s == Failed || s == Cancell
 type Options struct {
 	MaxHeight int           `json:"maxHeight"`
 	Profile   media.Profile `json:"profile"`
+	// ProbeID reuses a Probe result: the download starts from its info.json without re-extraction.
+	ProbeID string `json:"probeId,omitempty"`
+	// FormatID is the chosen variant (engine.Variant.FormatID); "" selects by MaxHeight.
+	FormatID string `json:"formatId,omitempty"`
 }
 
 // StageTiming is the wall time of one pipeline stage.
@@ -102,9 +106,19 @@ type Config struct {
 	ProgressEvery  time.Duration
 	NetworkRetries int
 	KeepWorkDir    bool // 디버깅용: 작업 폴더를 지우지 않음
+	// ProbeTTL bounds how long a probe can be reused. 플랫폼의 미디어 URL은 서명·만료가 있어
+	// (YouTube 약 6시간, Instagram·TikTok은 더 짧을 수 있음) 넉넉히 짧게 잡는다.
+	ProbeTTL  time.Duration
+	MaxProbes int // cached probes kept at once (oldest evicted)
 }
 
 func (c *Config) defaults() {
+	if c.ProbeTTL <= 0 {
+		c.ProbeTTL = 20 * time.Minute
+	}
+	if c.MaxProbes <= 0 {
+		c.MaxProbes = 16
+	}
 	if c.MaxConcurrent <= 0 {
 		c.MaxConcurrent = 2
 	}
@@ -131,17 +145,19 @@ type Manager struct {
 	cfg  Config
 	deps Deps
 
-	mu      sync.Mutex
-	jobs    map[string]*job
-	order   []string // submission order
-	running map[string]int
-	active  int
-	subs    map[int]*subscriber
-	nextSub int
-	closed  bool
-	wg      sync.WaitGroup
-	ctx     context.Context
-	stop    context.CancelFunc
+	mu       sync.Mutex
+	jobs     map[string]*job
+	order    []string // submission order
+	running  map[string]int
+	active   int
+	subs     map[int]*subscriber
+	nextSub  int
+	probes   map[string]*probe
+	probeSem chan struct{}
+	closed   bool
+	wg       sync.WaitGroup
+	ctx      context.Context
+	stop     context.CancelFunc
 }
 
 // New creates a manager.
@@ -151,8 +167,143 @@ func New(cfg Config, deps Deps) *Manager {
 		deps.Log = slog.New(slog.DiscardHandler)
 	}
 	ctx, stop := context.WithCancel(context.Background())
+	// 이전 실행이 남긴 조회 폴더(비정상 종료)를 치운다.
+	if old, _ := filepath.Glob(filepath.Join(deps.WorkDir, "probe-*")); len(old) > 0 {
+		for _, d := range old {
+			_ = os.RemoveAll(d)
+		}
+	}
 	return &Manager{cfg: cfg, deps: deps, jobs: map[string]*job{}, running: map[string]int{},
-		subs: map[int]*subscriber{}, ctx: ctx, stop: stop}
+		subs: map[int]*subscriber{}, probes: map[string]*probe{}, probeSem: make(chan struct{}, 2), ctx: ctx, stop: stop}
+}
+
+// probe is a cached link probe.
+type probe struct {
+	id, url string
+	info    *engine.Info
+	dir     string
+	at      time.Time
+}
+
+// Probe extracts a link's metadata (formats, thumbnail, subtitles) and caches it so a job created
+// with Options.ProbeID downloads without re-extraction (yt-dlp --load-info-json).
+// 실측: 다운로드 2.23s → 0.86s(docs/decisions/0010). 변형의 변환 필요 여부는 세션 프로필로 표시한다.
+func (m *Manager) Probe(ctx context.Context, rawURL string, maxHeight int, profile media.Profile) (string, *engine.Info, error) {
+	u, err := parseURL(rawURL)
+	if err != nil {
+		return "", nil, engine.Fail(engine.KindUnsupportedURL, err.Error())
+	}
+	select {
+	case m.probeSem <- struct{}{}:
+	case <-ctx.Done():
+		return "", nil, engine.Fail(engine.KindCancelled, "")
+	}
+	defer func() { <-m.probeSem }()
+	ts, err := m.deps.Tools(ctx)
+	if err != nil {
+		return "", nil, asFailure(err, engine.KindToolMissing)
+	}
+	id := "p" + newID()[1:]
+	dir := filepath.Join(m.deps.WorkDir, "probe-"+id)
+	span := m.deps.Rec.Start("probe", "host", hostKey(u.Hostname()), "engine", ts.Engine.Name(), "max_height", maxHeight)
+	var info *engine.Info
+	err = m.withRetry(ctx, func() error {
+		var ps perf.ProcStats
+		var err error
+		info, ps, err = ts.Engine.Probe(ctx, u.String(), dir, maxHeight)
+		span.SetProc(ps)
+		return err
+	})
+	if err != nil {
+		span.End(err)
+		_ = os.RemoveAll(dir)
+		if ctx.Err() != nil {
+			return "", nil, engine.Fail(engine.KindCancelled, "")
+		}
+		return "", nil, asFailure(err, engine.KindInternal)
+	}
+	for i := range info.Variants {
+		info.Variants[i].Transcode = info.Variants[i].NeedsTranscode(profile == media.ProfileModern)
+	}
+	span.Set("variants", len(info.Variants), "subtitles", len(info.Subtitles))
+	span.End(nil)
+	m.mu.Lock()
+	m.probes[id] = &probe{id: id, url: u.String(), info: info, dir: dir, at: time.Now()}
+	stale := m.evictProbesLocked(time.Now())
+	m.mu.Unlock()
+	for _, d := range stale {
+		_ = os.RemoveAll(d)
+	}
+	return id, info, nil
+}
+
+// evictProbesLocked drops expired probes and the oldest beyond MaxProbes; it returns their dirs.
+func (m *Manager) evictProbesLocked(now time.Time) []string {
+	var dirs []string
+	for id, p := range m.probes {
+		if now.Sub(p.at) > m.cfg.ProbeTTL {
+			dirs = append(dirs, p.dir)
+			delete(m.probes, id)
+		}
+	}
+	for len(m.probes) > m.cfg.MaxProbes {
+		var oldest *probe
+		for _, p := range m.probes {
+			if oldest == nil || p.at.Before(oldest.at) {
+				oldest = p
+			}
+		}
+		dirs = append(dirs, oldest.dir)
+		delete(m.probes, oldest.id)
+	}
+	return dirs
+}
+
+// reuseProbe copies a cached probe's info.json into the job's work dir. It returns nil when the
+// probe is unknown, expired or for another URL (the job then probes again).
+func (m *Manager) reuseProbe(id, url, work string) *engine.Info {
+	if id == "" {
+		return nil
+	}
+	m.mu.Lock()
+	p := m.probes[id]
+	if p != nil && (p.url != url || time.Since(p.at) > m.cfg.ProbeTTL) {
+		p = nil
+	}
+	m.mu.Unlock()
+	if p == nil {
+		return nil
+	}
+	b, err := os.ReadFile(p.info.InfoPath)
+	if err != nil {
+		return nil
+	}
+	if err := os.MkdirAll(work, 0o755); err != nil {
+		return nil
+	}
+	dst := filepath.Join(work, "info.json")
+	if err := os.WriteFile(dst, b, 0o644); err != nil {
+		return nil
+	}
+	info := *p.info
+	info.InfoPath = dst
+	return &info
+}
+
+func asFailure(err error, fallback engine.Kind) *engine.Failure {
+	var f *engine.Failure
+	if errors.As(err, &f) {
+		return f
+	}
+	return engine.Fail(fallback, err.Error())
+}
+
+func parseURL(raw string) (*url.URL, error) {
+	u, err := url.Parse(strings.TrimSpace(raw))
+	if err != nil || (u.Scheme != "http" && u.Scheme != "https") || u.Host == "" {
+		return nil, fmt.Errorf("invalid url %q", raw)
+	}
+	return u, nil
 }
 
 // ErrClosed is returned after Close.
@@ -160,9 +311,9 @@ var ErrClosed = errors.New("job manager closed")
 
 // Submit validates and enqueues a URL.
 func (m *Manager) Submit(rawURL string, opts Options) (string, error) {
-	u, err := url.Parse(strings.TrimSpace(rawURL))
-	if err != nil || (u.Scheme != "http" && u.Scheme != "https") || u.Host == "" {
-		return "", fmt.Errorf("invalid url %q", rawURL)
+	u, err := parseURL(rawURL)
+	if err != nil {
+		return "", err
 	}
 	id := newID()
 	now := time.Now().UTC()
@@ -320,7 +471,15 @@ func (m *Manager) Close() {
 			m.finishLocked(j, Cancelled, engine.Fail(engine.KindCancelled, "shutdown"))
 		}
 	}
+	var probeDirs []string
+	for id, p := range m.probes {
+		probeDirs = append(probeDirs, p.dir)
+		delete(m.probes, id)
+	}
 	m.mu.Unlock()
+	for _, d := range probeDirs {
+		_ = os.RemoveAll(d)
+	}
 	m.stop()
 	m.wg.Wait()
 	m.mu.Lock()
@@ -453,32 +612,38 @@ func (m *Manager) pipeline(ctx context.Context, j *job) (string, error) {
 	opts := j.snap.Options
 	ts, err := m.deps.Tools(ctx)
 	if err != nil {
-		var f *engine.Failure
-		if errors.As(err, &f) {
-			return "", f
-		}
-		return "", engine.Fail(engine.KindToolMissing, err.Error())
+		return "", asFailure(err, engine.KindToolMissing)
 	}
 	if len(ts.Warnings) > 0 {
 		m.update(j, true, func(s *Snapshot) { s.Warnings = append(s.Warnings, ts.Warnings...) })
 	}
 
-	// 1) probe
+	// 1) probe (또는 패널이 먼저 조회한 결과 재사용)
 	m.stage(j, Probing)
-	var info *engine.Info
-	err = m.withRetry(ctx, func() error {
-		sp := m.deps.Rec.StartJob(id, "stage.probe", "engine", ts.Engine.Name())
-		var ps perf.ProcStats
-		var err error
-		info, ps, err = ts.Engine.Probe(ctx, j.snap.URL, work, opts.MaxHeight)
-		sp.SetProc(ps)
+	sp := m.deps.Rec.StartJob(id, "stage.probe", "engine", ts.Engine.Name(), "reused", opts.ProbeID != "")
+	info := m.reuseProbe(opts.ProbeID, j.snap.URL, work)
+	if info != nil {
+		m.timing(j, "probe", sp.End(nil))
+	} else {
+		sp.Set("reused", false)
+		err = m.withRetry(ctx, func() error {
+			var ps perf.ProcStats
+			var err error
+			info, ps, err = ts.Engine.Probe(ctx, j.snap.URL, work, opts.MaxHeight)
+			sp.SetProc(ps)
+			return err
+		})
 		m.timing(j, "probe", sp.End(err))
-		return err
-	})
-	if err != nil {
-		return "", err
+		if err != nil {
+			return "", err
+		}
 	}
-	m.update(j, true, func(s *Snapshot) { s.Info = info })
+	if v, ok := info.Variant(opts.FormatID); ok {
+		info.Selected = v.Parts // 진행률 합산과 예상 크기가 실제로 받을 포맷을 따른다
+	}
+	slim := *info // 작업 스냅샷은 진행률마다 전송되므로 선택지 목록은 빼고 보낸다
+	slim.Variants, slim.Subtitles, slim.BestAudio = nil, nil, nil
+	m.update(j, true, func(s *Snapshot) { s.Info = &slim })
 
 	// 2) download
 	m.stage(j, Downloading)
@@ -486,7 +651,7 @@ func (m *Manager) pipeline(ctx context.Context, j *job) (string, error) {
 	err = m.withRetry(ctx, func() error {
 		sp := m.deps.Rec.StartJob(id, "stage.download", "engine", ts.Engine.Name(), "expected_bytes", info.ExpectedBytes())
 		var err error
-		dl, err = ts.Engine.Download(ctx, engine.DownloadRequest{Info: info, MaxHeight: opts.MaxHeight, WorkDir: work},
+		dl, err = ts.Engine.Download(ctx, engine.DownloadRequest{Info: info, MaxHeight: opts.MaxHeight, FormatID: opts.FormatID, WorkDir: work},
 			func(p engine.Progress) {
 				m.update(j, false, func(s *Snapshot) {
 					pp := p
@@ -510,7 +675,7 @@ func (m *Manager) pipeline(ctx context.Context, j *job) (string, error) {
 
 	// 3) analyze
 	m.stage(j, Normalizing)
-	sp := m.deps.Rec.StartJob(id, "stage.analyze")
+	sp = m.deps.Rec.StartJob(id, "stage.analyze")
 	in, ps, err := ts.Prober.Probe(ctx, dl.Path)
 	if err != nil {
 		sp.SetProc(ps)

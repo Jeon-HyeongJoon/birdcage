@@ -1,8 +1,9 @@
 // Controller: panel logic shared by every host.
 // Helper 수명(시작·재연결), 작업 목록 상태, 완료 시 자동 임포트를 담당한다. UI는 state만 그린다.
 import { HelperClient, HelperEndpoint, WebSocketFactory } from "./client";
+import { recommendVariant, SequenceInfo, targetRes } from "./choice";
 import type { HostAdapter } from "./host";
-import type { HelloOK, JobSnapshot, ToolStatus } from "./protocol";
+import type { Failure, HelloOK, JobSnapshot, SourceInfo, ToolStatus } from "./protocol";
 import { TERMINAL_STATES } from "./protocol";
 
 export type ConnectionState = "idle" | "starting" | "connected" | "reconnecting" | "failed";
@@ -23,6 +24,27 @@ export interface Settings {
   maxHeight: number;
 }
 
+export type ProbeStatus = "idle" | "probing" | "ready" | "failed";
+
+/** The link being prepared for download (조회 → 선택 → 받기). */
+export interface Draft {
+  url: string;
+  status: ProbeStatus;
+  probeId?: string;
+  info?: SourceInfo;
+  failure?: Failure | { kind: "request"; message: string };
+  /** Chosen variant; undefined until the info arrives (then the recommendation). */
+  formatId?: string;
+  recommendedId?: string;
+}
+
+const EMPTY_DRAFT: Draft = { url: "", status: "idle" };
+
+/** Looks like a downloadable link (the helper validates for real). */
+export function isLink(s: string): boolean {
+  return /^https?:\/\/[^\s/]+\.[^\s]+/.test(s.trim());
+}
+
 export interface State {
   connection: ConnectionState;
   error?: string;
@@ -33,6 +55,9 @@ export interface State {
   toolsError?: string;
   jobs: JobView[]; // 최신이 앞
   settings: Settings;
+  draft: Draft;
+  /** Active sequence (undefined = not asked yet, null = none open). */
+  sequence?: SequenceInfo | null;
 }
 
 export interface ControllerOptions {
@@ -44,6 +69,8 @@ export interface ControllerOptions {
   /** Reconnect delays in ms; after the last one the controller gives up (state "failed"). */
   backoff?: number[];
   setTimer?: (fn: () => void, ms: number) => unknown;
+  /** Delay between typing/pasting a link and probing it. */
+  probeDebounceMs?: number;
 }
 
 const REQUIRED_TOOLS = ["yt-dlp", "ffmpeg", "ffprobe"];
@@ -55,6 +82,7 @@ export class Controller {
   private attempt = 0;
   private disposed = false;
   private starting = false;
+  private draftSeq = 0;
 
   constructor(private opts: ControllerOptions) {
     this._state = {
@@ -63,6 +91,7 @@ export class Controller {
       toolsInstalling: false,
       jobs: [],
       settings: { autoImport: true, maxHeight: 1080, ...opts.settings },
+      draft: EMPTY_DRAFT,
     };
   }
 
@@ -120,6 +149,75 @@ export class Controller {
   async submit(url: string): Promise<void> {
     const c = this.requireClient();
     await c.createJob(url.trim(), this._state.settings.maxHeight);
+  }
+
+  /** Updates the link field; a valid link is probed after a short pause (paste → info). */
+  setUrl(url: string): void {
+    const seq = ++this.draftSeq;
+    const trimmed = url.trim();
+    if (trimmed === this._state.draft.url.trim() && this._state.draft.status !== "idle") {
+      this.set({ draft: { ...this._state.draft, url } });
+      return;
+    }
+    this.set({ draft: { ...EMPTY_DRAFT, url } });
+    if (!isLink(trimmed) || this._state.connection !== "connected") return;
+    const timer = this.opts.setTimer ?? ((fn, ms) => setTimeout(fn, ms));
+    timer(() => {
+      if (seq === this.draftSeq) void this.probeDraft();
+    }, this.opts.probeDebounceMs ?? 400);
+  }
+
+  /** Probes the current link now (also used by "다시 조회"). */
+  async probeDraft(): Promise<void> {
+    const url = this._state.draft.url.trim();
+    if (!isLink(url)) return;
+    const seq = ++this.draftSeq;
+    this.set({ draft: { url: this._state.draft.url, status: "probing" } });
+    try {
+      // 시퀀스는 조회와 함께 읽는다(추천이 현재 시퀀스를 따른다).
+      const [res] = await Promise.all([this.requireClient().probe(url, this._state.settings.maxHeight), this.refreshSequence()]);
+      if (seq !== this.draftSeq) return; // 사용자가 그새 링크를 바꿨다
+      if (res.failure || !res.info) {
+        this.set({ draft: { ...this._state.draft, status: "failed", failure: res.failure } });
+        return;
+      }
+      const rec = recommendVariant(res.info.variants, targetRes(this._state.sequence, this._state.settings.maxHeight));
+      this.set({
+        draft: { ...this._state.draft, status: "ready", probeId: res.probeId, info: res.info, formatId: rec?.formatId, recommendedId: rec?.formatId },
+      });
+    } catch (e) {
+      if (seq !== this.draftSeq) return;
+      this.set({ draft: { ...this._state.draft, status: "failed", failure: { kind: "request", message: (e as Error).message } } });
+    }
+  }
+
+  selectVariant(formatId: string): void {
+    if (!this._state.draft.info?.variants?.some((v) => v.formatId === formatId)) return;
+    this.set({ draft: { ...this._state.draft, formatId } });
+  }
+
+  /** Downloads the draft with the chosen options and clears the field. */
+  async submitDraft(): Promise<void> {
+    const d = this._state.draft;
+    const url = d.url.trim();
+    if (!isLink(url)) return;
+    const c = this.requireClient();
+    const extra = d.status === "ready" ? { probeId: d.probeId, formatId: d.formatId } : {};
+    const variant = d.info?.variants?.find((v) => v.formatId === d.formatId);
+    await c.createJob(url, variant?.res ?? this._state.settings.maxHeight, extra);
+    this.draftSeq++;
+    this.set({ draft: EMPTY_DRAFT });
+  }
+
+  /** Reads the active sequence (for recommendations and fps warnings). */
+  async refreshSequence(): Promise<void> {
+    if (!this.opts.host.sequenceInfo) return;
+    try {
+      const seq = await this.opts.host.sequenceInfo();
+      this.set({ sequence: seq });
+    } catch {
+      this.set({ sequence: null });
+    }
   }
 
   cancel(jobId: string): void {

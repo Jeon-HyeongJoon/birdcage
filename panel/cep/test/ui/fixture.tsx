@@ -24,7 +24,10 @@ class FixtureController implements PanelController {
   missingTools(): string[] {
     return scenario.missingTools;
   }
-  async submit(): Promise<void> {}
+  setUrl(_url: string): void {}
+  async probeDraft(): Promise<void> {}
+  selectVariant(_formatId: string): void {}
+  async submitDraft(): Promise<void> {}
   retryConnection(): void {}
   installTools(): void {}
   updateSettings(_settings: Partial<Settings>): void {}

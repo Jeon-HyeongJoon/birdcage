@@ -9,6 +9,7 @@ import (
 	"encoding/json"
 	"fmt"
 
+	"birdcage/helper/internal/engine"
 	"birdcage/helper/internal/jobs"
 	"birdcage/helper/internal/tools"
 )
@@ -24,6 +25,7 @@ const (
 	TypeJobCancel   = "job.cancel"
 	TypeJobList     = "job.list"
 	TypeToolsEnsure = "tools.ensure"
+	TypeMediaProbe  = "media.probe"
 
 	// helper → panel
 	TypeHelloOK     = "hello.ok"
@@ -33,6 +35,7 @@ const (
 	TypeJobFailed   = "job.failed"
 	TypeJobListOK   = "job.list.ok"
 	TypeToolsStatus = "tools.status"
+	TypeMediaInfo   = "media.info"
 	TypeError       = "error"
 )
 
@@ -73,6 +76,22 @@ type HelloOK struct {
 type JobCreate struct {
 	URL       string `json:"url"`
 	MaxHeight int    `json:"maxHeight,omitempty"` // 0 → helper default (1080)
+	ProbeID   string `json:"probeId,omitempty"`   // media.info probeId: download without re-extraction
+	FormatID  string `json:"formatId,omitempty"`  // chosen variant (media.info variants[].formatId)
+}
+
+// MediaProbe asks for a link's metadata before downloading (answered by media.info, same id).
+type MediaProbe struct {
+	URL       string `json:"url"`
+	MaxHeight int    `json:"maxHeight,omitempty"`
+}
+
+// MediaInfo answers MediaProbe with either the info or the classified failure.
+type MediaInfo struct {
+	URL     string          `json:"url"`
+	ProbeID string          `json:"probeId,omitempty"`
+	Info    *engine.Info    `json:"info,omitempty"`
+	Failure *engine.Failure `json:"failure,omitempty"`
 }
 
 // JobAccepted answers JobCreate.

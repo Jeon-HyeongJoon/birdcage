@@ -1,6 +1,6 @@
 // HostAdapter for CEP panels (Premiere 15.0–26).
 // CEP는 Node.js를 쓸 수 있어 Helper를 자식 프로세스로 직접 띄운다(UXP는 v2에서 다른 방식).
-import type { HelperEndpoint, Host, HostAdapter, ImportResult } from "@birdcage/core";
+import type { HelperEndpoint, Host, HostAdapter, ImportResult, SequenceInfo } from "@birdcage/core";
 import { child_process, fs, os, path } from "../lib/cep/node";
 import { csi, evalTS } from "../lib/utils/bolt";
 
@@ -135,6 +135,14 @@ export class CepHost implements HostAdapter {
     if (res.ok) return { ok: true, bin: res.bin };
     const msg = (res.code && IMPORT_ERRORS[res.code]) || "알 수 없는 오류";
     return { ok: false, error: res.detail ? `${msg} (${res.detail})` : msg, bin: res.bin };
+  }
+
+  async sequenceInfo(): Promise<SequenceInfo | null> {
+    const res = (await evalTS("birdcageSequenceInfo")) as
+      | { ok: boolean; name?: string; width?: number; height?: number; fps?: number }
+      | undefined;
+    if (!res || !res.ok || !res.width || !res.height) return null;
+    return { name: res.name ?? "", width: res.width, height: res.height, fps: res.fps ?? 0 };
   }
 
   revealFile(file: string): void {
