@@ -1,0 +1,51 @@
+{
+  "$schema": "../schema/iteration.schema.json",
+  "id": "20261002-173821-T-005",
+  "task": "T-005",
+  "session": {
+    "kind": "verifier"
+  },
+  "startedAt": "2026-10-02T17:38:21Z",
+  "endedAt": "2026-10-02T17:49:19Z",
+  "base": {
+    "branch": "test/t-005-premiere-e2e",
+    "commit": "f683aefc6667"
+  },
+  "head": {
+    "branch": "test/t-005-premiere-e2e",
+    "commit": "f683aefc6667",
+    "dirty": true
+  },
+  "state": "success",
+  "hypothesis": "사용자가 정상 실행을 확인한 Premiere 15.2에서 설치된 CEP 링크를 통해 Birdcage 패널을 열면 Helper와 연결되고, 공개 YouTube 테스트 링크가 다운로드된 뒤 Birdcage/Youtube 빈에 임포트되며 화면 증적을 남길 수 있다.",
+  "summary": "Premiere Pro 15.2에서 Birdcage CEP 패널 연결, YouTube 테스트 영상 다운로드(2.342초), Birdcage/Youtube 빈 자동 임포트와 화면·구조 증적을 확인했다. 전체 필수 게이트 통과.",
+  "metrics": {
+    "durationMin": 10.9,
+    "evidence": 12,
+    "evidenceByLevel": {
+      "L1": 5,
+      "L2": 3,
+      "L3": 3,
+      "L5": 1
+    },
+    "pass": 11,
+    "fail": 0,
+    "skip": 0
+  },
+  "retro": {
+    "lessons": [
+      "Premiere CEP는 PATH=/usr/bin:/bin:/usr/sbin:/sbin만 상속해 /opt/homebrew/bin의 기존 FFmpeg를 감지하지 못한다. macOS 표준 Homebrew 경로 탐색 또는 helper spawn 환경 보강이 필요하다."
+    ]
+  },
+  "next": [
+    "사용자 보고 후 응답을 기다린다. 승인되면 다음 항목 T-006 Windows 실기 검증을 별도 세션에서 시작한다."
+  ],
+  "approvals": [
+    {
+      "action": "system.settings",
+      "by": "전형준",
+      "at": "2026-10-02T17:43:09Z",
+      "note": "기존 사용자 승인(2026-10-03, iteration 20261002-172534-T-005) 계승 — CEP 환경 및 Birdcage 사용자 데이터 도구 설치"
+    }
+  ]
+}
