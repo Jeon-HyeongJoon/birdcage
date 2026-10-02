@@ -5,8 +5,8 @@
       "id": "T-001",
       "title": "루프 기반: 정책·스키마·loopctl(상태·증적·종료·정체·세션·보호 경로·보관)",
       "mode": "compile",
-      "status": "open",
-      "passes": false,
+      "status": "done",
+      "passes": true,
       "priority": 1,
       "acceptance": [
         {
@@ -19,6 +19,10 @@
           "maxLevel": "L2",
           "what": "loopctl check 통과(G-loop)"
         }
+      ],
+      "evidence": [
+        "E-20261002-134825-002",
+        "E-20261002-134825-001"
       ]
     },
     {
@@ -100,7 +104,7 @@
     },
     {
       "id": "T-005",
-      "title": "Premiere 15.2에서 CEP 패널 로드·다운로드·Birdcage/<플랫폼> 빈 임포트 확인",
+      "title": "Premiere 15.2에서 CEP 패널 로드·다운로드·Birdcage/\u003c플랫폼\u003e 빈 임포트 확인",
       "mode": "human",
       "status": "open",
       "passes": false,

@@ -1,0 +1,48 @@
+{
+  "$schema": "../schema/iteration.schema.json",
+  "id": "20261002-134825-T-001",
+  "task": "T-001",
+  "session": {
+    "kind": "bootstrap",
+    "id": "2df3dff7-1152-4794-b7b9-d1f8c6d6a92c",
+    "model": "claude-opus-5-5"
+  },
+  "startedAt": "2026-10-02T13:48:25Z",
+  "endedAt": "2026-10-02T13:48:28Z",
+  "base": {
+    "branch": "feat/loop-foundation",
+    "commit": "98c28992d62f"
+  },
+  "head": {
+    "branch": "feat/loop-foundation",
+    "commit": "98c28992d62f",
+    "dirty": true
+  },
+  "state": "success",
+  "hypothesis": "루프 기반(정책·스키마·loopctl)이 완료 조건을 만족한다: 루프 도구 테스트(L1)와 loopctl check(L2)가 통과한다. bootstrap이라 구현은 이미 98c2899에 있고 이 반복은 검증·기록만 한다.",
+  "summary": "loopctl(check·begin·run·gates·brief·end·guard·premises·readiness) 테스트와 루프 규칙 검사 통과. 원칙이 참조하는 규칙 19개 등록.",
+  "metrics": {
+    "durationMin": 0,
+    "evidence": 2,
+    "evidenceByLevel": {
+      "L1": 1,
+      "L2": 1
+    },
+    "pass": 2,
+    "fail": 0,
+    "skip": 0
+  },
+  "retro": {
+    "newChecks": [
+      "R-* 규칙 19개(loopctl rules)",
+      "보호 경로 guard: 기존 검증기 수정·삭제는 verifier.change 승인 필요"
+    ],
+    "lessons": [
+      "기존 테스트 파일에 테스트를 덧붙이는 것도 보호 경로 수정으로 잡힌다 → 새 테스트는 새 파일로 추가",
+      "bootstrap 세션은 구현이 반복 기록보다 먼저 왔다. 다음 세션부터는 begin → 구현 → gates → end 순서"
+    ]
+  },
+  "next": [
+    "T-002·T-003·T-004 검증 반복"
+  ]
+}
