@@ -29,8 +29,8 @@
       "id": "T-002",
       "title": "실패 분류표 SSOT(specs/failures.json → Go·TS 생성)",
       "mode": "compile",
-      "status": "open",
-      "passes": false,
+      "status": "done",
+      "passes": true,
       "priority": 1,
       "acceptance": [
         {
@@ -48,6 +48,10 @@
           "maxLevel": "L1",
           "what": "패널 코어 테스트(G-core)"
         }
+      ],
+      "evidence": [
+        "E-20261002-134841-001",
+        "E-20261002-134841-002"
       ]
     },
     {

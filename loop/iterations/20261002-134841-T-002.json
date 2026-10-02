@@ -1,0 +1,49 @@
+{
+  "$schema": "../schema/iteration.schema.json",
+  "id": "20261002-134841-T-002",
+  "task": "T-002",
+  "session": {
+    "kind": "bootstrap",
+    "id": "2df3dff7-1152-4794-b7b9-d1f8c6d6a92c",
+    "model": "claude-opus-5-5"
+  },
+  "startedAt": "2026-10-02T13:48:41Z",
+  "endedAt": "2026-10-02T13:48:48Z",
+  "base": {
+    "branch": "feat/loop-foundation",
+    "commit": "2ca9bf34f75e"
+  },
+  "head": {
+    "branch": "feat/loop-foundation",
+    "commit": "2ca9bf34f75e",
+    "dirty": true
+  },
+  "state": "success",
+  "hypothesis": "실패 분류표를 specs/failures.json 하나로 옮겨도 동작이 같다: 생성물이 최신(G-gen)이고, Helper 전체 테스트(engine 표-명세 일치 테스트 포함, G-helper)와 패널 코어 테스트(fixture 계약·kind/policy 일치, G-core)가 통과한다.",
+  "summary": "Go·TS 손코드 분류표를 명세 생성물로 대체. 의미 해시 sha256:8c50fac6…, 동작 변화 없음(Helper 50개·코어 18개 테스트 통과).",
+  "metrics": {
+    "durationMin": 0.1,
+    "evidence": 3,
+    "evidenceByLevel": {
+      "L1": 3
+    },
+    "pass": 3,
+    "fail": 0,
+    "skip": 0
+  },
+  "retro": {
+    "newChecks": [
+      "TestFailureTableMatchesSpec(Go 런타임 표=명세)",
+      "validators.ts: 수신 실패의 kind·policy가 명세와 일치"
+    ],
+    "specChanges": [
+      "specs/failures.json(+schema) 신설, engine.go·protocol.ts의 손코드 제거"
+    ],
+    "lessons": [
+      "Go 이니셜리즘(URL·DRM)과 기존 상수명(KindFormat)을 지키려면 명세에 goName이 필요했다"
+    ]
+  },
+  "next": [
+    "T-003 검증 반복"
+  ]
+}
