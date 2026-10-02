@@ -4,5 +4,6 @@ export * from "./host";
 export * from "./controller";
 export * from "./format";
 export * from "./choice";
+export * from "./time";
 export * from "./failures.gen";
 export { validatePayload } from "./validators";

@@ -7,6 +7,7 @@ import {
   TERMINAL_STATES,
   eta,
   mediaSummary,
+  formatTime,
   overallProgress,
   speed,
   title,
@@ -24,6 +25,7 @@ export type PanelController = Pick<
   | "setUrl"
   | "probeDraft"
   | "selectVariant"
+  | "setRange"
   | "submitDraft"
   | "retryConnection"
   | "installTools"
@@ -158,7 +160,13 @@ const JobItem = ({ view, controller: ctl, host }: { view: JobView; controller: P
           {detail}
         </div>
       )}
-      {j.warnings?.map((w, i) => (
+      {j.options.range && (
+        <div className="muted small">
+          구간 {formatTime(j.options.range.startSec)}–{formatTime(j.options.range.endSec)}
+          {view.import?.inout === "set" ? " · In/Out 설정됨" : ""}
+        </div>
+      )}
+      {[...(j.warnings ?? []), ...(view.import?.warnings ?? [])].map((w, i) => (
         <div key={i} className="warn small">
           {w}
         </div>

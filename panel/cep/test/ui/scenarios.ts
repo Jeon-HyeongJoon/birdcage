@@ -91,7 +91,7 @@ const connected = (jobs: State["jobs"], availableTools = tools): State => ({
   toolsInstalling: false,
   jobs,
   settings: { autoImport: false, maxHeight: 1080 },
-  draft: { url: "", status: "idle" },
+  draft: { url: "", status: "idle", range: { on: false } },
 });
 
 export const scenarios: Record<string, Scenario> = {
@@ -111,7 +111,7 @@ export const scenarios: Record<string, Scenario> = {
       toolsInstalling: false,
       jobs: [],
       settings: { autoImport: true, maxHeight: 1080 },
-      draft: { url: "", status: "idle" },
+      draft: { url: "", status: "idle", range: { on: false } },
     },
     missingTools: [],
   },
@@ -120,8 +120,9 @@ export const scenarios: Record<string, Scenario> = {
       ...connected([{ snap: done }]),
       sequence: { name: "Seq 01", width: 1920, height: 1080, fps: 29.97 },
       draft: {
-        url: "https://www.youtube.com/watch?v=jNQXAC9IVRw",
+        url: "https://www.youtube.com/watch?v=jNQXAC9IVRw&t=5",
         status: "ready",
+        range: { on: true, start: 5.3, end: 12.1 },
         probeId: "p1",
         formatId: "137+140",
         recommendedId: "137+140",

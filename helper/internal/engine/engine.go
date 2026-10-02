@@ -8,6 +8,7 @@ package engine
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	"birdcage/helper/internal/perf"
 )
@@ -105,6 +106,13 @@ type Format struct {
 	Height    int     `json:"height,omitempty"`
 	FPS       float64 `json:"fps,omitempty"`
 	SizeBytes int64   `json:"sizeBytes,omitempty"` // exact or approximate
+	Protocol  string  `json:"protocol,omitempty"`  // https | m3u8_native | …
+}
+
+// Segmented reports HLS-style formats whose timestamps do not start at the source origin
+// (MPEG-TS PTS) — 구간 다운로드의 시작 시각으로 In/Out을 계산할 수 없다.
+func (f Format) Segmented() bool {
+	return strings.HasPrefix(f.Protocol, "m3u8") || strings.HasPrefix(f.Protocol, "f4m")
 }
 
 // ExpectedBytes sums the known sizes of the selected formats (0 if unknown).
@@ -134,12 +142,21 @@ type Progress struct {
 	Fraction float64 `json:"fraction"`
 }
 
+// Section is a span of the source timeline in seconds.
+type Section struct {
+	Start float64 `json:"startSec"`
+	End   float64 `json:"endSec"`
+}
+
 // DownloadRequest asks the engine to fetch a probed item.
 type DownloadRequest struct {
 	Info      *Info
 	MaxHeight int    // 0 = no cap
 	FormatID  string // explicit variant (Variant.FormatID); "" = select by MaxHeight
 	WorkDir   string // engine writes its output here
+	// Section limits the download to part of the source. The output keeps the source timeline
+	// (stream start times = original positions) so the caller can align streams and place In/Out.
+	Section *Section
 }
 
 // DownloadResult is the engine's output file.

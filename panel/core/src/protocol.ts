@@ -57,6 +57,20 @@ export interface JobCreate {
   probeId?: string;
   /** Chosen variant (Variant.formatId). */
   formatId?: string;
+  /** Download only this part of the source (the helper adds 1s handles). */
+  range?: TimeRange;
+}
+
+/** A span of the source timeline in seconds. */
+export interface TimeRange {
+  startSec: number;
+  endSec: number;
+}
+
+/** The requested range inside the output file (set as In/Out on the Premiere item). */
+export interface Clip {
+  inSec: number;
+  outSec: number;
 }
 
 export interface MediaProbe {
@@ -161,6 +175,7 @@ export interface MediaInfo {
     colorTransfer?: string;
     colorPrimaries?: string;
     bitRate?: number;
+    startSec?: number;
   };
   audio?: {
     index: number;
@@ -168,6 +183,7 @@ export interface MediaInfo {
     profile?: string;
     sampleRate: number;
     channels: number;
+    startSec?: number;
   };
 }
 
@@ -183,6 +199,8 @@ export interface Plan {
   reasons: string[];
   warnings?: string[];
   bitrateBps?: number;
+  aligned?: boolean;
+  alignShiftSec?: number;
 }
 
 // 실패 분류표(FailureKind, FailurePolicy)는 specs/failures.json이 SSOT다(make gen → failures.gen.ts).
@@ -204,13 +222,14 @@ export interface JobSnapshot {
   jobId: string;
   url: string;
   state: JobState;
-  options: { maxHeight: number; profile: Profile | ""; probeId?: string; formatId?: string };
+  options: { maxHeight: number; profile: Profile | ""; probeId?: string; formatId?: string; range?: TimeRange };
   progress: number; // stage progress 0..1, -1 unknown
   download?: DownloadProgress;
   info?: SourceInfo;
   media?: MediaInfo;
   plan?: Plan;
   file?: string;
+  clip?: Clip;
   failure?: Failure;
   warnings?: string[];
   timings?: StageTiming[];

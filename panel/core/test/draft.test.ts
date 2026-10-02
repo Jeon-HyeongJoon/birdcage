@@ -50,7 +50,7 @@ describe("draft: paste → probe → choose → download", () => {
     await ctl.submitDraft();
     const create = fh.last.sent.find((e) => e.type === "job.create");
     expect(create?.data).toEqual({ url: URL, maxHeight: 2160, probeId: "p1", formatId: "313+140" });
-    expect(ctl.state.draft).toEqual({ url: "", status: "idle" });
+    expect(ctl.state.draft).toEqual({ url: "", status: "idle", range: { on: false } });
   });
 
   it("ignores a stale probe answer after the link changed", async () => {

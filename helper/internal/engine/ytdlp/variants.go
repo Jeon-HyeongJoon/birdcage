@@ -17,7 +17,6 @@ type fullFormat struct {
 	TBR          float64 `json:"tbr"`
 	ABR          float64 `json:"abr"`
 	DynamicRange string  `json:"dynamic_range"`
-	Protocol     string  `json:"protocol"`
 	LangPref     float64 `json:"language_preference"`
 }
 
@@ -43,7 +42,7 @@ func (f fullFormat) size() int64 {
 
 func (f fullFormat) format() engine.Format {
 	return engine.Format{ID: f.FormatID, Ext: f.Ext, VCodec: noneToEmpty(f.VCodec), ACodec: noneToEmpty(f.ACodec),
-		Width: f.Width, Height: f.Height, FPS: f.FPS, SizeBytes: f.size()}
+		Width: f.Width, Height: f.Height, FPS: f.FPS, SizeBytes: f.size(), Protocol: f.Protocol}
 }
 
 func videoRank(f fullFormat) []float64 {

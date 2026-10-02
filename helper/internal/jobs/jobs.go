@@ -11,6 +11,7 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
+	"math"
 	"net/url"
 	"os"
 	"path/filepath"
@@ -48,6 +49,17 @@ type Options struct {
 	ProbeID string `json:"probeId,omitempty"`
 	// FormatID is the chosen variant (engine.Variant.FormatID); "" selects by MaxHeight.
 	FormatID string `json:"formatId,omitempty"`
+	// Range downloads only part of the source (plus handles) and reports In/Out in Snapshot.Clip.
+	Range *engine.Section `json:"range,omitempty"`
+}
+
+// RangeHandleSec is extra media kept before/after a requested range for trims and transitions.
+const RangeHandleSec = 1.0
+
+// Clip is the requested range inside the output file (In/Out to set on the Premiere item).
+type Clip struct {
+	InSec  float64 `json:"inSec"`
+	OutSec float64 `json:"outSec"`
 }
 
 // StageTiming is the wall time of one pipeline stage.
@@ -68,6 +80,7 @@ type Snapshot struct {
 	Media     *media.Info      `json:"media,omitempty"` // final file
 	Plan      *media.Plan      `json:"plan,omitempty"`
 	File      string           `json:"file,omitempty"`
+	Clip      *Clip            `json:"clip,omitempty"`
 	Failure   *engine.Failure  `json:"failure,omitempty"`
 	Warnings  []string         `json:"warnings,omitempty"`
 	Timings   []StageTiming    `json:"timings,omitempty"`
@@ -645,13 +658,32 @@ func (m *Manager) pipeline(ctx context.Context, j *job) (string, error) {
 	slim.Variants, slim.Subtitles, slim.BestAudio = nil, nil, nil
 	m.update(j, true, func(s *Snapshot) { s.Info = &slim })
 
+	// 구간: 핸들을 붙여 받는다. HLS(조각 TS)는 시작 시각이 원본 기준이 아니라 전체를 받고 In/Out만 건다.
+	rng, err := clampRange(opts.Range, info.DurationSec)
+	if err != nil {
+		return "", err
+	}
+	var section *engine.Section
+	if rng != nil {
+		if segmented(info.Selected) {
+			m.update(j, true, func(s *Snapshot) {
+				s.Warnings = append(s.Warnings, "이 형식(HLS)은 구간만 받을 수 없어 전체를 받고 In/Out으로 구간을 표시합니다.")
+			})
+		} else {
+			section = &engine.Section{Start: max(0, rng.Start-RangeHandleSec), End: rng.End + RangeHandleSec}
+			if info.DurationSec > 0 {
+				section.End = min(section.End, info.DurationSec)
+			}
+		}
+	}
+
 	// 2) download
 	m.stage(j, Downloading)
 	var dl *engine.DownloadResult
 	err = m.withRetry(ctx, func() error {
 		sp := m.deps.Rec.StartJob(id, "stage.download", "engine", ts.Engine.Name(), "expected_bytes", info.ExpectedBytes())
 		var err error
-		dl, err = ts.Engine.Download(ctx, engine.DownloadRequest{Info: info, MaxHeight: opts.MaxHeight, FormatID: opts.FormatID, WorkDir: work},
+		dl, err = ts.Engine.Download(ctx, engine.DownloadRequest{Info: info, MaxHeight: opts.MaxHeight, FormatID: opts.FormatID, WorkDir: work, Section: section},
 			func(p engine.Progress) {
 				m.update(j, false, func(s *Snapshot) {
 					pp := p
@@ -704,7 +736,23 @@ func (m *Manager) pipeline(ctx context.Context, j *job) (string, error) {
 		}
 		plan = media.MakePlan(in, vfr, opts.Profile, encoder)
 	}
-	dest, release, err := library.Reserve(m.deps.LibraryDir, info.Extractor, info.Title, info.ID, ".mp4")
+	var clip *Clip
+	if rng != nil {
+		start := 0.0 // 전체 다운로드: 파일 타임라인 = 원본 타임라인
+		if section != nil {
+			start = streamStart(in)
+			plan.AlignTo(start)
+			// 구간 파일의 시작은 요청 시작(핸들 포함) 직전 키프레임이어야 한다. 아니면 타임라인이 원본 기준이 아니다.
+			if start > section.Start+0.5 || start < section.Start-30 {
+				plan.Warnings = append(plan.Warnings, fmt.Sprintf("구간 시작 위치를 확인하지 못했습니다(파일 시작 %.2fs, 요청 %.2fs): In/Out을 설정하지 않습니다.", start, section.Start))
+				start = -1
+			}
+		}
+		if start >= 0 {
+			clip = &Clip{InSec: round3(rng.Start - start), OutSec: round3(rng.End - start)}
+		}
+	}
+	dest, release, err := library.ReserveTagged(m.deps.LibraryDir, info.Extractor, info.Title, info.ID, rangeTag(rng), ".mp4")
 	if err != nil {
 		return "", engine.Fail(engine.KindInternal, err.Error())
 	}
@@ -744,9 +792,69 @@ func (m *Manager) pipeline(ctx context.Context, j *job) (string, error) {
 	if err != nil {
 		return "", engine.Fail(engine.KindMedia, "verify: "+err.Error())
 	}
-	m.update(j, true, func(s *Snapshot) { s.Media = out })
+	if clip != nil && out.DurationSec > 0 {
+		clip.OutSec = min(clip.OutSec, round3(out.DurationSec))
+		clip.InSec = max(0, min(clip.InSec, clip.OutSec))
+	}
+	m.update(j, true, func(s *Snapshot) {
+		s.Media = out
+		s.Clip = clip
+	})
 	return dest, nil
 }
+
+// clampRange validates a requested range against the source duration (0 = unknown).
+func clampRange(r *engine.Section, dur float64) (*engine.Section, error) {
+	if r == nil {
+		return nil, nil
+	}
+	c := *r
+	c.Start = max(0, c.Start)
+	if dur > 0 {
+		c.End = min(c.End, dur)
+	}
+	if !(c.End > c.Start) || math.IsNaN(c.Start) || math.IsNaN(c.End) {
+		return nil, engine.Fail(engine.KindInternal, fmt.Sprintf("잘못된 구간 %.3f–%.3f (길이 %.3f)", r.Start, r.End, dur))
+	}
+	if c.Start == 0 && dur > 0 && c.End >= dur {
+		return nil, nil // 전체와 같다
+	}
+	return &c, nil
+}
+
+func segmented(fs []engine.Format) bool {
+	for _, f := range fs {
+		if f.Segmented() {
+			return true
+		}
+	}
+	return false
+}
+
+// streamStart is where the file starts in the source timeline: the video start, else the audio start.
+func streamStart(in *media.Info) float64 {
+	if in.Video != nil {
+		return in.Video.StartSec
+	}
+	if in.Audio != nil {
+		return in.Audio.StartSec
+	}
+	return 0
+}
+
+// rangeTag names a range in the file name: "0m05.3s-0m08.1s" (같은 영상의 여러 구간이 구분된다).
+func rangeTag(r *engine.Section) string {
+	if r == nil {
+		return ""
+	}
+	f := func(x float64) string {
+		m := int(x) / 60
+		return fmt.Sprintf("%dm%04.1fs", m, x-float64(m*60))
+	}
+	return f(r.Start) + "-" + f(r.End)
+}
+
+func round3(x float64) float64 { return math.Round(x*1000) / 1000 }
 
 // withRetry retries network failures (설계 L0: network → 즉시 재시도). Rate limits are not
 // retried inside the job in V0; the failure is reported so the user sees it.

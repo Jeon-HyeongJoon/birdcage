@@ -309,3 +309,49 @@ button.primary {
     }
   }
 }
+
+// --- 구간 ---
+.check {
+  display: flex;
+  align-items: center;
+  input {
+    margin: 0 $space-2 0 0;
+  }
+  .after {
+    margin-left: $space-1; // flex 항목의 앞 공백은 사라진다
+  }
+}
+
+.range .times {
+  margin: $space-1 0;
+}
+
+.time {
+  input {
+    width: 72px;
+    margin-left: $space-1;
+    padding: 3px 5px;
+    border: 1px solid $line;
+    border-radius: $radius;
+    background: $field;
+    color: $fg;
+    font-variant-numeric: tabular-nums;
+    &.bad {
+      border-color: $err;
+    }
+  }
+}
+
+.rangebar {
+  position: relative;
+  height: 6px;
+  background: $line;
+  border-radius: $radius-none;
+  margin: $space-1 0;
+  .sel {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    background: $accent;
+  }
+}

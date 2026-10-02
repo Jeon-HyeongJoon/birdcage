@@ -8,7 +8,12 @@
       "state": "done",
       "options": {
         "maxHeight": 1080,
-        "profile": "compat"
+        "profile": "compat",
+        "formatId": "137+140",
+        "range": {
+          "startSec": 2.5,
+          "endSec": 7.25
+        }
       },
       "progress": 1,
       "download": {
@@ -74,7 +79,11 @@
           "already Premiere-ready"
         ]
       },
-      "file": "/Users/me/Movies/Birdcage/Youtube/youtube-dl test video [BaW_jenozKc].mp4",
+      "file": "/Users/me/Movies/Birdcage/Youtube/youtube-dl test video [BaW_jenozKc] 0m02.5s-0m07.2s.mp4",
+      "clip": {
+        "inSec": 1.5,
+        "outSec": 6.25
+      },
       "timings": [
         {
           "stage": "probe",

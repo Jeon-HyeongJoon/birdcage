@@ -67,6 +67,11 @@ var (
 // 같은 영상을 동시에 두 번 받으면 두 작업이 같은 경로를 받아 서로 덮어쓰던 문제를 막는다
 // (jobs 동시성 테스트에서 발견).
 func Reserve(root, extractor, title, id, ext string) (path string, release func(), err error) {
+	return ReserveTagged(root, extractor, title, id, "", ext)
+}
+
+// ReserveTagged is Reserve with a tag after the id, e.g. "<title> [<id>] 0m05.3s-0m08.1s.mp4".
+func ReserveTagged(root, extractor, title, id, tag, ext string) (path string, release func(), err error) {
 	dir := filepath.Join(root, Sanitize(orDefault(extractor, "Other")))
 	if err := os.MkdirAll(dir, 0o755); err != nil {
 		return "", nil, err
@@ -74,6 +79,9 @@ func Reserve(root, extractor, title, id, ext string) (path string, release func(
 	name := Sanitize(title)
 	if id != "" {
 		name = fmt.Sprintf("%s [%s]", name, Sanitize(id))
+	}
+	if tag != "" {
+		name += " " + Sanitize(tag)
 	}
 	resMu.Lock()
 	defer resMu.Unlock()

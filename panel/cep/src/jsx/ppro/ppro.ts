@@ -4,9 +4,22 @@
 // (e.g. Windows CP949), garbling non-ASCII text. The panel builds user-facing (Korean) messages from `code`.
 
 export type ImportCode = "no_project" | "file_missing" | "import_failed";
-type ImportResult = { ok: boolean; code?: ImportCode; detail?: string; bin: string[]; added?: number };
+export type InOutState = "set" | "unverified" | "unsupported";
+type ImportResult = {
+  ok: boolean;
+  code?: ImportCode;
+  detail?: string;
+  bin: string[];
+  added?: number;
+  inout?: InOutState;
+  source?: boolean;
+};
+/** Options from the panel: In/Out (seconds inside the file) and Source Monitor. */
+export type ImportOptions = { inSec?: number; outSec?: number; openSource?: boolean };
 
 const BIN = 2; // ProjectItemType.BIN
+/** Ticks per second in Premiere time values. */
+const TICKS = 254016000000;
 
 const findOrCreateBin = (parent: ProjectItem, name: string): ProjectItem => {
   const n = parent.children.numItems;
@@ -24,8 +37,51 @@ const findOrCreateBin = (parent: ProjectItem, name: string): ProjectItem => {
   throw new Error("cannot create bin " + name);
 };
 
+/** Finds the imported item in the bin by media path (importFiles does not return it). */
+const findItem = (bin: ProjectItem, fsPath: string): ProjectItem | null => {
+  for (let i = bin.children.numItems - 1; i >= 0; i--) {
+    const c = bin.children[i];
+    if (!c || c.type === BIN) continue;
+    try {
+      if (new File(c.getMediaPath()).fsName === fsPath) return c;
+    } catch (e) {
+      // offline or non-media item
+    }
+  }
+  return null;
+};
+
+const near = (a: number, b: number): boolean => Math.abs(a - b) < 0.02; // 20 ms: under one frame at 50 fps
+
+const pointSeconds = (t: unknown): number => {
+  if (t && typeof t === "object" && "seconds" in (t as object)) return Number((t as Time).seconds);
+  return Number(t);
+};
+
+/**
+ * Sets In/Out on the item and reads them back. The scripting docs disagree on the unit
+ * (seconds vs ticks), so each form is tried and only a read-back match counts as "set".
+ */
+const setInOut = (item: ProjectItem, inSec: number, outSec: number): InOutState => {
+  if (typeof item.setInPoint !== "function" || typeof item.getInPoint !== "function") return "unsupported";
+  const forms = [
+    (x: number): number | string => x,
+    (x: number): number | string => String(Math.round(x * TICKS)),
+  ];
+  for (let i = 0; i < forms.length; i++) {
+    try {
+      item.setInPoint(forms[i](inSec), 4); // 4 = video and audio
+      item.setOutPoint(forms[i](outSec), 4);
+      if (near(pointSeconds(item.getInPoint()), inSec) && near(pointSeconds(item.getOutPoint()), outSec)) return "set";
+    } catch (e) {
+      // try the next form
+    }
+  }
+  return "unverified";
+};
+
 /** Imports one file into the bin path (created as needed), e.g. ["Birdcage", "Youtube"]. */
-export const birdcageImport = (path: string, binPath: string[]): ImportResult => {
+export const birdcageImport = (path: string, binPath: string[], opts?: ImportOptions): ImportResult => {
   if (!app.project || !app.project.rootItem) {
     return { ok: false, code: "no_project", bin: binPath };
   }
@@ -44,11 +100,22 @@ export const birdcageImport = (path: string, binPath: string[]): ImportResult =>
   if (!ok && added <= 0) {
     return { ok: false, code: "import_failed", detail: f.fsName, bin: binPath };
   }
-  return { ok: true, bin: binPath, added: added };
+  const res: ImportResult = { ok: true, bin: binPath, added: added };
+  if (!opts) return res;
+  const item = findItem(bin, f.fsName);
+  if (opts.inSec !== undefined && opts.outSec !== undefined) {
+    res.inout = item ? setInOut(item, opts.inSec, opts.outSec) : "unverified";
+  }
+  if (opts.openSource && item) {
+    try {
+      app.sourceMonitor.openProjectItem(item);
+      res.source = true;
+    } catch (e) {
+      res.source = false;
+    }
+  }
+  return res;
 };
-
-/** Ticks per second in Premiere time values. */
-const TICKS = 254016000000;
 
 /**
  * Active sequence frame size and rate (recommendation and fps warning), or ok=false when none.

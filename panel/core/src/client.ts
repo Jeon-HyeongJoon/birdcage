@@ -8,6 +8,7 @@ import {
   Hello,
   HelloOK,
   JobAccepted,
+  JobCreate,
   JobList,
   MediaInfoMsg,
   ProtocolError,
@@ -102,7 +103,7 @@ export class HelperClient {
     return () => set!.delete(fn);
   }
 
-  async createJob(url: string, maxHeight?: number, extra: { probeId?: string; formatId?: string } = {}): Promise<string> {
+  async createJob(url: string, maxHeight?: number, extra: Omit<JobCreate, "url" | "maxHeight"> = {}): Promise<string> {
     const env = await this.request("job.create", { url, maxHeight, ...extra }, ["job.accepted"]);
     return (env.data as JobAccepted).jobId;
   }

@@ -91,13 +91,19 @@ func (e *Engine) DownloadArgs(infoPath, workDir string, maxHeight int) []string 
 // 변형을 고르면 -f에 그 포맷 id를 먼저 두고, 기존 선택기를 대체 경로(/)로 남겨 포맷이 사라진 경우에도 받는다.
 func (e *Engine) RequestArgs(req engine.DownloadRequest) []string {
 	args := e.DownloadArgs(req.Info.InfoPath, req.WorkDir, req.MaxHeight)
-	if req.FormatID != "" {
-		for i := range args[:len(args)-1] {
-			if args[i] == "-f" {
-				args[i+1] = req.FormatID + "/" + args[i+1]
-				break
-			}
+	for i := range args[:len(args)-1] {
+		switch {
+		case args[i] == "-f" && req.FormatID != "":
+			args[i+1] = req.FormatID + "/" + args[i+1]
+		case args[i] == "--merge-output-format" && req.Section != nil:
+			args[i+1] = "mp4" // mkv는 구간의 원래 시작 시각을 잃는다(실측 0.011/0)
 		}
+	}
+	if sec := req.Section; sec != nil {
+		// yt-dlp는 구간을 ffmpeg로 받는다: 비디오는 직전 키프레임부터, 오디오는 요청 지점(또는 처음)부터.
+		// -copyts로 원래 타임라인을 남겨 정규화가 두 스트림을 맞추고 In/Out을 정확히 계산한다(docs/decisions/0010).
+		args = append(args, "--download-sections", fmt.Sprintf("*%.3f-%.3f", sec.Start, sec.End),
+			"--downloader-args", "ffmpeg_o:-copyts")
 	}
 	return args
 }
@@ -207,6 +213,7 @@ type rawFormat struct {
 	FPS            float64 `json:"fps"`
 	Filesize       float64 `json:"filesize"`
 	FilesizeApprox float64 `json:"filesize_approx"`
+	Protocol       string  `json:"protocol"`
 }
 
 type rawInfo struct {
@@ -262,7 +269,7 @@ func ParseInfo(b []byte) (*engine.Info, error) {
 		}
 		info.Selected = append(info.Selected, engine.Format{
 			ID: f.FormatID, Ext: f.Ext, VCodec: noneToEmpty(f.VCodec), ACodec: noneToEmpty(f.ACodec),
-			Width: f.Width, Height: f.Height, FPS: f.FPS, SizeBytes: size,
+			Width: f.Width, Height: f.Height, FPS: f.FPS, SizeBytes: size, Protocol: f.Protocol,
 		})
 	}
 	return info, nil

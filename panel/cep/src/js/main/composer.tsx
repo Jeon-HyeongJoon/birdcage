@@ -1,6 +1,6 @@
 // 새 다운로드 준비: 링크 → 조회(정보 카드) → 화질 선택 → 받기.
 // 카드는 영상 정보 하나만 쓴다(사각, 반경 2px). 선택지는 행·구분선으로 그린다(docs/decisions/0010).
-import { FormEvent, useState } from "react";
+import { FormEvent, useEffect, useState } from "react";
 import {
   Draft,
   SequenceInfo,
@@ -11,7 +11,10 @@ import {
   duration,
   fpsLabel,
   fpsMismatch,
+  formatTime,
   isLink,
+  parseTime,
+  rangeToSend,
   isVertical,
   platformLabel,
   variantLabel,
@@ -59,6 +62,7 @@ export const Composer = ({ s, ctl }: { s: State; ctl: PanelController }) => {
       {submitError && <div className="error small">{submitError}</div>}
       {d.status === "ready" && d.info && <InfoCard d={d} seq={s.sequence} />}
       {d.status === "ready" && (d.info?.variants?.length ?? 0) > 0 && <Variants d={d} seq={s.sequence} ctl={ctl} />}
+      {d.status === "ready" && <RangeSection d={d} ctl={ctl} />}
     </form>
   );
 };
@@ -126,3 +130,78 @@ const Variants = ({ d, seq, ctl }: { d: Draft; seq?: SequenceInfo | null; ctl: P
     </div>
   </div>
 );
+
+/** Time input that keeps the typed text until it parses (blur/Enter commits). */
+const TimeField = ({ label, value, onCommit }: { label: string; value?: number; onCommit: (v?: number) => void }) => {
+  const [text, setText] = useState(value === undefined ? "" : formatTime(value));
+  const [bad, setBad] = useState(false);
+  useEffect(() => {
+    setText(value === undefined ? "" : formatTime(value));
+    setBad(false);
+  }, [value]);
+  const commit = () => {
+    if (text.trim() === "") {
+      onCommit(undefined);
+      return;
+    }
+    const v = parseTime(text);
+    setBad(v === undefined);
+    if (v !== undefined) onCommit(v);
+  };
+  return (
+    <label className="time">
+      <span className="muted">{label}</span>
+      <input
+        type="text"
+        className={bad ? "bad" : ""}
+        value={text}
+        placeholder="0:00.0"
+        onChange={(e) => setText(e.target.value)}
+        onBlur={commit}
+        onKeyDown={(e) => {
+          if (e.key === "Enter") {
+            e.preventDefault();
+            commit();
+          }
+        }}
+      />
+    </label>
+  );
+};
+
+const RangeSection = ({ d, ctl }: { d: Draft; ctl: PanelController }) => {
+  const dur = d.info?.durationSec;
+  const r = d.range;
+  const { range, error } = rangeToSend(r, dur);
+  const start = r.start ?? 0;
+  const end = r.end ?? dur ?? 0;
+  const pct = (x: number) => (dur ? `${Math.max(0, Math.min(100, (x / dur) * 100))}%` : "0%");
+  return (
+    <div className="section range">
+      <label className="section-label check">
+        <input type="checkbox" checked={r.on} onChange={(e) => ctl.setRange({ on: e.target.checked })} />
+        구간만 받기
+        {dur ? <span className="muted small after">· 전체 {duration(dur)}</span> : null}
+      </label>
+      {r.on && (
+        <>
+          <div className="row times">
+            <TimeField label="시작" value={r.start} onCommit={(v) => ctl.setRange({ start: v })} />
+            <TimeField label="끝" value={r.end ?? dur} onCommit={(v) => ctl.setRange({ end: v })} />
+            <span className="muted small">{range ? `${formatTime(range.endSec - range.startSec)} 길이` : ""}</span>
+          </div>
+          {dur ? (
+            <div className="rangebar" aria-hidden="true">
+              <div className="sel" style={{ left: pct(start), width: `calc(${pct(end)} - ${pct(start)})` }} />
+            </div>
+          ) : null}
+          {error ? (
+            <div className="error small">{error}</div>
+          ) : (
+            <div className="muted small">앞뒤 1초 여유를 붙여 받고, 프로젝트 항목에 In/Out을 설정합니다.</div>
+          )}
+        </>
+      )}
+    </div>
+  );
+};

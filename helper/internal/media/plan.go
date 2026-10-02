@@ -48,6 +48,23 @@ type Plan struct {
 	Reasons     []string `json:"reasons"`
 	Warnings    []string `json:"warnings,omitempty"`
 	BitrateBps  int64    `json:"bitrateBps,omitempty"`
+	// Aligned: the input keeps the source timeline (section download). Both streams are shifted
+	// by -AlignShiftSec so the file starts at 0; audio is trimmed/padded to the video start.
+	Aligned       bool    `json:"aligned,omitempty"`
+	AlignShiftSec float64 `json:"alignShiftSec,omitempty"`
+}
+
+// AlignTo makes the output start at shift (the video start in the source timeline).
+//
+// DASH 구간은 비디오가 직전 키프레임, 오디오가 요청 지점(또는 처음)부터 와서 시작이 어긋난다(실측 1.84s).
+// Premiere가 편집 목록·시작 오프셋을 어떻게 처리하는지 확인 전이라 파일 자체를 0에서 맞춘다.
+// 오디오만 재인코딩한다(디코드·인코딩 비용이 작고, 비디오는 복사 경로를 유지).
+func (p *Plan) AlignTo(shift float64) {
+	p.Aligned, p.AlignShiftSec, p.Passthrough = true, shift, false
+	if p.Audio == Copy {
+		p.Audio = Transcode
+	}
+	p.Reasons = append(p.Reasons, fmt.Sprintf("section: align streams to video start %.3fs", shift))
 }
 
 // standardRates are snapped to so Premiere sees the usual sequence rates.
@@ -149,8 +166,11 @@ func TargetBitrate(w, h int, fps float64) int64 {
 // Args builds the ffmpeg arguments for the plan. out must end in .mp4 semantics; the
 // muxer is forced with -f mp4 so a temp name is fine.
 func (p Plan) Args(in, out string, info *Info) []string {
-	args := []string{"-hide_banner", "-nostdin", "-y", "-loglevel", "error", "-progress", "pipe:1", "-nostats",
-		"-i", in, "-map_metadata", "0", "-dn", "-sn"}
+	args := []string{"-hide_banner", "-nostdin", "-y", "-loglevel", "error", "-progress", "pipe:1", "-nostats"}
+	if p.Aligned {
+		args = append(args, "-copyts", "-itsoffset", strconv.FormatFloat(-p.AlignShiftSec, 'f', 6, 64))
+	}
+	args = append(args, "-i", in, "-map_metadata", "0", "-dn", "-sn")
 	if p.Video != Drop {
 		args = append(args, "-map", "0:v:0")
 	}
@@ -175,6 +195,10 @@ func (p Plan) Args(in, out string, info *Info) []string {
 	case Copy:
 		args = append(args, "-c:a", "copy")
 	case Transcode:
+		if p.Aligned {
+			// 비디오 시작(0) 이전 오디오는 자르고, 늦게 시작하면 앞을 무음으로 채운다.
+			args = append(args, "-af", "atrim=start=0,aresample=async=1:first_pts=0")
+		}
 		args = append(args, "-c:a", "aac", "-b:a", "256k", "-ar", "48000")
 	}
 	return append(args, "-movflags", "+faststart", "-f", "mp4", out)

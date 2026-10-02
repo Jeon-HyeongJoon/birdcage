@@ -2,8 +2,9 @@
 // Helper 수명(시작·재연결), 작업 목록 상태, 완료 시 자동 임포트를 담당한다. UI는 state만 그린다.
 import { HelperClient, HelperEndpoint, WebSocketFactory } from "./client";
 import { recommendVariant, SequenceInfo, targetRes } from "./choice";
+import { startFromURL } from "./time";
 import type { HostAdapter } from "./host";
-import type { Failure, HelloOK, JobSnapshot, SourceInfo, ToolStatus } from "./protocol";
+import type { Failure, HelloOK, JobSnapshot, SourceInfo, TimeRange, ToolStatus } from "./protocol";
 import { TERMINAL_STATES } from "./protocol";
 
 export type ConnectionState = "idle" | "starting" | "connected" | "reconnecting" | "failed";
@@ -12,6 +13,8 @@ export interface ImportState {
   state: "pending" | "importing" | "done" | "failed";
   error?: string;
   bin?: string[];
+  inout?: "set" | "unverified" | "unsupported";
+  warnings?: string[];
 }
 
 export interface JobView {
@@ -36,9 +39,29 @@ export interface Draft {
   /** Chosen variant; undefined until the info arrives (then the recommendation). */
   formatId?: string;
   recommendedId?: string;
+  /** Part of the source to download (seconds); off = whole video. */
+  range: DraftRange;
 }
 
-const EMPTY_DRAFT: Draft = { url: "", status: "idle" };
+export interface DraftRange {
+  on: boolean;
+  start?: number;
+  end?: number;
+}
+
+/** Validates a draft range against the duration; returns the range to send or an error message. */
+export function rangeToSend(r: DraftRange, durationSec?: number): { range?: TimeRange; error?: string } {
+  if (!r.on) return {};
+  const start = r.start ?? 0;
+  const end = r.end ?? durationSec;
+  if (end === undefined) return { error: "끝 시간을 입력하세요." };
+  if (!(end > start)) return { error: "끝 시간은 시작보다 뒤여야 합니다." };
+  if (durationSec && start >= durationSec) return { error: "시작 시간이 영상 길이를 넘습니다." };
+  if (durationSec && start <= 0 && end >= durationSec) return {}; // 전체와 같다
+  return { range: { startSec: start, endSec: durationSec ? Math.min(end, durationSec) : end } };
+}
+
+const EMPTY_DRAFT: Draft = { url: "", status: "idle", range: { on: false } };
 
 /** Looks like a downloadable link (the helper validates for real). */
 export function isLink(s: string): boolean {
@@ -172,7 +195,7 @@ export class Controller {
     const url = this._state.draft.url.trim();
     if (!isLink(url)) return;
     const seq = ++this.draftSeq;
-    this.set({ draft: { url: this._state.draft.url, status: "probing" } });
+    this.set({ draft: { ...EMPTY_DRAFT, url: this._state.draft.url, status: "probing" } });
     try {
       // 시퀀스는 조회와 함께 읽는다(추천이 현재 시퀀스를 따른다).
       const [res] = await Promise.all([this.requireClient().probe(url, this._state.settings.maxHeight), this.refreshSequence()]);
@@ -182,13 +205,21 @@ export class Controller {
         return;
       }
       const rec = recommendVariant(res.info.variants, targetRes(this._state.sequence, this._state.settings.maxHeight));
+      // 공유 링크의 시작 시각(t=)이 있으면 그 지점부터의 구간으로 채운다.
+      const t = startFromURL(url);
+      const range: DraftRange = t !== undefined && (!res.info.durationSec || t < res.info.durationSec) ? { on: true, start: t, end: res.info.durationSec } : { on: false };
       this.set({
-        draft: { ...this._state.draft, status: "ready", probeId: res.probeId, info: res.info, formatId: rec?.formatId, recommendedId: rec?.formatId },
+        draft: { ...this._state.draft, status: "ready", probeId: res.probeId, info: res.info, formatId: rec?.formatId, recommendedId: rec?.formatId, range },
       });
     } catch (e) {
       if (seq !== this.draftSeq) return;
       this.set({ draft: { ...this._state.draft, status: "failed", failure: { kind: "request", message: (e as Error).message } } });
     }
+  }
+
+  /** Updates the range (seconds); pass on=false to download the whole video. */
+  setRange(r: Partial<DraftRange>): void {
+    this.set({ draft: { ...this._state.draft, range: { ...this._state.draft.range, ...r } } });
   }
 
   selectVariant(formatId: string): void {
@@ -202,9 +233,11 @@ export class Controller {
     const url = d.url.trim();
     if (!isLink(url)) return;
     const c = this.requireClient();
-    const extra = d.status === "ready" ? { probeId: d.probeId, formatId: d.formatId } : {};
+    const { range, error } = rangeToSend(d.range, d.info?.durationSec);
+    if (error) throw new Error(error);
+    const extra = d.status === "ready" ? { probeId: d.probeId, formatId: d.formatId, range } : { range };
     const variant = d.info?.variants?.find((v) => v.formatId === d.formatId);
-    await c.createJob(url, variant?.res ?? this._state.settings.maxHeight, extra);
+    await c.createJob(url, variant?.res ?? this._state.settings.maxHeight, JSON.parse(JSON.stringify(extra)));
     this.draftSeq++;
     this.set({ draft: EMPTY_DRAFT });
   }
@@ -237,8 +270,10 @@ export class Controller {
     const bin = ["Birdcage", view.snap.info?.extractor || "Other"];
     this.patchJob(jobId, { import: { state: "importing", bin } });
     try {
-      const res = await this.opts.host.importFile(view.snap.file, bin);
-      this.patchJob(jobId, { import: res.ok ? { state: "done", bin: res.bin } : { state: "failed", error: res.error, bin } });
+      const res = await this.opts.host.importFile(view.snap.file, bin, view.snap.clip ? { clip: view.snap.clip } : undefined);
+      this.patchJob(jobId, {
+        import: res.ok ? { state: "done", bin: res.bin, inout: res.inout, warnings: res.warnings } : { state: "failed", error: res.error, bin },
+      });
     } catch (e) {
       this.patchJob(jobId, { import: { state: "failed", error: (e as Error).message, bin } });
     }

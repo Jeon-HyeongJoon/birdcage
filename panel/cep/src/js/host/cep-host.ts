@@ -1,6 +1,6 @@
 // HostAdapter for CEP panels (Premiere 15.0–26).
 // CEP는 Node.js를 쓸 수 있어 Helper를 자식 프로세스로 직접 띄운다(UXP는 v2에서 다른 방식).
-import type { HelperEndpoint, Host, HostAdapter, ImportResult, SequenceInfo } from "@birdcage/core";
+import type { HelperEndpoint, Host, HostAdapter, ImportOptions, ImportResult, SequenceInfo } from "@birdcage/core";
 import { child_process, fs, os, path } from "../lib/cep/node";
 import { csi, evalTS } from "../lib/utils/bolt";
 
@@ -127,12 +127,19 @@ export class CepHost implements HostAdapter {
     }, 3000);
   }
 
-  async importFile(file: string, bin: string[]): Promise<ImportResult> {
-    const res = (await evalTS("birdcageImport", file, bin)) as
-      | { ok: boolean; code?: keyof typeof IMPORT_ERRORS; detail?: string; bin: string[] }
+  async importFile(file: string, bin: string[], opts?: ImportOptions): Promise<ImportResult> {
+    const es = opts ? { inSec: opts.clip?.inSec, outSec: opts.clip?.outSec, openSource: opts.openSource } : undefined;
+    const res = (await evalTS("birdcageImport", file, bin, es)) as
+      | { ok: boolean; code?: keyof typeof IMPORT_ERRORS; detail?: string; bin: string[]; inout?: ImportResult["inout"]; source?: boolean }
       | undefined;
     if (!res) return { ok: false, error: "ExtendScript 응답이 없습니다.", bin };
-    if (res.ok) return { ok: true, bin: res.bin };
+    if (res.ok) {
+      const warnings: string[] = [];
+      if (res.inout === "unverified") warnings.push("In/Out을 설정했지만 확인하지 못했습니다. 소스 모니터에서 확인하세요.");
+      if (res.inout === "unsupported") warnings.push("이 Premiere 버전은 스크립트로 In/Out을 설정할 수 없습니다.");
+      if (opts?.openSource && res.source === false) warnings.push("소스 모니터에서 열지 못했습니다.");
+      return { ok: true, bin: res.bin, inout: res.inout, warnings: warnings.length ? warnings : undefined };
+    }
     const msg = (res.code && IMPORT_ERRORS[res.code]) || "알 수 없는 오류";
     return { ok: false, error: res.detail ? `${msg} (${res.detail})` : msg, bin: res.bin };
   }

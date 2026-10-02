@@ -2,6 +2,7 @@
 // 코어는 이 인터페이스만 알고, 호스트별 구현은 panel/cep(·이후 panel/uxp)에 둔다.
 import type { SequenceInfo } from "./choice";
 import type { HelperEndpoint } from "./client";
+import type { Clip } from "./protocol";
 import type { Host } from "./protocol";
 
 export interface ImportResult {
@@ -9,6 +10,17 @@ export interface ImportResult {
   error?: string;
   /** Bin path the item was placed in, e.g. ["Birdcage", "Youtube"]. */
   bin: string[];
+  /** In/Out on the item: set and read back equal, could not be verified, or not supported by this version. */
+  inout?: "set" | "unverified" | "unsupported";
+  /** Non-fatal problems to show (e.g. In/Out not verified). */
+  warnings?: string[];
+}
+
+export interface ImportOptions {
+  /** Requested range inside the file → In/Out on the imported item. */
+  clip?: Clip;
+  /** Open the item in the Source Monitor after import. */
+  openSource?: boolean;
 }
 
 export interface HostAdapter {
@@ -18,7 +30,7 @@ export interface HostAdapter {
   /** Stops the helper this panel started (no-op if not owned). */
   stopHelper(): void;
   /** Imports a file into the open project under the given bin path. */
-  importFile(path: string, bin: string[]): Promise<ImportResult>;
+  importFile(path: string, bin: string[], opts?: ImportOptions): Promise<ImportResult>;
   /** Shows the file in Finder/Explorer (optional). */
   revealFile?(path: string): void;
   /** The active sequence, or null when none is open (optional: recommendations fall back to settings). */

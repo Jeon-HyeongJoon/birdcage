@@ -8,7 +8,12 @@
       "state": "failed",
       "options": {
         "maxHeight": 1080,
-        "profile": "compat"
+        "profile": "compat",
+        "formatId": "137+140",
+        "range": {
+          "startSec": 2.5,
+          "endSec": 7.25
+        }
       },
       "progress": 1,
       "download": {
@@ -43,6 +48,10 @@
             "sizeBytes": 160000
           }
         ]
+      },
+      "clip": {
+        "inSec": 1.5,
+        "outSec": 6.25
       },
       "failure": {
         "kind": "private",

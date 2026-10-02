@@ -78,6 +78,8 @@ type JobCreate struct {
 	MaxHeight int    `json:"maxHeight,omitempty"` // 0 → helper default (1080)
 	ProbeID   string `json:"probeId,omitempty"`   // media.info probeId: download without re-extraction
 	FormatID  string `json:"formatId,omitempty"`  // chosen variant (media.info variants[].formatId)
+	// Range downloads only this part of the source (plus 1s handles); job.done carries clip In/Out.
+	Range *engine.Section `json:"range,omitempty"`
 }
 
 // MediaProbe asks for a link's metadata before downloading (answered by media.info, same id).

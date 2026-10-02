@@ -58,15 +58,19 @@ type Video struct {
 	ColorTransfer  string   `json:"colorTransfer,omitempty"`
 	ColorPrimaries string   `json:"colorPrimaries,omitempty"`
 	BitRate        int64    `json:"bitRate,omitempty"`
+	// StartSec is the stream start time. A section download keeps the source timeline (-copyts),
+	// so it is the position in the original video where this file's first frame sits.
+	StartSec float64 `json:"startSec,omitempty"`
 }
 
 // Audio describes the primary audio stream.
 type Audio struct {
-	Index      int    `json:"index"`
-	Codec      string `json:"codec"`
-	Profile    string `json:"profile,omitempty"`
-	SampleRate int    `json:"sampleRate"`
-	Channels   int    `json:"channels"`
+	Index      int     `json:"index"`
+	Codec      string  `json:"codec"`
+	Profile    string  `json:"profile,omitempty"`
+	SampleRate int     `json:"sampleRate"`
+	Channels   int     `json:"channels"`
+	StartSec   float64 `json:"startSec,omitempty"`
 }
 
 // Info is the ffprobe summary of a file.
@@ -114,6 +118,7 @@ type ffStream struct {
 	BitRate        string `json:"bit_rate"`
 	SampleRate     string `json:"sample_rate"`
 	Channels       int    `json:"channels"`
+	StartTime      string `json:"start_time"`
 	Disposition    struct {
 		AttachedPic int `json:"attached_pic"`
 	} `json:"disposition"`
@@ -151,6 +156,7 @@ func ParseProbe(b []byte) (*Info, error) {
 				ColorTransfer: s.ColorTransfer, ColorPrimaries: s.ColorPrimaries,
 			}
 			v.BitRate, _ = strconv.ParseInt(s.BitRate, 10, 64)
+			v.StartSec, _ = strconv.ParseFloat(s.StartTime, 64)
 			v.FPS = v.AvgFrameRate.Float()
 			if v.FPS == 0 {
 				v.FPS = v.RFrameRate.Float()
@@ -162,6 +168,7 @@ func ParseProbe(b []byte) (*Info, error) {
 			}
 			a := &Audio{Index: s.Index, Codec: s.CodecName, Profile: s.Profile, Channels: s.Channels}
 			a.SampleRate, _ = strconv.Atoi(s.SampleRate)
+			a.StartSec, _ = strconv.ParseFloat(s.StartTime, 64)
 			info.Audio = a
 		}
 	}

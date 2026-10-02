@@ -27,6 +27,7 @@ class FixtureController implements PanelController {
   setUrl(_url: string): void {}
   async probeDraft(): Promise<void> {}
   selectVariant(_formatId: string): void {}
+  setRange(): void {}
   async submitDraft(): Promise<void> {}
   retryConnection(): void {}
   installTools(): void {}

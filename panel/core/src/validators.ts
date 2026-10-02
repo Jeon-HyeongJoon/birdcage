@@ -18,6 +18,7 @@ const job: Shape = {
   media: "object?",
   plan: "object?",
   file: "string?",
+  clip: "object?",
   failure: "object?",
   warnings: "array?",
   timings: "array?",
@@ -26,7 +27,8 @@ const job: Shape = {
 };
 
 const nested: Record<string, Shape> = {
-  "job.options": { maxHeight: "number", profile: "string" },
+  "job.options": { maxHeight: "number", profile: "string", probeId: "string?", formatId: "string?", range: "object?" },
+  "job.clip": { inSec: "number", outSec: "number" },
   "job.download": { status: "string", downloadedBytes: "number", fraction: "number", totalBytes: "number?", speedBps: "number?" },
   "job.info": { id: "string", title: "string", extractor: "string", webpageUrl: "string", selected: "array?", thumbnail: "string?", variants: "array?", subtitles: "array?" },
   "job.media": { container: "string", durationSec: "number", sizeBytes: "number", video: "object?", audio: "object?" },
@@ -36,11 +38,12 @@ const nested: Record<string, Shape> = {
 
 const variant: Shape = { formatId: "string", res: "number", vcodec: "string", transcode: "boolean", sizeBytes: "number?", fps: "number?", hdr: "boolean?" };
 const subtitle: Shape = { lang: "string", name: "string?", auto: "boolean?" };
+const range: Shape = { startSec: "number", endSec: "number" };
 
 const payloads: Record<string, Shape> = {
   hello: { client: "string", clientVersion: "string", host: "object" },
   "hello.ok": { helperVersion: "string", protocol: "number", profile: "string", libraryDir: "string", tools: "array", jobs: "array" },
-  "job.create": { url: "string", maxHeight: "number?", probeId: "string?", formatId: "string?" },
+  "job.create": { url: "string", maxHeight: "number?", probeId: "string?", formatId: "string?", range: "object?" },
   "media.probe": { url: "string", maxHeight: "number?" },
   "media.info": { url: "string", probeId: "string?", info: "object?", failure: "object?" },
   "job.accepted": { jobId: "string" },
@@ -95,7 +98,7 @@ function checkInfo(info: unknown, where: string, errs: string[]): void {
 function checkJob(j: unknown, where: string, errs: string[]): void {
   check(j, job, where, errs);
   const o = (j ?? {}) as Record<string, unknown>;
-  for (const k of ["options", "download", "media", "plan"]) {
+  for (const k of ["options", "download", "media", "plan", "clip"]) {
     if (o[k] !== undefined) check(o[k], nested["job." + k], `${where}.${k}`, errs);
   }
   if (o.info !== undefined) checkInfo(o.info, `${where}.info`, errs);
@@ -110,6 +113,7 @@ export function validatePayload(type: string, data: unknown): string[] {
   check(data, shape, type, errs);
   const d = (data ?? {}) as Record<string, unknown>;
   if (type === "job.update" || type === "job.done" || type === "job.failed") checkJob(d.job, `${type}.job`, errs);
+  if (type === "job.create" && d.range !== undefined) check(d.range, range, `${type}.range`, errs);
   if (type === "media.info") {
     if (d.info !== undefined) checkInfo(d.info, `${type}.info`, errs);
     if (d.failure !== undefined) checkFailure(d.failure, `${type}.failure`, errs);
