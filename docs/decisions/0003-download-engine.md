@@ -1,6 +1,7 @@
 # 0003. yt-dlp(onedir) 주 엔진 + 체크섬 검증 설치
 
 - 상태: 초안 (2026-10-02)
+- 실행 가능한 전제: P-0003-a, P-0003-b, P-0003-c (`docs/decisions/premises.json`, `make premises`)
 
 ## 결정
 - 엔진은 **yt-dlp**. `-J`(포맷 선택 포함)로 info.json을 만든 뒤 `--load-info-json`으로 재추출 없이 다운로드.

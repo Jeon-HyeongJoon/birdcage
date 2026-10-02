@@ -1,5 +1,5 @@
 # Birdcage 개발 명령. Windows에서는 scripts/*.ps1 또는 각 명령을 직접 실행한다.
-.PHONY: test helper-test helper-bench helper-e2e helper-build panel-test panel-build perf-report cep-dev-install tools
+.PHONY: test helper-test helper-bench helper-e2e helper-build panel-test panel-build perf-report cep-dev-install tools gen verify gates orient premises readiness
 
 test: helper-test panel-test
 
@@ -29,3 +29,24 @@ tools:              ## yt-dlp·deno를 Helper 데이터 폴더에 설치(체크�
 
 cep-dev-install:    ## 서명 없는 개발용 패널을 Premiere에서 열 수 있게 설정
 	scripts/cep-dev-install.sh
+
+# --- 루프 (AGENTS.md, loop/policy.json) ---
+LOOPCTL = cd tools && go run ./cmd/loopctl
+
+gen:                ## SSOT(specs/, loop/policy.json) → 생성물(Go·TS·AGENTS.md)
+	cd tools && go run ./cmd/specgen
+
+verify:             ## 세션 시작 검증: 0토큰·무료 게이트만(fmt·vet·gen·loop check·tools·tsc·core)
+	$(LOOPCTL) gates --cost free
+
+gates:              ## 게이트 사다리 전체(선택 게이트 제외, 실패 시 중단, 진행 중 반복이 있으면 증적 기록)
+	$(LOOPCTL) gates
+
+orient:             ## 새 세션 시작 루틴: 상태·인계·다음 작업
+	$(LOOPCTL) orient
+
+premises:           ## ADR 전제 검사
+	$(LOOPCTL) premises
+
+readiness:          ## 자율 루프 준비 조건 (예: make readiness TASK=T-009)
+	$(LOOPCTL) readiness --task $(TASK) --kind worker

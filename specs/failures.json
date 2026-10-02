@@ -1,0 +1,29 @@
+{
+  "$schema": "./failures.schema.json",
+  "version": 1,
+  "policies": [
+    { "id": "stop", "goName": "Stop", "meaning": "재시도해도 소용없음" },
+    { "id": "retry_late", "goName": "RetryLate", "meaning": "같은 엔진으로 지연 재시도(엔진 전환 금지: 같은 IP라 다른 엔진도 막힘)" },
+    { "id": "retry", "goName": "Retry", "meaning": "즉시 재시도 가능(네트워크)" },
+    { "id": "fallback", "goName": "Fallback", "meaning": "다음 폴백 단계로" },
+    { "id": "ask_user", "goName": "AskUser", "meaning": "사용자 조치 필요(쿠키, 도구 설치 등)" }
+  ],
+  "kinds": [
+    { "id": "private", "goName": "Private", "policy": "stop", "message": "비공개 영상입니다." },
+    { "id": "removed", "goName": "Removed", "policy": "stop", "message": "삭제되었거나 존재하지 않는 영상입니다." },
+    { "id": "drm", "goName": "DRM", "policy": "stop", "message": "DRM으로 보호된 콘텐츠라 받을 수 없습니다." },
+    { "id": "login_required", "goName": "LoginRequired", "policy": "ask_user", "message": "로그인이 필요한 콘텐츠입니다. 설정에서 쿠키를 지정하세요." },
+    { "id": "age_restricted", "goName": "AgeRestricted", "policy": "ask_user", "message": "연령 제한 콘텐츠입니다. 로그인 쿠키가 필요합니다." },
+    { "id": "rate_limited", "goName": "RateLimited", "policy": "retry_late", "message": "플랫폼이 요청을 일시적으로 제한했습니다. 잠시 후 다시 시도합니다.", "note": "Instagram은 rate limit와 로그인 필요를 같은 문구로 보고한다 → 일시 제한으로 분류" },
+    { "id": "geo_blocked", "goName": "GeoBlocked", "policy": "stop", "message": "현재 지역에서 볼 수 없는 콘텐츠입니다." },
+    { "id": "unsupported_url", "goName": "UnsupportedURL", "policy": "stop", "message": "지원하지 않는 링크입니다." },
+    { "id": "live", "goName": "Live", "policy": "stop", "message": "진행 중인 라이브 방송은 아직 지원하지 않습니다." },
+    { "id": "format_unavailable", "goName": "Format", "policy": "fallback", "message": "요청한 화질/형식을 찾을 수 없습니다." },
+    { "id": "extractor_broken", "goName": "ExtractorBroken", "policy": "fallback", "message": "다운로드 엔진이 이 사이트에서 동작하지 않습니다(엔진 업데이트 필요 가능성)." },
+    { "id": "network", "goName": "Network", "policy": "retry", "message": "네트워크 오류가 발생했습니다." },
+    { "id": "tool_missing", "goName": "ToolMissing", "policy": "ask_user", "message": "필요한 도구(yt-dlp/ffmpeg)가 설치되지 않았습니다." },
+    { "id": "cancelled", "goName": "Cancelled", "policy": "stop", "message": "취소되었습니다." },
+    { "id": "media", "goName": "Media", "policy": "stop", "message": "영상 변환에 실패했습니다.", "note": "ffmpeg/ffprobe 처리 실패" },
+    { "id": "internal", "goName": "Internal", "policy": "stop", "message": "내부 오류가 발생했습니다." }
+  ]
+}

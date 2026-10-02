@@ -1,0 +1,42 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "specs/failures.schema.json",
+  "title": "Failure taxonomy: kind → runner policy → user message (SSOT for Go and TS)",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["version", "policies", "kinds"],
+  "properties": {
+    "$schema": { "type": "string" },
+    "version": { "const": 1 },
+    "policies": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "goName", "meaning"],
+        "properties": {
+          "id": { "type": "string", "pattern": "^[a-z]+(_[a-z]+)*$" },
+          "goName": { "type": "string", "pattern": "^[A-Z][A-Za-z0-9]*$" },
+          "meaning": { "type": "string", "description": "설명(의미 해시에서 제외)" }
+        }
+      }
+    },
+    "kinds": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "goName", "policy", "message"],
+        "properties": {
+          "id": { "type": "string", "pattern": "^[a-z]+(_[a-z]+)*$" },
+          "goName": { "type": "string", "pattern": "^[A-Z][A-Za-z0-9]*$" },
+          "policy": { "type": "string" },
+          "message": { "type": "string", "minLength": 1, "description": "사용자에게 보이는 한국어 메시지(의미에 포함)" },
+          "note": { "type": "string", "description": "설명(의미 해시에서 제외)" }
+        }
+      }
+    }
+  }
+}

@@ -2,6 +2,8 @@
 // 계약의 기준은 /protocol/fixtures/*.json 이다. Go 쪽 필드를 바꾸면 픽스처가 바뀌고
 // test/fixtures.test.ts 가 실패하므로 여기 타입과 validators.ts를 함께 고친다.
 
+import type { FailureKind, FailurePolicy } from "./failures.gen";
+
 export const PROTOCOL_VERSION = 0;
 
 export interface Envelope<T = unknown> {
@@ -141,25 +143,8 @@ export interface Plan {
   bitrateBps?: number;
 }
 
-export type FailureKind =
-  | "private"
-  | "removed"
-  | "drm"
-  | "login_required"
-  | "age_restricted"
-  | "rate_limited"
-  | "geo_blocked"
-  | "unsupported_url"
-  | "live"
-  | "format_unavailable"
-  | "extractor_broken"
-  | "network"
-  | "tool_missing"
-  | "cancelled"
-  | "media"
-  | "internal";
-
-export type FailurePolicy = "stop" | "retry_late" | "retry" | "fallback" | "ask_user";
+// 실패 분류표(FailureKind, FailurePolicy)는 specs/failures.json이 SSOT다(make gen → failures.gen.ts).
+export type { FailureKind, FailurePolicy };
 
 export interface Failure {
   kind: FailureKind;

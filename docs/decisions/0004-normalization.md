@@ -1,6 +1,7 @@
 # 0004. Premiere용 정규화 정책
 
 - 상태: 초안 (2026-10-02)
+- 실행 가능한 전제: P-0004-a, P-0004-b (`docs/decisions/premises.json`, `make premises`)
 
 ## 결정
 - 포맷 선택: `-f bv*+ba/b -S hdr:sdr,res:<max>,vcodec:h264,acodec:aac` (SDR > 해상도 > H.264 > AAC).

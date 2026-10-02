@@ -12,54 +12,8 @@ import (
 	"birdcage/helper/internal/perf"
 )
 
-// Kind classifies a failure.
-type Kind string
-
-const (
-	KindPrivate         Kind = "private"
-	KindRemoved         Kind = "removed"
-	KindDRM             Kind = "drm"
-	KindLoginRequired   Kind = "login_required"
-	KindAgeRestricted   Kind = "age_restricted"
-	KindRateLimited     Kind = "rate_limited"
-	KindGeoBlocked      Kind = "geo_blocked"
-	KindUnsupportedURL  Kind = "unsupported_url"
-	KindLive            Kind = "live"
-	KindFormat          Kind = "format_unavailable"
-	KindExtractorBroken Kind = "extractor_broken"
-	KindNetwork         Kind = "network"
-	KindToolMissing     Kind = "tool_missing"
-	KindCancelled       Kind = "cancelled"
-	KindMedia           Kind = "media" // ffmpeg/ffprobe 처리 실패
-	KindInternal        Kind = "internal"
-)
-
-// Policy is what the job runner should do after a failure.
-type Policy string
-
-const (
-	PolicyStop      Policy = "stop"       // 재시도해도 소용없음
-	PolicyRetryLate Policy = "retry_late" // 같은 엔진으로 지연 재시도(엔진 전환 금지)
-	PolicyRetry     Policy = "retry"      // 즉시 재시도 가능(네트워크)
-	PolicyFallback  Policy = "fallback"   // 다음 폴백 단계로
-	PolicyAskUser   Policy = "ask_user"   // 사용자 조치 필요(쿠키 등)
-)
-
-// PolicyFor maps a failure kind to the runner policy.
-func PolicyFor(k Kind) Policy {
-	switch k {
-	case KindRateLimited:
-		return PolicyRetryLate
-	case KindNetwork:
-		return PolicyRetry
-	case KindExtractorBroken, KindFormat:
-		return PolicyFallback
-	case KindLoginRequired, KindAgeRestricted, KindToolMissing:
-		return PolicyAskUser
-	default:
-		return PolicyStop
-	}
-}
+// Kind, Policy, the Kind*/Policy* constants, PolicyFor and MessageFor are generated
+// from specs/failures.json (failures_gen.go). 실패 분류표를 바꾸려면 명세를 고치고 `make gen`.
 
 // Failure is a classified error.
 type Failure struct {
@@ -78,26 +32,7 @@ func (f *Failure) Error() string {
 
 // Fail builds a Failure with the default policy and message for its kind.
 func Fail(k Kind, detail string) *Failure {
-	return &Failure{Kind: k, Message: messages[k], Detail: detail, Policy: PolicyFor(k)}
-}
-
-var messages = map[Kind]string{
-	KindPrivate:         "비공개 영상입니다.",
-	KindRemoved:         "삭제되었거나 존재하지 않는 영상입니다.",
-	KindDRM:             "DRM으로 보호된 콘텐츠라 받을 수 없습니다.",
-	KindLoginRequired:   "로그인이 필요한 콘텐츠입니다. 설정에서 쿠키를 지정하세요.",
-	KindAgeRestricted:   "연령 제한 콘텐츠입니다. 로그인 쿠키가 필요합니다.",
-	KindRateLimited:     "플랫폼이 요청을 일시적으로 제한했습니다. 잠시 후 다시 시도합니다.",
-	KindGeoBlocked:      "현재 지역에서 볼 수 없는 콘텐츠입니다.",
-	KindUnsupportedURL:  "지원하지 않는 링크입니다.",
-	KindLive:            "진행 중인 라이브 방송은 아직 지원하지 않습니다.",
-	KindFormat:          "요청한 화질/형식을 찾을 수 없습니다.",
-	KindExtractorBroken: "다운로드 엔진이 이 사이트에서 동작하지 않습니다(엔진 업데이트 필요 가능성).",
-	KindNetwork:         "네트워크 오류가 발생했습니다.",
-	KindToolMissing:     "필요한 도구(yt-dlp/ffmpeg)가 설치되지 않았습니다.",
-	KindCancelled:       "취소되었습니다.",
-	KindMedia:           "영상 변환에 실패했습니다.",
-	KindInternal:        "내부 오류가 발생했습니다.",
+	return &Failure{Kind: k, Message: MessageFor(k), Detail: detail, Policy: PolicyFor(k)}
 }
 
 // Info is the metadata of a media item, from a probe.

@@ -1,6 +1,7 @@
 # 0002. Go Helper + 루프백 WebSocket
 
 - 상태: 초안 (2026-10-02)
+- 실행 가능한 전제: P-0002-a, P-0002-b (`docs/decisions/premises.json`, `make premises`)
 
 ## 결정
 - 다운로드·변환은 별도 **Go Helper 프로세스**가 한다. 패널은 UI와 Premiere API 호출만.

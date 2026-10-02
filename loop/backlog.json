@@ -1,0 +1,281 @@
+{
+  "$schema": "./schema/backlog.schema.json",
+  "tasks": [
+    {
+      "id": "T-001",
+      "title": "루프 기반: 정책·스키마·loopctl(상태·증적·종료·정체·세션·보호 경로·보관)",
+      "mode": "compile",
+      "status": "open",
+      "passes": false,
+      "priority": 1,
+      "acceptance": [
+        {
+          "kind": "test",
+          "maxLevel": "L1",
+          "what": "루프 도구 테스트(G-tools)"
+        },
+        {
+          "kind": "spec",
+          "maxLevel": "L2",
+          "what": "loopctl check 통과(G-loop)"
+        }
+      ]
+    },
+    {
+      "id": "T-002",
+      "title": "실패 분류표 SSOT(specs/failures.json → Go·TS 생성)",
+      "mode": "compile",
+      "status": "open",
+      "passes": false,
+      "priority": 1,
+      "acceptance": [
+        {
+          "kind": "spec",
+          "maxLevel": "L1",
+          "what": "specgen -check(G-gen)"
+        },
+        {
+          "kind": "test",
+          "maxLevel": "L1",
+          "what": "Helper 전체 테스트(G-helper)"
+        },
+        {
+          "kind": "test",
+          "maxLevel": "L1",
+          "what": "패널 코어 테스트(G-core)"
+        }
+      ]
+    },
+    {
+      "id": "T-003",
+      "title": "실행 가능한 ADR 전제(premises.json + loopctl premises)",
+      "mode": "compile",
+      "status": "open",
+      "passes": false,
+      "priority": 1,
+      "dependsOn": [
+        "T-001"
+      ],
+      "acceptance": [
+        {
+          "kind": "premise",
+          "maxLevel": "L3",
+          "what": "모든 ADR 전제 통과(G-premises)"
+        },
+        {
+          "kind": "test",
+          "maxLevel": "L1",
+          "what": "전제 검사 타입 테스트(G-tools)"
+        }
+      ]
+    },
+    {
+      "id": "T-004",
+      "title": "원칙 SSOT 강제 장치: readiness·게이트 사다리·brief·원칙 참조 검사, AGENTS.md 생성",
+      "mode": "compile",
+      "status": "open",
+      "passes": false,
+      "priority": 1,
+      "dependsOn": [
+        "T-001",
+        "T-003"
+      ],
+      "acceptance": [
+        {
+          "kind": "spec",
+          "maxLevel": "L2",
+          "what": "loopctl check: R-principle-refs·R-gate-order(G-loop)"
+        },
+        {
+          "kind": "spec",
+          "maxLevel": "L1",
+          "what": "AGENTS.md 최신(G-gen)"
+        },
+        {
+          "kind": "test",
+          "maxLevel": "L1",
+          "what": "루프 도구 테스트(G-tools)"
+        }
+      ]
+    },
+    {
+      "id": "T-005",
+      "title": "Premiere 15.2에서 CEP 패널 로드·다운로드·Birdcage/<플랫폼> 빈 임포트 확인",
+      "mode": "human",
+      "status": "open",
+      "passes": false,
+      "priority": 1,
+      "acceptance": [
+        {
+          "kind": "human",
+          "maxLevel": "L5",
+          "what": "패널이 뜨고 링크 1건이 빈에 임포트됨"
+        }
+      ]
+    },
+    {
+      "id": "T-006",
+      "title": "Windows 실기 검증(Helper 실행·경로·Job Object·Defender·패널)",
+      "mode": "human",
+      "status": "open",
+      "passes": false,
+      "priority": 2,
+      "acceptance": [
+        {
+          "kind": "human",
+          "maxLevel": "L5",
+          "what": "Windows Premiere에서 링크 1건 임포트"
+        }
+      ]
+    },
+    {
+      "id": "T-007",
+      "title": "Instagram·TikTok 실링크 온라인 E2E",
+      "mode": "discovery",
+      "status": "open",
+      "passes": false,
+      "priority": 2,
+      "acceptance": [
+        {
+          "kind": "test",
+          "maxLevel": "L3",
+          "what": "BIRDCAGE_E2E_URLS로 IG·TikTok 각 1건 done 또는 분류된 실패"
+        }
+      ]
+    },
+    {
+      "id": "T-008",
+      "title": "감시 루프(watch): 만료 전제·yt-dlp 릴리스·플랫폼 E2E 주기 실행",
+      "mode": "discovery",
+      "status": "open",
+      "passes": false,
+      "priority": 2,
+      "dependsOn": [
+        "T-003"
+      ],
+      "acceptance": [
+        {
+          "kind": "test",
+          "maxLevel": "L1",
+          "what": "watch 명령 테스트"
+        },
+        {
+          "kind": "premise",
+          "maxLevel": "L3",
+          "what": "만료 전제 재검증 흐름"
+        }
+      ]
+    },
+    {
+      "id": "T-009",
+      "title": "폴백 L1: extractor_broken·format_unavailable 시 대체 player_client 재시도",
+      "mode": "compile",
+      "status": "open",
+      "passes": false,
+      "priority": 3,
+      "dependsOn": [
+        "T-007"
+      ],
+      "acceptance": [
+        {
+          "kind": "test",
+          "maxLevel": "L1",
+          "what": "재시도 경로 단위 테스트"
+        },
+        {
+          "kind": "test",
+          "maxLevel": "L3",
+          "what": "온라인 E2E 회귀 없음"
+        }
+      ]
+    },
+    {
+      "id": "T-010",
+      "title": "폴백 L2: yt-dlp stable→nightly→last-known-good 버전 폴백",
+      "mode": "compile",
+      "status": "open",
+      "passes": false,
+      "priority": 3,
+      "acceptance": [
+        {
+          "kind": "test",
+          "maxLevel": "L1",
+          "what": "버전 폴백 단위 테스트(가짜 릴리스 서버)"
+        }
+      ]
+    },
+    {
+      "id": "T-011",
+      "title": "원본 URL·업로더 메타데이터를 Premiere 항목에 기록",
+      "mode": "compile",
+      "status": "open",
+      "passes": false,
+      "priority": 3,
+      "dependsOn": [
+        "T-005"
+      ],
+      "acceptance": [
+        {
+          "kind": "test",
+          "maxLevel": "L1",
+          "what": "ExtendScript ASCII·단위 테스트"
+        },
+        {
+          "kind": "human",
+          "maxLevel": "L5",
+          "what": "Project 패널 컬럼에 표시"
+        }
+      ]
+    },
+    {
+      "id": "T-012",
+      "title": "Windows ffmpeg/ffprobe 설치기(체크섬 검증)",
+      "mode": "compile",
+      "status": "open",
+      "passes": false,
+      "priority": 3,
+      "acceptance": [
+        {
+          "kind": "test",
+          "maxLevel": "L1",
+          "what": "가짜 릴리스 서버로 설치·검증·롤백 테스트"
+        }
+      ]
+    },
+    {
+      "id": "T-013",
+      "title": "성능 회귀 3회 재현 자동화(perfreport) — 원칙 W4 partial→enforced",
+      "mode": "compile",
+      "status": "open",
+      "passes": false,
+      "priority": 3,
+      "acceptance": [
+        {
+          "kind": "test",
+          "maxLevel": "L1",
+          "what": "재현 규칙 단위 테스트"
+        },
+        {
+          "kind": "perf",
+          "maxLevel": "L3",
+          "what": "3회 재현 리포트"
+        }
+      ]
+    },
+    {
+      "id": "T-014",
+      "title": "perf 레코드를 OTEL 의미 규약에 정렬(내보내기 대비)",
+      "mode": "compile",
+      "status": "open",
+      "passes": false,
+      "priority": 4,
+      "acceptance": [
+        {
+          "kind": "test",
+          "maxLevel": "L1",
+          "what": "레코드 매핑 테스트"
+        }
+      ]
+    }
+  ]
+}

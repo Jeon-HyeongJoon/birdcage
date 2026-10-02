@@ -1,0 +1,306 @@
+{
+  "$schema": "./premises.schema.json",
+  "premises": [
+    {
+      "id": "P-0001-a",
+      "adr": "0001",
+      "level": "L1",
+      "claim": "CEP 패널이 CSXS 10을 요구한다(Premiere 15.0–15.3 = CEP 10에서 로드되려면 필수)",
+      "check": {
+        "type": "file-regex",
+        "path": "panel/cep/cep.config.ts",
+        "pattern": "requiredRuntimeVersion:\\s*10\\.0"
+      }
+    },
+    {
+      "id": "P-0001-b",
+      "adr": "0001",
+      "level": "L1",
+      "claim": "호스트 범위가 PPRO 15.0 이상을 허용한다",
+      "check": {
+        "type": "file-regex",
+        "path": "panel/cep/cep.config.ts",
+        "pattern": "name:\\s*\"PPRO\",\\s*version:\\s*\"\\[15\\.0,99\\.9\\]\""
+      }
+    },
+    {
+      "id": "P-0001-c",
+      "adr": "0001",
+      "level": "L3",
+      "claim": "Adobe 일정상 Premiere의 CEP 기본 비활성화는 2028-12 이후다(그 전까지 CEP 하나로 26까지 커버 가능)",
+      "sources": [
+        "https://blog.developer.adobe.com/en/publish/2026/09/investing-in-the-future-of-creative-cloud-extensibility-uxp-comes-to-our-flagship-applications"
+      ],
+      "check": {
+        "type": "expires",
+        "verifiedAt": "2026-10-01",
+        "ttlDays": 90
+      }
+    },
+    {
+      "id": "P-0001-d",
+      "adr": "0001",
+      "level": "L3",
+      "claim": "Premiere 26에서 CEP 확장이 동작한다",
+      "sources": [
+        "https://github.com/muhwagwa0112/premiere-pro-full-mcp",
+        "https://github.com/leancoderkavy/premiere-pro-mcp"
+      ],
+      "check": {
+        "type": "expires",
+        "verifiedAt": "2026-10-01",
+        "ttlDays": 90
+      }
+    },
+    {
+      "id": "P-0002-a",
+      "adr": "0002",
+      "level": "L1",
+      "claim": "Helper WebSocket은 잘못된 토큰(401)과 웹페이지 Origin(403)을 거부하고 file:// 패널은 허용한다",
+      "check": {
+        "type": "command",
+        "dir": "helper",
+        "argv": [
+          "go",
+          "test",
+          "-count=1",
+          "-run",
+          "^TestAuth$",
+          "./internal/server/"
+        ],
+        "timeoutSec": 120
+      }
+    },
+    {
+      "id": "P-0002-b",
+      "adr": "0002",
+      "level": "L1",
+      "claim": "Helper는 루프백 주소에만 바인딩하고 공인 주소는 거부한다",
+      "check": {
+        "type": "command",
+        "dir": "helper",
+        "argv": [
+          "go",
+          "test",
+          "-count=1",
+          "-run",
+          "^TestListenLoopbackOnly$",
+          "./cmd/birdcage-helper/"
+        ],
+        "timeoutSec": 180
+      }
+    },
+    {
+      "id": "P-0003-a",
+      "adr": "0003",
+      "level": "L3",
+      "claim": "설치된 yt-dlp(onedir)는 2초 안에 실행된다(단일 파일판 실측 9.19s 대비)",
+      "check": {
+        "type": "command",
+        "argv": [
+          "${BIRDCAGE_YTDLP}",
+          "--version"
+        ],
+        "maxMs": 2000,
+        "timeoutSec": 30,
+        "requiresEnv": [
+          "BIRDCAGE_YTDLP"
+        ]
+      }
+    },
+    {
+      "id": "P-0003-b",
+      "adr": "0003",
+      "level": "L3",
+      "claim": "yt-dlp 공식 실행 파일은 EJS를 포함하고, YouTube에는 deno 2.3+(또는 node 22+) JS 런타임이 필요하다",
+      "sources": [
+        "https://github.com/yt-dlp/yt-dlp/wiki/EJS",
+        "https://github.com/yt-dlp/yt-dlp/issues/15012"
+      ],
+      "check": {
+        "type": "expires",
+        "verifiedAt": "2026-10-02",
+        "ttlDays": 60
+      }
+    },
+    {
+      "id": "P-0003-c",
+      "adr": "0003",
+      "level": "L1",
+      "claim": "도구 설치기는 체크섬이 다르면 설치를 거부하고 zip 경로 탈출을 막는다",
+      "check": {
+        "type": "command",
+        "dir": "helper",
+        "argv": [
+          "go",
+          "test",
+          "-count=1",
+          "-run",
+          "^(TestInstallRejectsChecksumMismatch|TestInstallRejectsZipSlip)$",
+          "./internal/tools/"
+        ],
+        "timeoutSec": 120
+      }
+    },
+    {
+      "id": "P-0004-a",
+      "adr": "0004",
+      "level": "L1",
+      "claim": "VFR 판정과 copy/transcode 계획 규칙이 기대대로 동작한다",
+      "check": {
+        "type": "command",
+        "dir": "helper",
+        "argv": [
+          "go",
+          "test",
+          "-count=1",
+          "-run",
+          "^(TestVFRDetection|TestMakePlan|TestPlanArgs)$",
+          "./internal/media/"
+        ],
+        "timeoutSec": 120
+      }
+    },
+    {
+      "id": "P-0004-b",
+      "adr": "0004",
+      "level": "L3",
+      "claim": "실제 ffmpeg로 VP9/Opus→H.264/AAC 48k, VFR→CFR 변환 결과가 재분석에서 통과한다(ffmpeg 없으면 테스트가 skip)",
+      "check": {
+        "type": "command",
+        "dir": "helper",
+        "argv": [
+          "go",
+          "test",
+          "-count=1",
+          "-run",
+          "^TestNormalizeFixtures$",
+          "./internal/media/"
+        ],
+        "timeoutSec": 300
+      }
+    },
+    {
+      "id": "P-0005-a",
+      "adr": "0005",
+      "level": "L1",
+      "claim": "Helper의 모든 테스트 패키지는 perftest.Main으로 성능 기록을 남긴다",
+      "check": {
+        "type": "per-dir-regex",
+        "glob": "helper/**/*_test.go",
+        "pattern": "perftest\\.Main"
+      }
+    },
+    {
+      "id": "P-0005-b",
+      "adr": "0005",
+      "level": "L1",
+      "claim": "pprof 서버는 루프백 주소만 허용한다",
+      "check": {
+        "type": "command",
+        "dir": "helper",
+        "argv": [
+          "go",
+          "test",
+          "-count=1",
+          "-run",
+          "^(TestPprofLoopbackOnly|TestPprofServes)$",
+          "./internal/perf/"
+        ],
+        "timeoutSec": 120
+      }
+    },
+    {
+      "id": "P-0006-a",
+      "adr": "0006",
+      "level": "L1",
+      "claim": "ExtendScript 번들에 들어가는 소스는 ASCII만 쓴다(CP949 깨짐 방지)",
+      "check": {
+        "type": "file-ascii",
+        "paths": [
+          "panel/cep/src/jsx/**/*.ts",
+          "panel/cep/cep.config.ts",
+          "panel/cep/src/shared/shared.ts"
+        ]
+      }
+    },
+    {
+      "id": "P-0006-b",
+      "adr": "0006",
+      "level": "L1",
+      "claim": "패널 UI는 React 18을 쓴다(Chromium 74·UXP 호환)",
+      "check": {
+        "type": "file-regex",
+        "path": "panel/cep/package.json",
+        "pattern": "\"react\":\\s*\"\\^18\\."
+      }
+    },
+    {
+      "id": "P-0006-c",
+      "adr": "0006",
+      "level": "L1",
+      "claim": "패널 빌드는 CEP 확장 링크를 남기지 않는다(noImplicitCepLink 등록)",
+      "check": {
+        "type": "file-regex",
+        "path": "panel/cep/vite.config.ts",
+        "pattern": "plugins:\\s*\\[[^\\]]*noImplicitCepLink\\(\\)"
+      }
+    },
+    {
+      "id": "P-0007-a",
+      "adr": "0007",
+      "level": "L2",
+      "claim": "루프 상태 파일이 스키마·정책 규칙을 지키고, 원본 산출물은 커밋되지 않는다",
+      "check": {
+        "type": "command",
+        "dir": "tools",
+        "argv": [
+          "go",
+          "run",
+          "./cmd/loopctl",
+          "check"
+        ],
+        "timeoutSec": 120
+      }
+    },
+    {
+      "id": "P-0008-a",
+      "adr": "0008",
+      "level": "L1",
+      "claim": "실패 분류표 생성물(Go·TS)이 specs/failures.json과 일치한다",
+      "check": {
+        "type": "command",
+        "dir": "tools",
+        "argv": [
+          "go",
+          "run",
+          "./cmd/specgen",
+          "-check"
+        ],
+        "timeoutSec": 120
+      }
+    },
+    {
+      "id": "P-0009-a",
+      "adr": "0009",
+      "level": "L1",
+      "claim": "AGENTS.md는 SSOT에서 생성된 파일이다(DO NOT EDIT 머리말)",
+      "check": {
+        "type": "file-regex",
+        "path": "AGENTS.md",
+        "pattern": "Code generated by specgen from specs/principles\\.json \\+ loop/policy\\.json; DO NOT EDIT"
+      }
+    },
+    {
+      "id": "P-0009-b",
+      "adr": "0009",
+      "level": "L1",
+      "claim": "CLAUDE.md는 AGENTS.md를 import한다(Claude Code 세션이 원칙을 자동으로 읽음)",
+      "check": {
+        "type": "file-regex",
+        "path": "CLAUDE.md",
+        "pattern": "(?m)^@AGENTS\\.md$"
+      }
+    }
+  ]
+}

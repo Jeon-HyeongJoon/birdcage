@@ -1,6 +1,7 @@
 # 0006. bolt-cep + React 18 + 호스트 무관 코어
 
 - 상태: 초안 (2026-10-02)
+- 실행 가능한 전제: P-0006-a, P-0006-b, P-0006-c (`docs/decisions/premises.json`, `make premises`)
 
 ## 결정
 - CEP 패널 골격: **hyperbrew/bolt-cep 2.2.3**(MIT) — Vite + TS, ExtendScript TS→ES3 빌드, 매니페스트 생성, `evalTS`.

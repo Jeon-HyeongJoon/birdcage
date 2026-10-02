@@ -10,7 +10,9 @@ Premiere ─ CEP 패널 (TS + React 18, bolt-cep) ── ws://127.0.0.1 (토큰�
                                                                                     └ 성능 로그(JSONL) + pprof
 ```
 
-설계 결정과 근거: [docs/decisions](docs/decisions/README.md) (모두 초안, 더 나은 근거가 나오면 교체)
+설계 결정과 근거: [docs/decisions](docs/decisions/README.md) (모두 초안, 각 결정은 실행 가능한 전제를 가짐)
+
+**에이전트·루프 작업 규칙: [AGENTS.md](AGENTS.md)** (생성물 — SSOT는 `specs/principles.json` + `loop/policy.json`)
 
 ## 구조
 
@@ -21,6 +23,9 @@ Premiere ─ CEP 패널 (TS + React 18, bolt-cep) ── ws://127.0.0.1 (토큰�
 | `panel/core/` | 호스트 무관 TS 코어: 프로토콜 타입, HelperClient, Controller(재연결·자동 임포트), HostAdapter |
 | `panel/cep/` | CEP 패널(bolt-cep). `src/js/host/cep-host.ts`(Helper 실행·임포트), `src/jsx/ppro/ppro.ts`(ExtendScript) |
 | `scripts/` | `test-helper.sh`(테스트+성능 기록), `build-helper.sh`, `cep-dev-install.sh/.ps1` |
+| `specs/` | SSOT 명세: 원칙(`principles.json`), 실패 분류표(`failures.json`) → `make gen`으로 Go·TS·AGENTS.md 생성 |
+| `loop/` | 루프 정책·스키마·백로그·반복 기록·증적 원장(커밋), `loop/.runs/`는 원본 산출물(로컬, gitignore) |
+| `tools/` | `loopctl`(루프 운영·검사·게이트·전제), `specgen`(SSOT 생성기) |
 
 ## V0 상태
 
@@ -56,6 +61,18 @@ scripts/cep-dev-install.sh                              # PlayerDebugMode + Help
 
 Premiere 2021(Intel 빌드)을 Apple Silicon에서 쓰려면 Rosetta가 필요하다: `softwareupdate --install-rosetta --agree-to-license`.
 이때 패널은 Helper를 `arch -arm64`로 띄워 네이티브로 실행한다.
+
+## 루프 (V0 이후 작업 방식)
+
+```bash
+make orient                     # 새 세션 시작: 상태·인계·다음 작업
+make verify                     # 0토큰 무료 게이트(fmt·vet·gen·loop·tools·tsc·core) ~7s
+cd tools && go run ./cmd/loopctl begin --task T-009 --kind worker --hypothesis "…"
+make gates                      # 게이트 사다리(싼 것부터, 실패 시 중단), 증적은 loop/ledger에 기록
+cd tools && go run ./cmd/loopctl brief          # 실패 시 모델에 넘길 압축 피드백
+cd tools && go run ./cmd/loopctl end --state success --summary "…" --next "…" --lesson "…" --pass-task
+make premises                   # ADR 전제 검사(만료된 외부 사실 포함)
+```
 
 ## 성능 모니터링
 

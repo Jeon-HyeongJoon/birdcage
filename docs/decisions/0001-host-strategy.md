@@ -1,6 +1,7 @@
 # 0001. CEP 패널 하나로 Premiere 15.0–26 커버, UXP는 v2
 
 - 상태: 초안 (2026-10-02)
+- 실행 가능한 전제: P-0001-a, P-0001-b, P-0001-c, P-0001-d (`docs/decisions/premises.json`, `make premises`)
 - 요구: Windows + macOS, Premiere 2021(15.x) 이상 + 26 모두 지원
 
 ## 결정

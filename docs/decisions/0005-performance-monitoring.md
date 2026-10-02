@@ -1,6 +1,7 @@
 # 0005. 성능 기록 필수 (pprof + JSONL perf 로그)
 
 - 상태: 초안 (2026-10-02) — 사용자 요구: "Go Helper는 pprof 모니터링 및 테스트 시 로그로 성능 기록 필수"
+- 실행 가능한 전제: P-0005-a, P-0005-b (`docs/decisions/premises.json`, `make premises`)
 
 ## 결정
 - **실행 중**: Helper는 기본으로 `<data>/logs/perf-YYYYMMDD.jsonl`에 기록한다.

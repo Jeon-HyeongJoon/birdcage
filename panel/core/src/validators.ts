@@ -1,3 +1,5 @@
+import { FAILURE_KINDS, FAILURE_POLICY, FailureKind } from "./failures.gen";
+
 // Minimal runtime shape checks for protocol payloads. Used by the fixture contract test
 // (Go 필드명이 바뀌면 여기서 잡힌다) and, in dev builds, to warn about unexpected messages.
 
@@ -73,6 +75,12 @@ function checkJob(j: unknown, where: string, errs: string[]): void {
   const o = (j ?? {}) as Record<string, unknown>;
   for (const k of ["options", "download", "info", "media", "plan", "failure"]) {
     if (o[k] !== undefined) check(o[k], nested["job." + k], `${where}.${k}`, errs);
+  }
+  // 실패 종류·정책은 SSOT(specs/failures.json)와 일치해야 한다.
+  const f = o.failure as { kind?: string; policy?: string } | undefined;
+  if (f && typeof f.kind === "string") {
+    if (!(FAILURE_KINDS as readonly string[]).includes(f.kind)) errs.push(`${where}.failure.kind: unknown kind ${f.kind}`);
+    else if (f.policy !== FAILURE_POLICY[f.kind as FailureKind]) errs.push(`${where}.failure.policy: ${f.policy} != spec ${FAILURE_POLICY[f.kind as FailureKind]}`);
   }
 }
 
