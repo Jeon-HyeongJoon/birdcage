@@ -15,6 +15,9 @@ import (
 	"birdcage/tools/internal/loopkit"
 )
 
+// multitaskGate is the human gate that lets one session work on several tasks.
+const multitaskGate = "session.multitask"
+
 // state is everything loopctl knows about the loop on disk.
 type state struct {
 	root       string
@@ -182,20 +185,33 @@ func checkRules(s *state, now time.Time) (errs, warns []string) {
 		}
 	}
 	// 세션 하나에 작업 하나: 같은 세션 id가 여러 작업에 쓰이면 위반(bootstrap 세션만 예외).
+	// 사람이 한 세션에서 여러 작업을 지시했다면 첫 반복 이후의 모든 반복이 session.multitask 승인을 가져야 한다.
 	if p.Sessions.OneTaskPerSession {
-		bySession := map[string]map[string]bool{}
+		bySession := map[string][]*loopkit.Iteration{}
 		for _, it := range s.iterations {
 			if it.Session.ID == "" || it.Session.Kind == "bootstrap" {
 				continue
 			}
-			if bySession[it.Session.ID] == nil {
-				bySession[it.Session.ID] = map[string]bool{}
-			}
-			bySession[it.Session.ID][it.Task] = true
+			bySession[it.Session.ID] = append(bySession[it.Session.ID], it)
 		}
-		for sid, ts := range bySession {
-			if len(ts) > 1 {
-				add("R-one-task-session: session %s worked on %d tasks; policy is one task per session (start a fresh session)", sid, len(ts))
+		for sid, its := range bySession {
+			tasks := map[string]bool{}
+			for _, it := range its {
+				tasks[it.Task] = true
+			}
+			if len(tasks) <= 1 {
+				continue
+			}
+			sort.Slice(its, func(i, j int) bool { return its[i].StartedAt < its[j].StartedAt })
+			var unapproved []string
+			for _, it := range its[1:] {
+				if !approved(it, multitaskGate) {
+					unapproved = append(unapproved, it.ID)
+				}
+			}
+			if len(unapproved) > 0 || !hasHumanGate(p, multitaskGate) {
+				add("R-one-task-session: session %s worked on %d tasks; policy is one task per session (start a fresh session, or record %s approval on %s)",
+					sid, len(tasks), multitaskGate, strings.Join(unapproved, ", "))
 			}
 		}
 	}
@@ -365,4 +381,13 @@ func checkStorage(root string, p loopkit.Policy) (errs, warns []string) {
 		}
 	}
 	return errs, warns
+}
+
+func hasHumanGate(p loopkit.Policy, action string) bool {
+	for _, g := range p.HumanGates {
+		if g.Action == action {
+			return true
+		}
+	}
+	return false
 }

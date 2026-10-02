@@ -184,6 +184,9 @@ func main() {
 		if it == nil || *action == "" || *by == "" {
 			die(fmt.Errorf("need a running iteration, --action and --by"))
 		}
+		if !hasHumanGate(s.policy, *action) {
+			die(fmt.Errorf("%s is not a human gate in loop/policy.json", *action))
+		}
 		it.Approvals = append(it.Approvals, loopkit.Approval{Action: *action, By: *by, At: now().UTC().Format(time.RFC3339), Note: *note})
 		if err := saveIteration(s, it); err != nil {
 			die(err)

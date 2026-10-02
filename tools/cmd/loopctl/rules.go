@@ -27,7 +27,7 @@ var rules = map[string]string{
 	"R-terminal":         "반복은 policy.terminalStates 중 하나로 끝나고 endedAt·head를 가진다",
 	"R-budget":           "작업당 반복 수와 반복 시간 예산",
 	"R-stall":            "같은 실패 서명이 연속으로 반복되면 정체로 본다",
-	"R-one-task-session": "세션 하나는 작업 하나만 다룬다(bootstrap 제외)",
+	"R-one-task-session": "세션 하나는 작업 하나만 다룬다(bootstrap 제외, 사람의 session.multitask 승인이 있으면 예외)",
 	"R-adr-premise":      "모든 ADR은 실행 가능한 전제를 가진다",
 	"R-storage-local":    "storage.local 경로(원본 산출물)는 git에 올라가지 않는다",
 	"R-storage-size":     "커밋 대상 루프 파일은 크기 상한 이하",

@@ -68,6 +68,10 @@
       "why": "검증기는 피검증자가 고칠 수 없다(보상 해킹 방지). protected 경로의 수정·삭제."
     },
     {
+      "action": "session.multitask",
+      "why": "한 세션에서 여러 작업을 이어 하면 컨텍스트가 섞인다. 사람이 연속 진행을 지시한 경우에만 각 반복에 승인을 남긴다(2026-10-03 지시)."
+    },
+    {
       "action": "tools.install.global",
       "why": "사용자 데이터 폴더·시스템 경로에 도구 설치."
     }
@@ -172,6 +176,20 @@
         "sh",
         "-c",
         "test -z \"$(gofmt -l helper tools)\""
+      ]
+    },
+    {
+      "id": "G-uilint",
+      "level": "L2",
+      "kind": "build",
+      "cost": "free",
+      "estSec": 3,
+      "what": "패널 스타일: 반경 토큰(≤2px)·CEP 10(Chromium 74) 미지원 CSS 금지",
+      "dir": "tools",
+      "argv": [
+        "go",
+        "run",
+        "./cmd/uilint"
       ]
     },
     {

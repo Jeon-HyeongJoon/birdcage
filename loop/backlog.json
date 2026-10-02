@@ -346,6 +346,186 @@
         "E-20261002-141139-001",
         "E-20261002-141139-003"
       ]
+    },
+    {
+      "id": "T-017",
+      "title": "편집 옵션 기반: 설계 결정(ADR 0010·실측 벤치 스크립트) + UI 토큰(_tokens.scss)·스타일 게이트(G-uilint: radius≤2px, CEF74 미지원 CSS 금지) + gap 버그 수정 + 다중 작업 세션 승인(session.multitask)",
+      "mode": "compile",
+      "status": "done",
+      "passes": true,
+      "priority": 1,
+      "acceptance": [
+        {
+          "kind": "build",
+          "maxLevel": "L2",
+          "what": "스타일 게이트 통과(G-uilint)"
+        },
+        {
+          "kind": "test",
+          "maxLevel": "L1",
+          "what": "루프 도구 테스트(G-tools: uilint·multitask 규칙)"
+        },
+        {
+          "kind": "spec",
+          "maxLevel": "L2",
+          "what": "loopctl check 통과(G-loop)"
+        },
+        {
+          "kind": "build",
+          "maxLevel": "L2",
+          "what": "CEP 타입 검사(G-cep)"
+        }
+      ],
+      "evidence": [
+        "E-20261002-184003-001",
+        "E-20261002-184003-006",
+        "E-20261002-184003-004"
+      ]
+    },
+    {
+      "id": "T-018",
+      "title": "링크 조회·영상 정보·해상도 선택: media.probe/media.info, 조회 결과 재사용(재추출 생략), 화질별 크기·변환 필요 표시, 썸네일, 시퀀스 정보로 추천·fps 불일치 경고",
+      "mode": "compile",
+      "status": "open",
+      "passes": false,
+      "priority": 1,
+      "dependsOn": [
+        "T-017"
+      ],
+      "acceptance": [
+        {
+          "kind": "test",
+          "maxLevel": "L1",
+          "what": "Helper 테스트(G-helper: variants 파싱·probe 재사용·서버 media.probe)"
+        },
+        {
+          "kind": "test",
+          "maxLevel": "L1",
+          "what": "패널 코어 테스트(G-core: 조회·선택 상태, 프로토콜 계약)"
+        },
+        {
+          "kind": "test",
+          "maxLevel": "L3",
+          "what": "온라인 E2E: 조회 후 다운로드가 재추출 없이 끝남(G-e2e)"
+        }
+      ]
+    },
+    {
+      "id": "T-019",
+      "title": "구간 추출: 핸들 포함 구간 다운로드(--download-sections + copyts) → 원래 타임라인 기준 정렬 정규화 → 프로젝트 항목 In/Out 설정(자기 검증) · 소스 모니터 열기",
+      "mode": "compile",
+      "status": "open",
+      "passes": false,
+      "priority": 1,
+      "dependsOn": [
+        "T-018"
+      ],
+      "acceptance": [
+        {
+          "kind": "test",
+          "maxLevel": "L1",
+          "what": "구간 정확도 통합 테스트: In 프레임 md5 일치·오디오 오프셋 ≤1ms(G-helper)"
+        },
+        {
+          "kind": "test",
+          "maxLevel": "L1",
+          "what": "패널 코어: 시간 입력 파싱·URL t= 채움(G-core)"
+        },
+        {
+          "kind": "premise",
+          "maxLevel": "L2",
+          "what": "ExtendScript ASCII 전제(G-premises)"
+        }
+      ]
+    },
+    {
+      "id": "T-020",
+      "title": "타임라인 배치: 빈에만 / 빈 트랙에 안전 배치 / 삽입 / 덮어쓰기(플레이헤드 위치, 트랙 타겟팅 따름)",
+      "mode": "compile",
+      "status": "open",
+      "passes": false,
+      "priority": 2,
+      "dependsOn": [
+        "T-019"
+      ],
+      "acceptance": [
+        {
+          "kind": "test",
+          "maxLevel": "L1",
+          "what": "패널 코어: 배치 요청·결과 처리(G-core)"
+        },
+        {
+          "kind": "build",
+          "maxLevel": "L2",
+          "what": "CEP 타입 검사(G-cep)"
+        }
+      ]
+    },
+    {
+      "id": "T-021",
+      "title": "오디오만(WAV 48k, conform 생략) · 자막 사이드카(srt, 별도 호출로 실패 격리, 구간 시프트, 캡션 트랙은 기능 검사 후)",
+      "mode": "compile",
+      "status": "open",
+      "passes": false,
+      "priority": 2,
+      "dependsOn": [
+        "T-019"
+      ],
+      "acceptance": [
+        {
+          "kind": "test",
+          "maxLevel": "L1",
+          "what": "Helper: WAV 계획·SRT 시프트·자막 실패 격리(G-helper)"
+        },
+        {
+          "kind": "test",
+          "maxLevel": "L1",
+          "what": "패널 코어(G-core)"
+        }
+      ]
+    },
+    {
+      "id": "T-022",
+      "title": "UI 골든 재작성: 모든 UI 상태 시나리오, 실제 코어 로직 픽스처(마스크 없음), DOM 골든은 환경 무관·픽셀 골든은 환경 고정(OS 버전 포함), G-ui 게이트 등록, 사람 검토 증적",
+      "mode": "compile",
+      "status": "open",
+      "passes": false,
+      "priority": 1,
+      "dependsOn": [
+        "T-020",
+        "T-021"
+      ],
+      "acceptance": [
+        {
+          "kind": "test",
+          "maxLevel": "L1",
+          "what": "UI 골든 비교(G-ui)"
+        },
+        {
+          "kind": "human",
+          "maxLevel": "L5",
+          "what": "골든 이미지 사람 검토(전형준)"
+        }
+      ]
+    },
+    {
+      "id": "T-023",
+      "title": "Premiere 실기: 구간 In/Out(setInPoint 단위)·배치 4종·소스 모니터·캡션 트랙·시퀀스 정보(15.2와 26)",
+      "mode": "human",
+      "status": "open",
+      "passes": false,
+      "priority": 2,
+      "dependsOn": [
+        "T-005",
+        "T-020"
+      ],
+      "acceptance": [
+        {
+          "kind": "human",
+          "maxLevel": "L5",
+          "what": "Premiere 15.2·26에서 각 기능 확인"
+        }
+      ]
     }
   ]
 }

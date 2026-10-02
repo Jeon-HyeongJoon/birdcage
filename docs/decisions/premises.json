@@ -301,6 +301,59 @@
         "path": "CLAUDE.md",
         "pattern": "(?m)^@AGENTS\\.md$"
       }
+    },
+    {
+      "id": "P-0010-a",
+      "adr": "0010",
+      "level": "L2",
+      "claim": "패널 스타일이 UI 토큰(반경 ≤ 2px)과 CEP 10(Chromium 74) 호환 규칙을 지킨다",
+      "check": {
+        "type": "command",
+        "dir": "tools",
+        "argv": [
+          "go",
+          "run",
+          "./cmd/uilint"
+        ],
+        "timeoutSec": 120
+      }
+    },
+    {
+      "id": "P-0010-b",
+      "adr": "0010",
+      "level": "L1",
+      "claim": "패널 스타일은 토큰 파일 하나를 가져다 쓴다",
+      "check": {
+        "type": "file-regex",
+        "path": "panel/cep/src/js/main/main.scss",
+        "pattern": "@use \"tokens\" as \\*;"
+      }
+    },
+    {
+      "id": "P-0010-c",
+      "adr": "0010",
+      "level": "L1",
+      "claim": "결정의 비용 실측을 재현하는 스크립트가 있다",
+      "check": {
+        "type": "file-regex",
+        "path": "scripts/bench/editing-options.sh",
+        "pattern": "ProRes 422 LT"
+      }
+    },
+    {
+      "id": "P-0010-d",
+      "adr": "0010",
+      "level": "L3",
+      "claim": "yt-dlp는 ignoreerrors가 True가 아니면 자막 다운로드 실패를 DownloadError로 올려 영상 다운로드까지 실패시킨다(→ 자막은 별도 호출)",
+      "sources": [
+        "https://github.com/yt-dlp/yt-dlp/blob/master/yt_dlp/YoutubeDL.py",
+        "https://github.com/yt-dlp/yt-dlp/issues/13831"
+      ],
+      "check": {
+        "type": "expires",
+        "verifiedAt": "2026-10-03",
+        "ttlDays": 90
+      }
     }
   ]
 }

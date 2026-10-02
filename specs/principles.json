@@ -169,6 +169,28 @@
       "status": "partial"
     },
     {
+      "id": "W8",
+      "group": "work",
+      "rule": "패널 UI는 가장 오래된 지원 호스트(CEP 10 = Chromium 74)와 UXP에서 동작하는 CSS만 쓰고, 반경·간격·색은 UI 토큰(_tokens.scss)에서만 정한다. 카드는 정보 묶음에만 쓰고 반경은 2px 이하다.",
+      "why": "flex gap(Chrome 84+) 같은 새 CSS는 Premiere 15.x에서 오류 없이 무시되어 레이아웃만 무너진다. 사람 눈 검사로는 개발 브라우저(최신 Chrome)에서 놓치므로 기계 검사가 필요하다. 반경·카드 규칙은 사용자 지시(2026-10-03).",
+      "evidence": [
+        "https://github.com/Adobe-CEP/CEP-Resources/blob/master/CEP_10.x/Documentation/CEP%2010.0%20HTML%20Extension%20Cookbook.md",
+        "https://github.com/mdn/browser-compat-data",
+        "session:main.scss의 flex gap 2곳이 CEP 10에서 무시되는 상태로 커밋되어 있었다(2026-10-03 uilint 첫 실행)"
+      ],
+      "enforcedBy": [
+        {
+          "type": "gate",
+          "ref": "G-uilint"
+        },
+        {
+          "type": "premise",
+          "ref": "P-0010-a"
+        }
+      ],
+      "status": "enforced"
+    },
+    {
       "id": "L1",
       "group": "loop",
       "rule": "자율 루프(worker·watch)는 준비 조건(readiness)을 충족한 뒤에만 돈다: 실행 가능한 게이트, 기계 판정 가능한 완료 조건, 안정된 명세, 예산. 그 전(0→1)은 사람 주도 대화형으로 만들되 하네스(테스트·린트·성능 기록)는 처음부터 깐다.",

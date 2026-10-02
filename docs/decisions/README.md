@@ -14,3 +14,4 @@
 | [0007](0007-loop-sessions-storage.md) | 루프·세션·저장 정책 | 초안 |
 | [0008](0008-failure-taxonomy-ssot.md) | 실패 분류표 SSOT | 초안 |
 | [0009](0009-principles-ssot.md) | 원칙 SSOT와 생성된 AGENTS.md | 초안 |
+| [0010](0010-editing-options.md) | 편집용 가져오기 옵션(넣을 기능·뺄 기능, 구간 추출 방식, UI 토큰) | 초안 |
