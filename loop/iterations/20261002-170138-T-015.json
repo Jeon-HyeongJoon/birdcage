@@ -1,0 +1,46 @@
+{
+  "$schema": "../schema/iteration.schema.json",
+  "id": "20261002-170138-T-015",
+  "task": "T-015",
+  "session": {
+    "kind": "worker"
+  },
+  "startedAt": "2026-10-02T17:01:38Z",
+  "endedAt": "2026-10-02T17:14:37Z",
+  "base": {
+    "branch": "feat/t-015-ui-golden",
+    "commit": "25b96d8891c3"
+  },
+  "head": {
+    "branch": "feat/t-015-ui-golden",
+    "commit": "25b96d8891c3",
+    "dirty": true
+  },
+  "state": "success",
+  "hypothesis": "CEP 패널을 고정 픽스처로 렌더링하고 DOM 구조 골든을 우선 비교하며 동적 영역을 마스킹한 픽셀 골든을 보조 비교하면 Premiere 없이도 결정적 UI 회귀 검사가 반복 통과한다.",
+  "summary": "T-015 1차: 프로덕션 App에 Controller/Host 주입 경계를 만들고, Chrome 154 macOS arm64 고정 환경에서 workflow·missing-tools·connection-failed 3개 시나리오의 DOM 구조 및 동적 영역 마스킹 픽셀 골든을 Playwright로 비교한다. UI 타입 검사·CEP 빌드·전체 게이트가 통과했다.",
+  "metrics": {
+    "durationMin": 12.9,
+    "evidence": 20,
+    "evidenceByLevel": {
+      "L1": 12,
+      "L2": 6,
+      "L3": 2
+    },
+    "pass": 20,
+    "fail": 0,
+    "skip": 0
+  },
+  "retro": {
+    "newChecks": [
+      "panel/cep npm run test:ui: UI 하네스 타입 검사 + DOM/픽셀 골든 3개 비교"
+    ],
+    "lessons": [
+      "UI를 Controller/Host 주입형으로 분리하면 실제 렌더러를 정적 픽스처로 재사용해 Premiere 없이도 결정적 화면 회귀 검사를 만들 수 있다."
+    ]
+  },
+  "next": [
+    "새 세션(worker): T-015 2차 loopctl evidence --artifact 구현과 테스트. 공식 G-ui 등록은 loop/policy.json verifier.change 승인 후 진행.",
+    "Premiere 사용 가능 시 T-015 구조 스냅샷 및 T-005 실기 검증을 연계."
+  ]
+}

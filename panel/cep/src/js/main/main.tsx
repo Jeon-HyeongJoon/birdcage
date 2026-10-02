@@ -1,6 +1,7 @@
 import { useEffect, useState, useSyncExternalStore, FormEvent } from "react";
 import {
   Controller,
+  HostAdapter,
   JobView,
   STATE_LABEL,
   TERMINAL_STATES,
@@ -10,31 +11,25 @@ import {
   speed,
   title,
 } from "@birdcage/core";
-import { version } from "../../shared/shared";
 import { subscribeBackgroundColor } from "../lib/utils/bolt";
-import { CepHost } from "../host/cep-host";
 import "./main.scss";
 
-const SETTINGS_KEY = "birdcage.settings";
+export type PanelController = Pick<
+  Controller,
+  | "state"
+  | "subscribe"
+  | "start"
+  | "missingTools"
+  | "submit"
+  | "retryConnection"
+  | "installTools"
+  | "updateSettings"
+  | "clearFinished"
+  | "cancel"
+  | "importJob"
+>;
 
-function loadSettings() {
-  try {
-    return JSON.parse(localStorage.getItem(SETTINGS_KEY) || "{}");
-  } catch {
-    return {};
-  }
-}
-
-const host = new CepHost();
-const ctl = new Controller({ host, clientName: "birdcage-cep", clientVersion: version, settings: loadSettings() });
-ctl.subscribe((s) => {
-  try {
-    localStorage.setItem(SETTINGS_KEY, JSON.stringify(s.settings));
-  } catch {
-    /* 저장 실패해도 동작에는 지장 없음 */
-  }
-});
-window.addEventListener("beforeunload", () => ctl.dispose());
+export type PanelHost = Pick<HostAdapter, "revealFile">;
 
 const HEIGHTS = [360, 480, 720, 1080, 1440, 2160];
 
@@ -46,7 +41,7 @@ const CONNECTION_LABEL = {
   failed: "연결 실패",
 } as const;
 
-export const App = () => {
+export const App = ({ controller: ctl, host }: { controller: PanelController; host: PanelHost }) => {
   const s = useSyncExternalStore(
     (cb) => ctl.subscribe(cb),
     () => ctl.state,
@@ -58,7 +53,7 @@ export const App = () => {
   useEffect(() => {
     if (window.cep) subscribeBackgroundColor(setBg);
     void ctl.start();
-  }, []);
+  }, [ctl]);
 
   const missing = s.connection === "connected" ? ctl.missingTools() : [];
 
@@ -80,7 +75,7 @@ export const App = () => {
         <strong>Birdcage</strong>
         <span className={`badge ${s.connection}`}>{CONNECTION_LABEL[s.connection]}</span>
         {s.helper && (
-          <span className="muted small">
+          <span className="muted small" data-visual-dynamic>
             helper {s.helper.helperVersion} · {s.helper.profile === "modern" ? "Premiere 26+" : "호환 모드"}
           </span>
         )}
@@ -141,12 +136,14 @@ export const App = () => {
 
       <ul className="jobs">
         {s.jobs.map((j) => (
-          <JobItem key={j.snap.jobId} view={j} />
+          <JobItem key={j.snap.jobId} view={j} controller={ctl} host={host} />
         ))}
       </ul>
 
       <footer className="row footer muted small">
-        <span title={s.helper?.libraryDir}>저장 위치: {s.helper?.libraryDir ?? "-"}</span>
+        <span title={s.helper?.libraryDir} data-visual-dynamic>
+          저장 위치: {s.helper?.libraryDir ?? "-"}
+        </span>
         {s.jobs.some((j) => TERMINAL_STATES.includes(j.snap.state)) && (
           <button onClick={() => ctl.clearFinished()}>완료 항목 지우기</button>
         )}
@@ -155,7 +152,7 @@ export const App = () => {
   );
 };
 
-const JobItem = ({ view }: { view: JobView }) => {
+const JobItem = ({ view, controller: ctl, host }: { view: JobView; controller: PanelController; host: PanelHost }) => {
   const j = view.snap;
   const active = !TERMINAL_STATES.includes(j.state);
   const pct = Math.round(overallProgress(j) * 100);
@@ -179,7 +176,11 @@ const JobItem = ({ view }: { view: JobView }) => {
           <div style={{ width: `${pct}%` }} />
         </div>
       )}
-      {detail && <div className="muted small">{detail}</div>}
+      {detail && (
+        <div className="muted small" data-visual-dynamic>
+          {detail}
+        </div>
+      )}
       {j.warnings?.map((w, i) => (
         <div key={i} className="warn small">
           {w}

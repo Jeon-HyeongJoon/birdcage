@@ -1,0 +1,18 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "types": ["node", "@playwright/test"],
+    "paths": {
+      "@esTypes/*": ["./src/js/lib/cep/es-types"],
+      "@birdcage/core": ["../core/src/index.ts"]
+    }
+  },
+  "include": [
+    "./playwright.config.ts",
+    "./vite.ui.config.ts",
+    "./test/ui",
+    "./src/js",
+    "../core/src"
+  ],
+  "exclude": ["./src/jsx"]
+}
