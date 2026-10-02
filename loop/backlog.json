@@ -292,6 +292,60 @@
           "what": "레코드 매핑 테스트"
         }
       ]
+    },
+    {
+      "id": "T-015",
+      "title": "UI 골든 하네스: ① 패널 UI 골든(Playwright·픽스처 재생·마스킹) ② Premiere 구조 스냅샷 골든(ExtendScript JSON) ②' CEP 디버그 포트 CDP 캡처 PoC ③ 사람 확인 스크린샷 첨부(loopctl evidence --artifact)",
+      "mode": "compile",
+      "status": "open",
+      "passes": false,
+      "priority": 2,
+      "acceptance": [
+        {
+          "kind": "test",
+          "maxLevel": "L1",
+          "what": "패널 UI 골든 비교 게이트(G-ui) 통과"
+        },
+        {
+          "kind": "test",
+          "maxLevel": "L3",
+          "what": "Premiere 구조 스냅샷이 골든과 일치(G-premiere-snapshot)"
+        },
+        {
+          "kind": "test",
+          "maxLevel": "L1",
+          "what": "loopctl evidence --artifact 테스트(이미지 sha256 기록)"
+        }
+      ]
+    },
+    {
+      "id": "T-016",
+      "title": "원칙 W7 추가: 화면 확인도 증적(구조 골든 우선, 픽셀 보조, 골든 갱신 = verifier.change)",
+      "mode": "compile",
+      "status": "done",
+      "passes": true,
+      "priority": 1,
+      "acceptance": [
+        {
+          "kind": "spec",
+          "maxLevel": "L2",
+          "what": "loopctl check: 원칙 참조·보호 경로 규칙 통과(G-loop)"
+        },
+        {
+          "kind": "spec",
+          "maxLevel": "L1",
+          "what": "AGENTS.md 재생성 최신(G-gen)"
+        },
+        {
+          "kind": "test",
+          "maxLevel": "L1",
+          "what": "루프 도구 테스트(G-tools)"
+        }
+      ],
+      "evidence": [
+        "E-20261002-141139-001",
+        "E-20261002-141139-003"
+      ]
     }
   ]
 }

@@ -84,7 +84,9 @@
       "helper/**/*_test.go",
       "panel/core/test/**",
       "scripts/test-helper.sh",
-      "tools/**/*_test.go"
+      "tools/**/*_test.go",
+      "panel/cep/test/golden/**",
+      "panel/core/test/golden/**"
     ]
   },
   "storage": {
