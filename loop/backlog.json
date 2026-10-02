@@ -85,8 +85,8 @@
       "id": "T-004",
       "title": "원칙 SSOT 강제 장치: readiness·게이트 사다리·brief·원칙 참조 검사, AGENTS.md 생성",
       "mode": "compile",
-      "status": "open",
-      "passes": false,
+      "status": "done",
+      "passes": true,
       "priority": 1,
       "dependsOn": [
         "T-001",
@@ -108,6 +108,10 @@
           "maxLevel": "L1",
           "what": "루프 도구 테스트(G-tools)"
         }
+      ],
+      "evidence": [
+        "E-20261002-134945-001",
+        "E-20261002-134945-003"
       ]
     },
     {
