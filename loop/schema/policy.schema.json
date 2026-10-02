@@ -1,0 +1,578 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "loop/policy.schema.json",
+  "title": "Birdcage loop policy",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "version",
+    "terminalStates",
+    "budgets",
+    "evidence",
+    "humanGates",
+    "protected",
+    "storage",
+    "sessions",
+    "readiness",
+    "gateLadder",
+    "divergence",
+    "models",
+    "feedback",
+    "cost"
+  ],
+  "properties": {
+    "$schema": {
+      "type": "string"
+    },
+    "version": {
+      "const": 1
+    },
+    "terminalStates": {
+      "type": "array",
+      "items": {
+        "enum": [
+          "success",
+          "no-op",
+          "blocked",
+          "stalled",
+          "exhausted"
+        ]
+      },
+      "minItems": 5,
+      "uniqueItems": true
+    },
+    "budgets": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "maxIterationsPerTask",
+        "maxIterationMinutes",
+        "stallAfterSameSignature"
+      ],
+      "properties": {
+        "maxIterationsPerTask": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "maxIterationMinutes": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "stallAfterSameSignature": {
+          "type": "integer",
+          "minimum": 2
+        }
+      }
+    },
+    "evidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "levels",
+        "successRequires",
+        "perfRegressionNeedsReproductions",
+        "webClaimNeedsSources",
+        "secondaryMustCitePrimary"
+      ],
+      "properties": {
+        "levels": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/levelDef"
+          },
+          "minItems": 5
+        },
+        "successRequires": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "kind",
+              "maxLevel"
+            ],
+            "properties": {
+              "kind": {
+                "$ref": "#/$defs/evidenceKind"
+              },
+              "maxLevel": {
+                "$ref": "#/$defs/level"
+              }
+            }
+          }
+        },
+        "perfRegressionNeedsReproductions": {
+          "type": "integer",
+          "minimum": 2
+        },
+        "webClaimNeedsSources": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "secondaryMustCitePrimary": {
+          "type": "boolean"
+        }
+      }
+    },
+    "humanGates": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "action",
+          "why"
+        ],
+        "properties": {
+          "action": {
+            "type": "string",
+            "pattern": "^[a-z]+(\\.[a-z]+)+$"
+          },
+          "why": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    },
+    "protected": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "gate",
+        "paths",
+        "why"
+      ],
+      "properties": {
+        "gate": {
+          "type": "string"
+        },
+        "paths": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1
+        },
+        "why": {
+          "type": "string"
+        }
+      }
+    },
+    "storage": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "commit",
+        "local",
+        "maxCommittedFileBytes",
+        "redactPatterns",
+        "localRetentionDays"
+      ],
+      "properties": {
+        "commit": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "local": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "maxCommittedFileBytes": {
+          "type": "integer",
+          "minimum": 1024
+        },
+        "redactPatterns": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "localRetentionDays": {
+          "type": "integer",
+          "minimum": 1
+        }
+      }
+    },
+    "sessions": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "unit",
+        "oneTaskPerSession",
+        "kinds",
+        "freshContextFor",
+        "startupRoutine",
+        "handoffRequired",
+        "knowledgeHome"
+      ],
+      "properties": {
+        "unit": {
+          "const": "iteration"
+        },
+        "oneTaskPerSession": {
+          "type": "boolean"
+        },
+        "kinds": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/sessionKind"
+          },
+          "minItems": 1
+        },
+        "freshContextFor": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/sessionKind"
+          }
+        },
+        "startupRoutine": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1
+        },
+        "handoffRequired": {
+          "type": "boolean"
+        },
+        "knowledgeHome": {
+          "type": "string"
+        }
+      }
+    },
+    "readiness": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "appliesTo",
+        "requireGates",
+        "compileAcceptanceMaxLevel",
+        "specChurn",
+        "why"
+      ],
+      "properties": {
+        "appliesTo": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/sessionKind"
+          }
+        },
+        "requireGates": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^G-[a-z0-9-]+$"
+          },
+          "minItems": 1
+        },
+        "compileAcceptanceMaxLevel": {
+          "$ref": "#/$defs/level"
+        },
+        "specChurn": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "paths",
+            "windowDays",
+            "maxCommits"
+          ],
+          "properties": {
+            "paths": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "windowDays": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "maxCommits": {
+              "type": "integer",
+              "minimum": 1
+            }
+          }
+        },
+        "why": {
+          "type": "string"
+        }
+      }
+    },
+    "gateLadder": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "level",
+          "kind",
+          "cost",
+          "what"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^G-[a-z0-9-]+$"
+          },
+          "level": {
+            "$ref": "#/$defs/level"
+          },
+          "kind": {
+            "$ref": "#/$defs/evidenceKind"
+          },
+          "cost": {
+            "enum": [
+              "free",
+              "slow",
+              "network",
+              "tokens",
+              "human"
+            ]
+          },
+          "what": {
+            "type": "string"
+          },
+          "argv": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "minItems": 1
+          },
+          "dir": {
+            "type": "string"
+          },
+          "estSec": {
+            "type": "number",
+            "minimum": 0
+          },
+          "optional": {
+            "type": "boolean"
+          },
+          "requires": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "repo-relative paths that must exist (e.g. node_modules)"
+          }
+        }
+      }
+    },
+    "divergence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "allowedWhen",
+        "maxCandidates",
+        "maxSubagentsPerPulse",
+        "maxTokensPerPulse",
+        "outputTo",
+        "why"
+      ],
+      "properties": {
+        "allowedWhen": {
+          "type": "array",
+          "items": {
+            "enum": [
+              "verifier-selects",
+              "independent-parallel-research"
+            ]
+          },
+          "minItems": 1
+        },
+        "maxCandidates": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "maxSubagentsPerPulse": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "maxTokensPerPulse": {
+          "type": "integer",
+          "minimum": 1000
+        },
+        "outputTo": {
+          "type": "array",
+          "items": {
+            "enum": [
+              "ledger",
+              "backlog"
+            ]
+          },
+          "minItems": 1
+        },
+        "why": {
+          "type": "string"
+        }
+      }
+    },
+    "models": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "routing"
+      ],
+      "properties": {
+        "routing": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "role",
+              "model",
+              "why"
+            ],
+            "properties": {
+              "role": {
+                "enum": [
+                  "mechanical",
+                  "research",
+                  "bulk",
+                  "implement",
+                  "diagnose",
+                  "verify"
+                ]
+              },
+              "model": {
+                "enum": [
+                  "none",
+                  "haiku",
+                  "sonnet",
+                  "opus"
+                ]
+              },
+              "context": {
+                "enum": [
+                  "shared",
+                  "fresh"
+                ]
+              },
+              "why": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      }
+    },
+    "feedback": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "tailLines",
+        "include"
+      ],
+      "properties": {
+        "tailLines": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 200
+        },
+        "include": {
+          "type": "array",
+          "items": {
+            "enum": [
+              "signature",
+              "tail",
+              "artifact",
+              "claim"
+            ]
+          },
+          "minItems": 1
+        }
+      }
+    },
+    "cost": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "track",
+        "reviewEveryIterations",
+        "kpi"
+      ],
+      "properties": {
+        "track": {
+          "type": "array",
+          "items": {
+            "enum": [
+              "tokens",
+              "usd",
+              "minutes"
+            ]
+          }
+        },
+        "reviewEveryIterations": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "kpi": {
+          "const": "costPerAcceptedChange"
+        }
+      }
+    }
+  },
+  "$defs": {
+    "level": {
+      "enum": [
+        "L1",
+        "L2",
+        "L3",
+        "L4",
+        "L5"
+      ]
+    },
+    "levelDef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "meaning"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/level"
+        },
+        "meaning": {
+          "type": "string"
+        }
+      }
+    },
+    "evidenceKind": {
+      "enum": [
+        "test",
+        "build",
+        "perf",
+        "log",
+        "web",
+        "code",
+        "premise",
+        "review",
+        "human",
+        "spec"
+      ]
+    },
+    "sessionKind": {
+      "enum": [
+        "bootstrap",
+        "design",
+        "worker",
+        "verifier",
+        "research",
+        "watch"
+      ]
+    }
+  }
+}

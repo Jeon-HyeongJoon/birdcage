@@ -1,0 +1,47 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "loop/ledger.schema.json",
+  "title": "One evidence entry (one line of loop/ledger/<iteration>.jsonl)",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["id", "iteration", "at", "kind", "level", "claim", "verdict", "ref"],
+  "properties": {
+    "id": { "type": "string", "pattern": "^E-[0-9]{8}-[0-9]{6}-[0-9]{3}$" },
+    "iteration": { "type": "string", "pattern": "^[0-9]{8}-[0-9]{6}-T-[0-9]{3}$" },
+    "at": { "type": "string", "format": "date-time" },
+    "kind": { "enum": ["test", "build", "perf", "log", "web", "code", "premise", "review", "human", "spec"] },
+    "level": { "enum": ["L1", "L2", "L3", "L4", "L5"] },
+    "claim": { "type": "string", "minLength": 1 },
+    "verdict": { "enum": ["pass", "fail", "skip", "info"] },
+    "ref": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["type", "value"],
+      "properties": {
+        "type": { "enum": ["command", "file", "url", "run", "commit", "premise", "session"] },
+        "value": { "type": "string", "minLength": 1 }
+      }
+    },
+    "artifact": {
+      "description": "Raw artifact kept locally (gitignored). The digest proves which artifact was cited even after it is deleted.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "sha256", "bytes"],
+      "properties": {
+        "path": { "type": "string", "pattern": "^loop/\\.runs/" },
+        "sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+        "bytes": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "values": {
+      "description": "Key numbers copied from the artifact so the evidence survives artifact retention.",
+      "type": "object",
+      "additionalProperties": { "type": ["number", "string", "boolean"] }
+    },
+    "durationMs": { "type": "number", "minimum": 0 },
+    "reproduced": { "type": "integer", "minimum": 1 },
+    "source": { "enum": ["primary", "secondary"] },
+    "observedAt": { "type": "string" },
+    "cites": { "type": "array", "items": { "type": "string", "pattern": "^E-" } }
+  }
+}

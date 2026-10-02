@@ -1,0 +1,211 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "loop/iteration.schema.json",
+  "title": "Iteration record (loop/iterations/<id>.json): one task, one session, one handoff",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "id",
+    "task",
+    "session",
+    "startedAt",
+    "base",
+    "state",
+    "hypothesis"
+  ],
+  "properties": {
+    "$schema": {
+      "type": "string"
+    },
+    "id": {
+      "type": "string",
+      "pattern": "^[0-9]{8}-[0-9]{6}-T-[0-9]{3}$"
+    },
+    "task": {
+      "type": "string",
+      "pattern": "^T-[0-9]{3}$"
+    },
+    "session": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "kind"
+      ],
+      "properties": {
+        "kind": {
+          "enum": [
+            "bootstrap",
+            "design",
+            "worker",
+            "verifier",
+            "research",
+            "watch"
+          ]
+        },
+        "id": {
+          "type": "string"
+        },
+        "model": {
+          "type": "string"
+        },
+        "transcript": {
+          "type": "string",
+          "description": "Local path only (never committed)."
+        }
+      }
+    },
+    "startedAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "endedAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "base": {
+      "$ref": "#/$defs/gitRef"
+    },
+    "head": {
+      "$ref": "#/$defs/gitRef"
+    },
+    "state": {
+      "enum": [
+        "running",
+        "success",
+        "no-op",
+        "blocked",
+        "stalled",
+        "exhausted"
+      ]
+    },
+    "hypothesis": {
+      "type": "string",
+      "minLength": 1
+    },
+    "summary": {
+      "type": "string"
+    },
+    "failureSignatures": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "metrics": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "durationMin": {
+          "type": "number"
+        },
+        "evidence": {
+          "type": "integer"
+        },
+        "evidenceByLevel": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "integer"
+          }
+        },
+        "pass": {
+          "type": "integer"
+        },
+        "fail": {
+          "type": "integer"
+        },
+        "skip": {
+          "type": "integer"
+        },
+        "tokens": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "usd": {
+          "type": "number",
+          "minimum": 0
+        }
+      }
+    },
+    "retro": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "newChecks": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "specChanges": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "lessons": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "none": {
+          "type": "boolean"
+        }
+      }
+    },
+    "next": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "approvals": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "action",
+          "by",
+          "at"
+        ],
+        "properties": {
+          "action": {
+            "type": "string"
+          },
+          "by": {
+            "type": "string"
+          },
+          "at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "note": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  },
+  "$defs": {
+    "gitRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "branch",
+        "commit"
+      ],
+      "properties": {
+        "branch": {
+          "type": "string"
+        },
+        "commit": {
+          "type": "string"
+        },
+        "dirty": {
+          "type": "boolean"
+        }
+      }
+    }
+  }
+}

@@ -6,3 +6,5 @@ helper/.perf/
 panel/cep/dist/
 panel/cep/src/bin/
 panel/cep/.debug
+# 루프 원본 산출물(로그·출력·프로파일): 로컬 보관, 원장(loop/ledger)이 sha256으로 참조
+loop/.runs/
