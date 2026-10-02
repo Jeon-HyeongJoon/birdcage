@@ -58,8 +58,8 @@
       "id": "T-003",
       "title": "실행 가능한 ADR 전제(premises.json + loopctl premises)",
       "mode": "compile",
-      "status": "open",
-      "passes": false,
+      "status": "done",
+      "passes": true,
       "priority": 1,
       "dependsOn": [
         "T-001"
@@ -75,6 +75,10 @@
           "maxLevel": "L1",
           "what": "전제 검사 타입 테스트(G-tools)"
         }
+      ],
+      "evidence": [
+        "E-20261002-134905-002",
+        "E-20261002-134905-001"
       ]
     },
     {
