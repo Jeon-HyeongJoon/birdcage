@@ -39,6 +39,16 @@ const config: CEP_Config = {
       minWidth: 320,
       minHeight: 300,
     },
+    {
+      mainPath: "./downloads/index.html",
+      name: "downloads",
+      panelDisplayName: "Birdcage \ub2e4\uc6b4\ub85c\ub4dc",
+      autoVisible: false,
+      width: 420,
+      height: 560,
+      minWidth: 320,
+      minHeight: 240,
+    },
   ],
   build: {
     jsxBin: "off",

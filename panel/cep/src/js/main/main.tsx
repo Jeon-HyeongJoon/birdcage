@@ -39,7 +39,7 @@ export type PanelController = Pick<
   | "importJob"
 >;
 
-export type PanelHost = Pick<HostAdapter, "revealFile" | "captureKeys">;
+export type PanelHost = Pick<HostAdapter, "revealFile" | "captureKeys"> & { openDownloads?: () => void };
 
 export const App = ({ controller: ctl, host }: { controller: PanelController; host: PanelHost }) => {
   const s = useSyncExternalStore(
@@ -47,6 +47,8 @@ export const App = ({ controller: ctl, host }: { controller: PanelController; ho
     () => ctl.state,
   );
   const [bg, setBg] = useState("#232323");
+  const focusMode = !!host.openDownloads;
+  const activeJobs = s.jobs.filter((j) => !TERMINAL_STATES.includes(j.snap.state) || j.import?.state === "pending" || j.import?.state === "importing").length;
 
   useEffect(() => {
     if (window.cep) subscribeBackgroundColor(setBg);
@@ -61,6 +63,14 @@ export const App = ({ controller: ctl, host }: { controller: PanelController; ho
       <header className="row header">
         <strong>Birdcage</strong>
         <StatusDot s={s} missing={missing} retry={() => ctl.retryConnection()} />
+        {focusMode && (
+          <>
+            <span className="spacer" />
+            <button className="downloads-window" onClick={() => host.openDownloads?.()}>
+              다운로드{activeJobs > 0 ? ` ${activeJobs}` : ""}
+            </button>
+          </>
+        )}
       </header>
       {s.connection === "failed" && (
         <div className="row status-error">
@@ -79,24 +89,28 @@ export const App = ({ controller: ctl, host }: { controller: PanelController; ho
         </div>
       )}
 
-      <Composer s={s} ctl={ctl} />
+      <Composer s={s} ctl={ctl} focusMode={focusMode} settings={focusMode ? <SettingsRow s={s} ctl={ctl} /> : undefined} />
 
-      <SettingsRow s={s} ctl={ctl} />
+      {!focusMode && <SettingsRow s={s} ctl={ctl} />}
 
-      <ul className="jobs">
-        {s.jobs.map((j) => (
-          <JobItem key={j.snap.jobId} view={j} controller={ctl} host={host} />
-        ))}
-      </ul>
+      {!focusMode && (
+        <ul className="jobs">
+          {s.jobs.map((j) => (
+            <JobItem key={j.snap.jobId} view={j} controller={ctl} host={host} />
+          ))}
+        </ul>
+      )}
 
-      <footer className="row footer muted small">
-        <span title={s.helper?.libraryDir}>
-          저장 위치: {s.helper?.libraryDir ?? "-"}
-        </span>
-        {s.jobs.some((j) => TERMINAL_STATES.includes(j.snap.state)) && (
-          <button onClick={() => ctl.clearFinished()}>완료 항목 지우기</button>
-        )}
-      </footer>
+      {!focusMode && (
+        <footer className="row footer muted small">
+          <span title={s.helper?.libraryDir}>
+            저장 위치: {s.helper?.libraryDir ?? "-"}
+          </span>
+          {s.jobs.some((j) => TERMINAL_STATES.includes(j.snap.state)) && (
+            <button onClick={() => ctl.clearFinished()}>완료 항목 지우기</button>
+          )}
+        </footer>
+      )}
     </div>
   );
 };

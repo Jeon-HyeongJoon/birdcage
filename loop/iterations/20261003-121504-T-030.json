@@ -1,0 +1,51 @@
+{
+  "$schema": "../schema/iteration.schema.json",
+  "id": "20261003-121504-T-030",
+  "task": "T-030",
+  "session": {
+    "kind": "worker"
+  },
+  "startedAt": "2026-10-03T12:15:04Z",
+  "endedAt": "2026-10-03T12:26:18Z",
+  "base": {
+    "branch": "feat/editing-options",
+    "commit": "89a0c471930d",
+    "dirty": true
+  },
+  "head": {
+    "branch": "feat/editing-options",
+    "commit": "89a0c471930d",
+    "dirty": true
+  },
+  "state": "success",
+  "hypothesis": "현재 영상 편집과 작업 관리를 분리해 CTA를 옵션 바로 뒤에 두고, 별도 CEP 패널에 직렬화한 작업 상태와 명령만 중계하면 Helper를 중복 실행하지 않으면서 다음 링크를 병렬 준비할 수 있다",
+  "summary": "기본 패널을 현재 링크의 미리보기·세부정보·옵션·받기 CTA에 집중시키고, 작업 목록과 관리 명령을 별도 Birdcage 다운로드 CEP 패널로 분리했다. 두 패널은 CEP 이벤트로 상태와 명령을 중계해 Helper를 하나만 유지하며, 기존 작업 중에도 다음 링크를 준비할 수 있다. UI 20개와 전체 게이트가 통과했다.",
+  "failureSignatures": [
+    "sig:a81f45dca117",
+    "sig:a98a498b835a"
+  ],
+  "metrics": {
+    "durationMin": 11.2,
+    "evidence": 36,
+    "evidenceByLevel": {
+      "L1": 16,
+      "L2": 18,
+      "L3": 2
+    },
+    "pass": 34,
+    "fail": 2,
+    "skip": 0
+  },
+  "retro": {
+    "newChecks": [
+      "집중 모드에서 CTA 위치·목록 제거·기존 작업 유지 중 다음 링크 입력을 검증하는 focus.spec.ts 추가",
+      "별도 다운로드 패널의 진행 표시와 취소·가져오기·폴더 보기·완료 지우기 명령을 검증하는 downloads.spec.ts 추가"
+    ],
+    "lessons": [
+      "CEP 패널을 분리하되 Controller와 Helper는 기본 패널 한 곳이 소유하고, 보조 패널에는 직렬화 가능한 상태와 명령만 전달하면 중복 프로세스 없이 작업 공간을 분리할 수 있다."
+    ]
+  },
+  "next": [
+    "Premiere를 재시작한 뒤 창 \u003e 확장 기능에서 Birdcage 다운로드 패널을 열어 실제 CEP 패널 간 상태·명령 중계와 플로팅/도킹 UX를 사람 확인한다."
+  ]
+}

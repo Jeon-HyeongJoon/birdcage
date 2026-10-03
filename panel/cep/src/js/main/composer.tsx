@@ -1,7 +1,7 @@
 // 새 다운로드 준비: 링크 → 미리보기(큰 플레이어·타임라인에서 In/Out) → 받기.
 // 미리보기가 중심이고(docs/decisions/0011), 영상 정보는 한 줄, 받기 옵션은 접어 둔다.
 // 카드(반경 2px)는 쓰지 않는다: 미리보기 틀과 행·구분선으로만 묶는다(docs/decisions/0010).
-import { FormEvent, useState } from "react";
+import { FormEvent, ReactNode, useState } from "react";
 import {
   Draft,
   SequenceInfo,
@@ -22,7 +22,7 @@ import type { PanelController } from "./main";
 import { DraftJobs } from "./job-progress";
 import { PreviewPanel } from "./preview-panel";
 
-export const Composer = ({ s, ctl }: { s: State; ctl: PanelController }) => {
+export const Composer = ({ s, ctl, focusMode = false, settings }: { s: State; ctl: PanelController; focusMode?: boolean; settings?: ReactNode }) => {
   const [submitError, setSubmitError] = useState("");
   const d = s.draft;
   const connected = s.connection === "connected";
@@ -39,7 +39,7 @@ export const Composer = ({ s, ctl }: { s: State; ctl: PanelController }) => {
   const ranged = d.range.on && !!rangeToSend(d.range, d.info?.durationSec).range;
   return (
     <form className="composer" onSubmit={submit}>
-      <div className="row">
+      <div className={focusMode ? "row link-row focus" : "row"}>
         <input
           className="url"
           type="text"
@@ -53,9 +53,11 @@ export const Composer = ({ s, ctl }: { s: State; ctl: PanelController }) => {
             ×
           </button>
         )}
-        <button type="submit" className="primary" disabled={!connected || !isLink(d.url) || d.status === "probing" || d.checking}>
-          {ranged ? "구간 받기" : "받기"}
-        </button>
+        {!focusMode && (
+          <button type="submit" className="primary" disabled={!connected || !isLink(d.url) || d.status === "probing" || d.checking}>
+            {ranged ? "구간 받기" : "받기"}
+          </button>
+        )}
       </div>
       {d.status === "probing" && (
         <div className="player">
@@ -77,9 +79,19 @@ export const Composer = ({ s, ctl }: { s: State; ctl: PanelController }) => {
       {d.status === "ready" && d.info && (
         <>
           <PreviewPanel d={d} ctl={ctl} />
-          <DraftJobs s={s} d={d} ctl={ctl} />
+          {!focusMode && <DraftJobs s={s} d={d} ctl={ctl} />}
           <InfoLine d={d} seq={s.sequence} />
           <Options d={d} seq={s.sequence} ctl={ctl} />
+          {settings}
+          {focusMode && (
+            <div className="row download-actions">
+              <span className="muted small">백그라운드에서 진행 · 다운로드 창에서 확인</span>
+              <span className="spacer" />
+              <button type="submit" className="primary download-submit" disabled={!connected || d.checking}>
+                {ranged ? "구간 받기" : "받기"}
+              </button>
+            </div>
+          )}
         </>
       )}
     </form>

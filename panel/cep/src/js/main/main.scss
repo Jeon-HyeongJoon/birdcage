@@ -23,6 +23,10 @@
   font-size: 14px;
 }
 
+.downloads-window {
+  white-space: nowrap;
+}
+
 .badge {
   padding: 1px 6px;
   border-radius: $radius;
@@ -181,6 +185,26 @@ button {
   margin-bottom: $space-3;
   .status {
     margin: 0 0 $space-2;
+  }
+}
+
+.link-row.focus {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  padding: $space-1 0;
+  background: $field;
+}
+
+.download-actions {
+  margin: $space-2 0 0;
+  padding: $space-2 0;
+  border-top: 1px solid $line;
+  border-bottom: 1px solid $line;
+  .download-submit {
+    min-width: 96px;
+    font-size: $font-sm;
+    font-weight: 600;
   }
 }
 
@@ -664,5 +688,37 @@ button.icon {
   .job-progress .big-bar.unknown,
   .bar.unknown {
     animation: none;
+  }
+}
+
+// --- 별도 다운로드 패널 ---
+.downloads-app {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  .download-list {
+    flex: 1;
+  }
+  .downloads-empty {
+    flex: 1;
+    padding: $space-4 0;
+  }
+  .download-job {
+    padding: $space-3 0;
+    .state {
+      max-width: 48%;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      &.done {
+        color: $ok;
+      }
+      &.bad {
+        color: $err;
+      }
+    }
+    .job-detail:empty {
+      display: none;
+    }
   }
 }

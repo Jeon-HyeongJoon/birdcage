@@ -214,6 +214,10 @@ export class CepHost implements HostAdapter {
     }
   }
 
+  openDownloads(): void {
+    csi.requestOpenExtension("com.birdcage.panel.downloads", "");
+  }
+
   revealFile(file: string): void {
     if (os.platform() === "win32") {
       child_process.spawn("explorer.exe", ["/select,", file], { detached: true, stdio: "ignore" });

@@ -691,6 +691,37 @@
       "evidence": [
         "E-20261003-102438-006"
       ]
+    },
+    {
+      "id": "T-030",
+      "title": "QA UX: 받기 버튼을 옵션 옆으로 이동, 기본 패널은 현재 영상에 집중, 다운로드 목록은 별도 CEP 패널에서 백그라운드 관리",
+      "mode": "compile",
+      "status": "done",
+      "passes": true,
+      "priority": 1,
+      "acceptance": [
+        {
+          "kind": "test",
+          "maxLevel": "L1",
+          "what": "집중 모드에서 받기 버튼이 옵션 다음에 있고 작업 목록·진행 상세는 숨겨지며 새 링크 조회 중 기존 작업이 계속됨(G-core·G-ui)"
+        },
+        {
+          "kind": "test",
+          "maxLevel": "L1",
+          "what": "Birdcage 다운로드 CEP 패널이 작업 상태를 받고 취소·다시 넣기·완료 지우기 명령을 기본 패널에 전달(G-ui·G-cep)"
+        },
+        {
+          "kind": "build",
+          "maxLevel": "L2",
+          "what": "CEP manifest에 main·downloads 두 패널이 생성됨"
+        }
+      ],
+      "evidence": [
+        "E-20261003-121504-031",
+        "E-20261003-121504-033",
+        "E-20261003-121504-035",
+        "E-20261003-121504-003"
+      ]
     }
   ]
 }
