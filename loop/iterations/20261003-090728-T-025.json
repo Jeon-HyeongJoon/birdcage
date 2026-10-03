@@ -1,0 +1,55 @@
+{
+  "$schema": "../schema/iteration.schema.json",
+  "id": "20261003-090728-T-025",
+  "task": "T-025",
+  "session": {
+    "kind": "worker",
+    "id": "2df3dff7-1152-4794-b7b9-d1f8c6d6a92c",
+    "model": "claude-opus-5-5"
+  },
+  "startedAt": "2026-10-03T09:07:28Z",
+  "endedAt": "2026-10-03T09:09:19Z",
+  "base": {
+    "branch": "feat/editing-options",
+    "commit": "3d511ad1a68c"
+  },
+  "head": {
+    "branch": "feat/editing-options",
+    "commit": "3d511ad1a68c",
+    "dirty": true
+  },
+  "state": "success",
+  "hypothesis": "사용자 QA 준비: 실제 Premiere 15.2 패널에서 미리보기(file:// H.264 재생, In 위치 탐색)가 동작함을 CDP로 확인하고, 생성 스토리보드 타일을 가운데 자르기로 꽉 채우면 세로·4:3 영상의 필름스트립이 읽기 쉬워진다.",
+  "summary": "QA 준비: Premiere 15.2 실기에서 새 패널 로드·미리보기 재생(file:// H.264, In 위치)을 CDP로 확인(E-…-001). 생성 스토리보드 타일을 가운데 자르기로 꽉 채움(세로·4:3 필름스트립). 사용자 QA용으로 Helper·패널을 빌드하고 열린 패널을 다시 불러옴.",
+  "metrics": {
+    "durationMin": 1.8,
+    "evidence": 25,
+    "evidenceByLevel": {
+      "L1": 12,
+      "L2": 10,
+      "L3": 3
+    },
+    "pass": 25,
+    "fail": 0,
+    "skip": 0
+  },
+  "retro": {
+    "newChecks": [
+      "Premiere 실기 스모크(CDP): 로드·연결·예외 없음·H.264 재생"
+    ],
+    "lessons": [
+      "CEP 패널은 원격 디버깅 포트(.debug)로 Premiere 안에서 직접 검증할 수 있다: 실기 확인의 일부를 사람 없이 증적으로 남긴다."
+    ]
+  },
+  "next": [
+    "사용자 QA 결과로 T-023(L5) 증적 기록, 골든 13개 사람 검토(T-022·T-025)."
+  ],
+  "approvals": [
+    {
+      "action": "session.multitask",
+      "by": "전형준",
+      "at": "2026-10-03T09:07:29Z",
+      "note": "2026-10-03 지시: 테스트 완료 후 실행해서 사용자가 직접 QA"
+    }
+  ]
+}

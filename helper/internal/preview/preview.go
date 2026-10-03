@@ -277,7 +277,7 @@ func (s *Service) mux(ctx context.Context, t Tools, video, audio, out string) (*
 	return &Video{Path: out, Width: got.Video.Width, Height: got.Video.Height, FPS: got.Video.FPS, DurationSec: got.DurationSec}, nil
 }
 
-// GenerateStoryboard builds 160×90 tiles (10×10 per sprite, letterboxed) from a local video,
+// GenerateStoryboard builds 160×90 tiles (10×10 per sprite, center-cropped to fill: 세로·4:3도 필름스트립이 꽉 찬다) from a local video,
 // at most ~100 tiles over the duration (최소 0.5s 간격).
 func GenerateStoryboard(ctx context.Context, ffmpeg, video, dir string, dur float64) (*engine.Storyboard, error) {
 	if dur <= 0 {
@@ -289,7 +289,7 @@ func GenerateStoryboard(ctx context.Context, ffmpeg, video, dir string, dur floa
 	for _, o := range old {
 		_ = os.Remove(o)
 	}
-	vf := fmt.Sprintf("fps=1/%.6f,scale=160:90:force_original_aspect_ratio=decrease,pad=160:90:(ow-iw)/2:(oh-ih)/2,tile=10x10", interval)
+	vf := fmt.Sprintf("fps=1/%.6f,scale=160:90:force_original_aspect_ratio=increase,crop=160:90,tile=10x10", interval)
 	if _, err := proc.Run(ctx, proc.Spec{Path: ffmpeg, StderrTail: 10, Args: []string{"-hide_banner", "-nostdin", "-y", "-loglevel", "error",
 		"-i", video, "-an", "-vf", vf, "-q:v", "5", "-start_number", "0", pattern}}); err != nil {
 		return nil, err
