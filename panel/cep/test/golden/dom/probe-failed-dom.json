@@ -1,0 +1,330 @@
+{
+  "tag": "div",
+  "attributes": {},
+  "children": [
+    {
+      "tag": "div",
+      "attributes": {
+        "class": "app",
+        "style": "background-color: rgb(35, 35, 35);"
+      },
+      "children": [
+        {
+          "tag": "header",
+          "attributes": {
+            "class": "row header"
+          },
+          "children": [
+            {
+              "tag": "strong",
+              "attributes": {},
+              "children": [
+                "Birdcage"
+              ]
+            },
+            {
+              "tag": "span",
+              "attributes": {
+                "class": "badge connected"
+              },
+              "children": [
+                "연결됨"
+              ]
+            },
+            {
+              "tag": "span",
+              "attributes": {
+                "class": "muted small"
+              },
+              "children": [
+                "helper",
+                "0.1.0-fixture",
+                "·",
+                "호환 모드"
+              ]
+            }
+          ]
+        },
+        {
+          "tag": "form",
+          "attributes": {
+            "class": "composer"
+          },
+          "children": [
+            {
+              "tag": "div",
+              "attributes": {
+                "class": "row"
+              },
+              "children": [
+                {
+                  "tag": "input",
+                  "attributes": {
+                    "class": "url",
+                    "type": "text",
+                    "placeholder": "YouTube · Instagram · TikTok 링크",
+                    "disabled": false,
+                    "value": "https://www.youtube.com/watch?v=private"
+                  },
+                  "children": []
+                },
+                {
+                  "tag": "button",
+                  "attributes": {
+                    "class": "primary",
+                    "type": "submit",
+                    "disabled": false
+                  },
+                  "children": [
+                    "받기"
+                  ]
+                }
+              ]
+            },
+            {
+              "tag": "div",
+              "attributes": {
+                "class": "row status"
+              },
+              "children": [
+                {
+                  "tag": "span",
+                  "attributes": {
+                    "class": "error small"
+                  },
+                  "children": [
+                    "비공개 영상입니다."
+                  ]
+                },
+                {
+                  "tag": "button",
+                  "attributes": {
+                    "type": "button",
+                    "disabled": false
+                  },
+                  "children": [
+                    "다시 확인"
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "tag": "div",
+          "attributes": {
+            "class": "section import-settings"
+          },
+          "children": [
+            {
+              "tag": "div",
+              "attributes": {
+                "class": "section-label"
+              },
+              "children": [
+                "가져온 뒤"
+              ]
+            },
+            {
+              "tag": "div",
+              "attributes": {
+                "class": "seg",
+                "role": "radiogroup",
+                "aria-label": "가져온 뒤"
+              },
+              "children": [
+                {
+                  "tag": "button",
+                  "attributes": {
+                    "class": "on",
+                    "type": "button",
+                    "role": "radio",
+                    "aria-checked": "true",
+                    "disabled": false
+                  },
+                  "children": [
+                    "프로젝트"
+                  ]
+                },
+                {
+                  "tag": "button",
+                  "attributes": {
+                    "class": true,
+                    "type": "button",
+                    "role": "radio",
+                    "aria-checked": "false",
+                    "disabled": false
+                  },
+                  "children": [
+                    "소스 모니터"
+                  ]
+                },
+                {
+                  "tag": "button",
+                  "attributes": {
+                    "class": true,
+                    "type": "button",
+                    "role": "radio",
+                    "aria-checked": "false",
+                    "disabled": false
+                  },
+                  "children": [
+                    "빈 트랙"
+                  ]
+                },
+                {
+                  "tag": "button",
+                  "attributes": {
+                    "class": true,
+                    "type": "button",
+                    "role": "radio",
+                    "aria-checked": "false",
+                    "disabled": false
+                  },
+                  "children": [
+                    "삽입"
+                  ]
+                },
+                {
+                  "tag": "button",
+                  "attributes": {
+                    "class": true,
+                    "type": "button",
+                    "role": "radio",
+                    "aria-checked": "false",
+                    "disabled": false
+                  },
+                  "children": [
+                    "덮어쓰기"
+                  ]
+                }
+              ]
+            },
+            {
+              "tag": "div",
+              "attributes": {
+                "class": "muted small hint"
+              },
+              "children": [
+                "Birdcage/<플랫폼> 빈에만 넣습니다."
+              ]
+            },
+            {
+              "tag": "div",
+              "attributes": {
+                "class": "row options muted small"
+              },
+              "children": [
+                {
+                  "tag": "label",
+                  "attributes": {},
+                  "children": [
+                    {
+                      "tag": "input",
+                      "attributes": {
+                        "type": "checkbox",
+                        "disabled": false,
+                        "checked": true
+                      },
+                      "children": []
+                    },
+                    "완료되면 바로 가져오기"
+                  ]
+                },
+                {
+                  "tag": "label",
+                  "attributes": {},
+                  "children": [
+                    "기본 화질",
+                    {
+                      "tag": "select",
+                      "attributes": {
+                        "disabled": false,
+                        "value": "1080"
+                      },
+                      "children": [
+                        {
+                          "tag": "option",
+                          "attributes": {},
+                          "children": [
+                            "360",
+                            "p"
+                          ]
+                        },
+                        {
+                          "tag": "option",
+                          "attributes": {},
+                          "children": [
+                            "480",
+                            "p"
+                          ]
+                        },
+                        {
+                          "tag": "option",
+                          "attributes": {},
+                          "children": [
+                            "720",
+                            "p"
+                          ]
+                        },
+                        {
+                          "tag": "option",
+                          "attributes": {},
+                          "children": [
+                            "1080",
+                            "p"
+                          ]
+                        },
+                        {
+                          "tag": "option",
+                          "attributes": {},
+                          "children": [
+                            "1440",
+                            "p"
+                          ]
+                        },
+                        {
+                          "tag": "option",
+                          "attributes": {},
+                          "children": [
+                            "2160",
+                            "p"
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "tag": "ul",
+          "attributes": {
+            "class": "jobs"
+          },
+          "children": []
+        },
+        {
+          "tag": "footer",
+          "attributes": {
+            "class": "row footer muted small"
+          },
+          "children": [
+            {
+              "tag": "span",
+              "attributes": {
+                "title": "/Users/editor/Movies/Birdcage"
+              },
+              "children": [
+                "저장 위치:",
+                "/Users/editor/Movies/Birdcage"
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

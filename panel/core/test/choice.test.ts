@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { codecLabel, fpsMismatch, recommendVariant, targetRes, variantLabel } from "../src/choice";
-import { duration, fpsLabel, platformLabel } from "../src/format";
+import { duration, fpsLabel, planLabel, platformLabel, progressKnown } from "../src/format";
 import type { Variant } from "../src/protocol";
 
 const v = (formatId: string, res: number, transcode = false, extra: Partial<Variant> = {}): Variant => ({
@@ -61,5 +61,23 @@ describe("labels", () => {
     expect(duration(3723)).toBe("1:02:03");
     expect(fpsLabel(29.97)).toBe("29.97fps");
     expect(platformLabel("Youtube")).toBe("YouTube");
+  });
+});
+
+describe("job labels", () => {
+  const plan = { profile: "compat" as const, video: "copy" as const, audio: "copy" as const, passthrough: false, reasons: [] };
+  it("names what normalization did", () => {
+    expect(planLabel({ ...plan, passthrough: true })).toBe("원본 그대로");
+    expect(planLabel({ ...plan, audio: "transcode", aligned: true })).toBe("구간 정렬(오디오만 재인코딩)");
+    expect(planLabel({ ...plan, video: "none", audio: "transcode", audioOnly: true })).toBe("WAV");
+    expect(planLabel({ ...plan, video: "transcode", encoder: "h264_videotoolbox" })).toBe("변환(h264_videotoolbox)");
+    expect(planLabel({ ...plan, audio: "transcode" })).toBe("오디오만 재인코딩");
+    expect(planLabel(plan)).toBe("리먹스");
+  });
+  it("knows when download progress is unmeasurable", () => {
+    const j = { jobId: "j", url: "u", options: { maxHeight: 1, profile: "" as const }, createdAt: "", updatedAt: "" };
+    expect(progressKnown({ ...j, state: "downloading", progress: -1 })).toBe(false);
+    expect(progressKnown({ ...j, state: "downloading", progress: 0.2 })).toBe(true);
+    expect(progressKnown({ ...j, state: "probing", progress: -1 })).toBe(true);
   });
 });

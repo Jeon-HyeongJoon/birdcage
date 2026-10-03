@@ -2,7 +2,7 @@ import { existsSync } from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
 import { defineConfig } from "@playwright/test";
-import { chromeMajor } from "./test/ui/environment";
+import { pinnedProject } from "./test/ui/environment";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 
@@ -17,8 +17,6 @@ if (!chrome || !existsSync(chrome)) {
   throw new Error("Chrome을 찾을 수 없습니다. BIRDCAGE_CHROME_PATH에 실행 파일 경로를 지정하세요.");
 }
 
-const platform = `${process.platform}-${process.arch}`;
-
 export default defineConfig({
   testDir: path.resolve(here, "test", "ui"),
   testMatch: "*.spec.ts",
@@ -26,10 +24,12 @@ export default defineConfig({
   workers: 1,
   retries: 0,
   reporter: "line",
-  snapshotPathTemplate: "{testDir}/../golden/{projectName}/{arg}{ext}",
+  // DOM 골든(toMatchSnapshot)은 환경 무관(golden/dom), 픽셀 골든은 고정 환경 폴더(golden/<고정 환경>).
+  snapshotPathTemplate: "{testDir}/../golden/dom/{arg}{ext}",
   expect: {
     timeout: 5_000,
     toHaveScreenshot: {
+      pathTemplate: "{testDir}/../golden/{projectName}/{arg}{ext}",
       animations: "disabled",
       caret: "hide",
       scale: "css",
@@ -46,7 +46,7 @@ export default defineConfig({
     timezoneId: "Asia/Seoul",
     reducedMotion: "reduce",
   },
-  projects: [{ name: `chrome-${chromeMajor}-${platform}` }],
+  projects: [{ name: pinnedProject }],
   webServer: {
     command: "npx vite --config vite.ui.config.ts",
     cwd: here,

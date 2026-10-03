@@ -1,0 +1,676 @@
+{
+  "tag": "div",
+  "attributes": {},
+  "children": [
+    {
+      "tag": "div",
+      "attributes": {
+        "class": "app",
+        "style": "background-color: rgb(35, 35, 35);"
+      },
+      "children": [
+        {
+          "tag": "header",
+          "attributes": {
+            "class": "row header"
+          },
+          "children": [
+            {
+              "tag": "strong",
+              "attributes": {},
+              "children": [
+                "Birdcage"
+              ]
+            },
+            {
+              "tag": "span",
+              "attributes": {
+                "class": "badge connected"
+              },
+              "children": [
+                "연결됨"
+              ]
+            },
+            {
+              "tag": "span",
+              "attributes": {
+                "class": "muted small"
+              },
+              "children": [
+                "helper",
+                "0.1.0-fixture",
+                "·",
+                "호환 모드"
+              ]
+            }
+          ]
+        },
+        {
+          "tag": "form",
+          "attributes": {
+            "class": "composer"
+          },
+          "children": [
+            {
+              "tag": "div",
+              "attributes": {
+                "class": "row"
+              },
+              "children": [
+                {
+                  "tag": "input",
+                  "attributes": {
+                    "class": "url",
+                    "type": "text",
+                    "placeholder": "YouTube · Instagram · TikTok 링크",
+                    "disabled": false,
+                    "value": "https://www.tiktok.com/@creator.kr/video/7400000000000000001"
+                  },
+                  "children": []
+                },
+                {
+                  "tag": "button",
+                  "attributes": {
+                    "class": "primary",
+                    "type": "submit",
+                    "disabled": false
+                  },
+                  "children": [
+                    "받기"
+                  ]
+                }
+              ]
+            },
+            {
+              "tag": "div",
+              "attributes": {
+                "class": "card info"
+              },
+              "children": [
+                {
+                  "tag": "img",
+                  "attributes": {
+                    "class": "thumb",
+                    "src": "data:312"
+                  },
+                  "children": []
+                },
+                {
+                  "tag": "div",
+                  "attributes": {
+                    "class": "info-body"
+                  },
+                  "children": [
+                    {
+                      "tag": "div",
+                      "attributes": {
+                        "class": "info-title",
+                        "title": "세로 영상 — 업로더가 붙인 아주 긴 제목이 두 줄을 넘으면 말줄임으로 잘리고 카드 높이는 그대로 유지된다 #편집 #레퍼런스"
+                      },
+                      "children": [
+                        "세로 영상 — 업로더가 붙인 아주 긴 제목이 두 줄을 넘으면 말줄임으로 잘리고 카드 높이는 그대로 유지된다 #편집 #레퍼런스"
+                      ]
+                    },
+                    {
+                      "tag": "div",
+                      "attributes": {
+                        "class": "muted small"
+                      },
+                      "children": [
+                        "creator.kr · TikTok · 0:47"
+                      ]
+                    },
+                    {
+                      "tag": "div",
+                      "attributes": {
+                        "class": "badges"
+                      },
+                      "children": [
+                        {
+                          "tag": "span",
+                          "attributes": {
+                            "class": "tag warn"
+                          },
+                          "children": [
+                            "변환 필요 ·",
+                            "HEVC",
+                            "→H.264"
+                          ]
+                        },
+                        {
+                          "tag": "span",
+                          "attributes": {
+                            "class": "tag warn"
+                          },
+                          "children": [
+                            "HDR"
+                          ]
+                        },
+                        {
+                          "tag": "span",
+                          "attributes": {
+                            "class": "tag"
+                          },
+                          "children": [
+                            "세로"
+                          ]
+                        },
+                        {
+                          "tag": "span",
+                          "attributes": {
+                            "class": "tag warn",
+                            "title": "시퀀스 \"Vertical 1080\""
+                          },
+                          "children": [
+                            "시퀀스",
+                            "29.97fps",
+                            "와 다름"
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "tag": "div",
+              "attributes": {
+                "class": "section"
+              },
+              "children": [
+                {
+                  "tag": "div",
+                  "attributes": {
+                    "class": "section-label"
+                  },
+                  "children": [
+                    "화질",
+                    {
+                      "tag": "span",
+                      "attributes": {
+                        "class": "muted small"
+                      },
+                      "children": [
+                        "· 시퀀스",
+                        "1080",
+                        "×",
+                        "1920"
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "tag": "div",
+                  "attributes": {
+                    "class": "choices",
+                    "role": "radiogroup",
+                    "aria-label": "화질"
+                  },
+                  "children": [
+                    {
+                      "tag": "label",
+                      "attributes": {
+                        "class": "choice on"
+                      },
+                      "children": [
+                        {
+                          "tag": "input",
+                          "attributes": {
+                            "type": "radio",
+                            "disabled": false,
+                            "checked": true
+                          },
+                          "children": []
+                        },
+                        {
+                          "tag": "span",
+                          "attributes": {
+                            "class": "choice-main"
+                          },
+                          "children": [
+                            "1080p"
+                          ]
+                        },
+                        {
+                          "tag": "span",
+                          "attributes": {
+                            "class": "choice-meta muted"
+                          },
+                          "children": [
+                            "HEVC · 25fps"
+                          ]
+                        },
+                        {
+                          "tag": "span",
+                          "attributes": {
+                            "class": "choice-size muted"
+                          },
+                          "children": [
+                            "17.5 MB"
+                          ]
+                        },
+                        {
+                          "tag": "span",
+                          "attributes": {
+                            "class": "choice-tags"
+                          },
+                          "children": [
+                            {
+                              "tag": "span",
+                              "attributes": {
+                                "class": "tag accent"
+                              },
+                              "children": [
+                                "추천"
+                              ]
+                            },
+                            {
+                              "tag": "span",
+                              "attributes": {
+                                "class": "tag warn"
+                              },
+                              "children": [
+                                "변환"
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "tag": "label",
+                      "attributes": {
+                        "class": "choice"
+                      },
+                      "children": [
+                        {
+                          "tag": "input",
+                          "attributes": {
+                            "type": "radio",
+                            "disabled": false,
+                            "checked": false
+                          },
+                          "children": []
+                        },
+                        {
+                          "tag": "span",
+                          "attributes": {
+                            "class": "choice-main"
+                          },
+                          "children": [
+                            "720p"
+                          ]
+                        },
+                        {
+                          "tag": "span",
+                          "attributes": {
+                            "class": "choice-meta muted"
+                          },
+                          "children": [
+                            "H.264 · 25fps"
+                          ]
+                        },
+                        {
+                          "tag": "span",
+                          "attributes": {
+                            "class": "choice-size muted"
+                          },
+                          "children": [
+                            "8.7 MB"
+                          ]
+                        },
+                        {
+                          "tag": "span",
+                          "attributes": {
+                            "class": "choice-tags"
+                          },
+                          "children": []
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "tag": "div",
+              "attributes": {
+                "class": "section extras"
+              },
+              "children": [
+                {
+                  "tag": "div",
+                  "attributes": {
+                    "class": "row"
+                  },
+                  "children": [
+                    {
+                      "tag": "label",
+                      "attributes": {
+                        "class": "check nowrap"
+                      },
+                      "children": [
+                        {
+                          "tag": "input",
+                          "attributes": {
+                            "type": "checkbox",
+                            "disabled": false,
+                            "checked": false
+                          },
+                          "children": []
+                        },
+                        "오디오만",
+                        {
+                          "tag": "span",
+                          "attributes": {
+                            "class": "muted small after"
+                          },
+                          "children": [
+                            "· WAV 48kHz",
+                            "· 약 8.6 MB"
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "tag": "div",
+                  "attributes": {
+                    "class": "row"
+                  },
+                  "children": [
+                    {
+                      "tag": "label",
+                      "attributes": {
+                        "class": "subs nowrap"
+                      },
+                      "children": [
+                        {
+                          "tag": "span",
+                          "attributes": {
+                            "class": "muted"
+                          },
+                          "children": [
+                            "자막"
+                          ]
+                        },
+                        {
+                          "tag": "select",
+                          "attributes": {
+                            "disabled": true,
+                            "value": ""
+                          },
+                          "children": [
+                            {
+                              "tag": "option",
+                              "attributes": {},
+                              "children": [
+                                "없음"
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "tag": "div",
+              "attributes": {
+                "class": "section range"
+              },
+              "children": [
+                {
+                  "tag": "label",
+                  "attributes": {
+                    "class": "section-label check"
+                  },
+                  "children": [
+                    {
+                      "tag": "input",
+                      "attributes": {
+                        "type": "checkbox",
+                        "disabled": false,
+                        "checked": false
+                      },
+                      "children": []
+                    },
+                    "구간만 받기",
+                    {
+                      "tag": "span",
+                      "attributes": {
+                        "class": "muted small after"
+                      },
+                      "children": [
+                        "· 전체",
+                        "0:47"
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "tag": "div",
+          "attributes": {
+            "class": "section import-settings"
+          },
+          "children": [
+            {
+              "tag": "div",
+              "attributes": {
+                "class": "section-label"
+              },
+              "children": [
+                "가져온 뒤"
+              ]
+            },
+            {
+              "tag": "div",
+              "attributes": {
+                "class": "seg",
+                "role": "radiogroup",
+                "aria-label": "가져온 뒤"
+              },
+              "children": [
+                {
+                  "tag": "button",
+                  "attributes": {
+                    "class": true,
+                    "type": "button",
+                    "role": "radio",
+                    "aria-checked": "false",
+                    "disabled": false
+                  },
+                  "children": [
+                    "프로젝트"
+                  ]
+                },
+                {
+                  "tag": "button",
+                  "attributes": {
+                    "class": true,
+                    "type": "button",
+                    "role": "radio",
+                    "aria-checked": "false",
+                    "disabled": false
+                  },
+                  "children": [
+                    "소스 모니터"
+                  ]
+                },
+                {
+                  "tag": "button",
+                  "attributes": {
+                    "class": "on",
+                    "type": "button",
+                    "role": "radio",
+                    "aria-checked": "true",
+                    "disabled": false
+                  },
+                  "children": [
+                    "빈 트랙"
+                  ]
+                },
+                {
+                  "tag": "button",
+                  "attributes": {
+                    "class": true,
+                    "type": "button",
+                    "role": "radio",
+                    "aria-checked": "false",
+                    "disabled": false
+                  },
+                  "children": [
+                    "삽입"
+                  ]
+                },
+                {
+                  "tag": "button",
+                  "attributes": {
+                    "class": true,
+                    "type": "button",
+                    "role": "radio",
+                    "aria-checked": "false",
+                    "disabled": false
+                  },
+                  "children": [
+                    "덮어쓰기"
+                  ]
+                }
+              ]
+            },
+            {
+              "tag": "div",
+              "attributes": {
+                "class": "muted small hint"
+              },
+              "children": [
+                "재생 헤드 위치에서 비어 있는 가장 낮은 트랙에 놓습니다. 기존 클립은 건드리지 않습니다."
+              ]
+            },
+            {
+              "tag": "div",
+              "attributes": {
+                "class": "row options muted small"
+              },
+              "children": [
+                {
+                  "tag": "label",
+                  "attributes": {},
+                  "children": [
+                    {
+                      "tag": "input",
+                      "attributes": {
+                        "type": "checkbox",
+                        "disabled": false,
+                        "checked": true
+                      },
+                      "children": []
+                    },
+                    "완료되면 바로 가져오기"
+                  ]
+                },
+                {
+                  "tag": "label",
+                  "attributes": {},
+                  "children": [
+                    "기본 화질",
+                    {
+                      "tag": "select",
+                      "attributes": {
+                        "disabled": false,
+                        "value": "1080"
+                      },
+                      "children": [
+                        {
+                          "tag": "option",
+                          "attributes": {},
+                          "children": [
+                            "360",
+                            "p"
+                          ]
+                        },
+                        {
+                          "tag": "option",
+                          "attributes": {},
+                          "children": [
+                            "480",
+                            "p"
+                          ]
+                        },
+                        {
+                          "tag": "option",
+                          "attributes": {},
+                          "children": [
+                            "720",
+                            "p"
+                          ]
+                        },
+                        {
+                          "tag": "option",
+                          "attributes": {},
+                          "children": [
+                            "1080",
+                            "p"
+                          ]
+                        },
+                        {
+                          "tag": "option",
+                          "attributes": {},
+                          "children": [
+                            "1440",
+                            "p"
+                          ]
+                        },
+                        {
+                          "tag": "option",
+                          "attributes": {},
+                          "children": [
+                            "2160",
+                            "p"
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "tag": "ul",
+          "attributes": {
+            "class": "jobs"
+          },
+          "children": []
+        },
+        {
+          "tag": "footer",
+          "attributes": {
+            "class": "row footer muted small"
+          },
+          "children": [
+            {
+              "tag": "span",
+              "attributes": {
+                "title": "/Users/editor/Movies/Birdcage"
+              },
+              "children": [
+                "저장 위치:",
+                "/Users/editor/Movies/Birdcage"
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

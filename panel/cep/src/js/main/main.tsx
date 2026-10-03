@@ -9,6 +9,7 @@ import {
   mediaSummary,
   formatTime,
   overallProgress,
+  progressKnown,
   speed,
   title,
 } from "@birdcage/core";
@@ -67,7 +68,7 @@ export const App = ({ controller: ctl, host }: { controller: PanelController; ho
         <strong>Birdcage</strong>
         <span className={`badge ${s.connection}`}>{CONNECTION_LABEL[s.connection]}</span>
         {s.helper && (
-          <span className="muted small" data-visual-dynamic>
+          <span className="muted small">
             helper {s.helper.helperVersion} · {s.helper.profile === "modern" ? "Premiere 26+" : "호환 모드"}
           </span>
         )}
@@ -98,7 +99,7 @@ export const App = ({ controller: ctl, host }: { controller: PanelController; ho
       </ul>
 
       <footer className="row footer muted small">
-        <span title={s.helper?.libraryDir} data-visual-dynamic>
+        <span title={s.helper?.libraryDir}>
           저장 위치: {s.helper?.libraryDir ?? "-"}
         </span>
         {s.jobs.some((j) => TERMINAL_STATES.includes(j.snap.state)) && (
@@ -128,13 +129,16 @@ const JobItem = ({ view, controller: ctl, host }: { view: JobView; controller: P
         </span>
         <span className="state">{STATE_LABEL[j.state]}</span>
       </div>
-      {active && (
-        <div className="bar">
-          <div style={{ width: `${pct}%` }} />
-        </div>
-      )}
+      {active &&
+        (progressKnown(j) ? (
+          <div className="bar">
+            <div style={{ width: `${pct}%` }} />
+          </div>
+        ) : (
+          <div className="bar unknown" title="진행률을 알 수 없습니다(구간 다운로드는 끝날 때 알려 줍니다)" />
+        ))}
       {detail && (
-        <div className="muted small" data-visual-dynamic>
+        <div className="muted small">
           {detail}
         </div>
       )}

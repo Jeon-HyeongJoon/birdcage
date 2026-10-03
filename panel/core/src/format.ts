@@ -60,8 +60,23 @@ export function mediaSummary(j: JobSnapshot): string {
   const parts: string[] = [];
   if (v) parts.push(`${v.width}×${v.height} ${v.codec.toUpperCase()} ${Math.round(v.fps * 100) / 100}fps`);
   if (a) parts.push(`${a.codec.toUpperCase()} ${a.sampleRate / 1000}kHz`);
-  if (j.plan) parts.push(j.plan.passthrough ? "원본 그대로" : j.plan.video === "transcode" ? `변환(${j.plan.encoder ?? ""})` : "리먹스");
+  if (j.plan) parts.push(planLabel(j.plan));
   return parts.join(" · ");
+}
+
+/** What normalization did, in editor terms. */
+export function planLabel(p: NonNullable<JobSnapshot["plan"]>): string {
+  if (p.passthrough) return "원본 그대로";
+  if (p.audioOnly) return "WAV";
+  if (p.video === "transcode") return `변환(${p.encoder ?? ""})`;
+  if (p.aligned) return "구간 정렬(오디오만 재인코딩)";
+  if (p.audio === "transcode") return "오디오만 재인코딩";
+  return "리먹스";
+}
+
+/** False while a download reports no measurable progress (구간 다운로드는 ffmpeg가 끝에만 알린다). */
+export function progressKnown(j: JobSnapshot): boolean {
+  return !(j.state === "downloading" && j.progress < 0);
 }
 
 /** "0:19", "3:25", "1:02:03". */

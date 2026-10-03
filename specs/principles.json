@@ -150,20 +150,25 @@
     {
       "id": "W7",
       "group": "work",
-      "rule": "화면 확인도 증적으로 남긴다. 구조 골든(Premiere 프로젝트 스냅샷·패널 DOM)을 먼저 비교하고, 픽셀 골든은 보조로 고정 환경에서 동적 영역을 가린 채 쓴다. 골든 기준 갱신은 검증기 변경(verifier.change)이다. 사람 확인(L5)은 스크린샷 sha256을 원장에 남긴다.",
+      "rule": "화면 확인도 증적으로 남긴다. 구조 골든(Premiere 프로젝트 스냅샷·패널 DOM)은 어느 환경에서나 비교하고, 픽셀 골든은 고정 환경(브라우저·OS·아키텍처)에서만 비교한다. 픽스처는 실제 로직으로 상태를 만들고 값을 고정해 마스크를 쓰지 않는다. 골든 기준 갱신은 검증기 변경(verifier.change)이다. 사람 확인(L5)은 스크린샷 sha256을 원장에 남긴다.",
       "why": "렌더링은 OS·버전·설정·하드웨어·전원·헤드리스 여부에 따라 달라져 기준과 같은 환경에서만 픽셀 비교가 안정적이다. Premiere Project 패널은 네이티브 UI라 웹 캡처가 안 되고 화면 녹화 권한(사람 게이트)이 필요하다. 의미 구조 비교는 이런 잡음이 없다.",
       "evidence": [
         "https://playwright.dev/docs/test-snapshots",
-        "https://www.screenify.studio/blog/2026-04-23-macos-screen-recording-permissions"
+        "https://www.screenify.studio/blog/2026-04-23-macos-screen-recording-permissions",
+        "session:2026-10-03 골든 재작성 — 버튼 문구 1개 변경이 11개 시나리오 모두 실패, 비고정 환경에서는 DOM 11개 비교·픽셀 11개 건너뜀"
       ],
       "enforcedBy": [
+        {
+          "type": "gate",
+          "ref": "G-ui"
+        },
         {
           "type": "policy",
           "ref": "protected.paths"
         },
         {
           "type": "honor",
-          "ref": "T-015 구현 전: 사람 확인 스크린샷을 loopctl evidence로 원장에 기록"
+          "ref": "골든 기준 갱신 시 사람 검토(L5)와 이미지 sha256을 loopctl evidence로 원장에 기록"
         }
       ],
       "status": "partial"

@@ -120,6 +120,14 @@ export interface ControllerOptions {
 
 const REQUIRED_TOOLS = ["yt-dlp", "ffmpeg", "ffprobe"];
 
+/** Tools the helper needs that are missing or broken (a JS runtime: deno or node). */
+export function missingTools(tools: ToolStatus[]): string[] {
+  const have = new Set(tools.filter((t) => !t.error && t.path).map((t) => t.name as string));
+  const missing = REQUIRED_TOOLS.filter((n) => !have.has(n));
+  if (!have.has("deno") && !have.has("node")) missing.push("deno");
+  return missing;
+}
+
 export class Controller {
   private _state: State;
   private subs = new Set<(s: State) => void>();
@@ -153,10 +161,7 @@ export class Controller {
 
   /** Tools the helper needs that are missing. */
   missingTools(): string[] {
-    const have = new Set(this._state.tools.filter((t) => !t.error && t.path).map((t) => t.name as string));
-    const missing = REQUIRED_TOOLS.filter((n) => !have.has(n));
-    if (!have.has("deno") && !have.has("node")) missing.push("deno");
-    return missing;
+    return missingTools(this._state.tools);
   }
 
   async start(): Promise<void> {

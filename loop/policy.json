@@ -89,6 +89,8 @@
       "panel/core/test/**",
       "scripts/test-helper.sh",
       "tools/**/*_test.go",
+      "panel/cep/test/**",
+      "panel/cep/playwright.config.ts",
       "panel/cep/test/golden/**",
       "panel/core/test/golden/**"
     ]
@@ -312,6 +314,24 @@
       "what": "Helper 전체 테스트 + 성능 기록(로컬 E2E 포함)",
       "argv": [
         "scripts/test-helper.sh"
+      ]
+    },
+    {
+      "id": "G-ui",
+      "level": "L1",
+      "kind": "test",
+      "cost": "slow",
+      "estSec": 15,
+      "what": "패널 UI 골든: DOM 구조(어디서나) + 픽셀(고정 환경에서만), 실제 Controller를 가짜 Helper로 구동",
+      "dir": "panel/cep",
+      "argv": [
+        "npm",
+        "run",
+        "-s",
+        "test:ui"
+      ],
+      "requires": [
+        "panel/cep/node_modules"
       ]
     },
     {

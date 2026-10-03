@@ -1,0 +1,68 @@
+{
+  "$schema": "../schema/iteration.schema.json",
+  "id": "20261003-080156-T-022",
+  "task": "T-022",
+  "session": {
+    "kind": "worker",
+    "id": "2df3dff7-1152-4794-b7b9-d1f8c6d6a92c",
+    "model": "claude-opus-5-5"
+  },
+  "startedAt": "2026-10-03T08:01:56Z",
+  "endedAt": "2026-10-03T08:10:58Z",
+  "base": {
+    "branch": "feat/editing-options",
+    "commit": "a15988eb765c"
+  },
+  "head": {
+    "branch": "feat/editing-options",
+    "commit": "a15988eb765c",
+    "dirty": true
+  },
+  "state": "success",
+  "hypothesis": "픽스처가 손으로 만든 상태 대신 실제 Controller를 가짜 Helper 메시지로 구동하면 UI 골든이 실제 상태 모양을 따른다. 마스크 없이 결정적으로 렌더링하고, DOM 골든은 환경 무관(golden/dom), 픽셀 골든은 고정 환경(Chrome·OS·아키텍처)에서만 비교하면 다른 기기에서도 구조 회귀는 잡고 픽셀 잡음은 피한다. 검증: test:ui 3회 연속 통과(G-ui), 사람 검토(L5).",
+  "summary": "UI 골든 재작성: 픽스처가 실제 Controller를 가짜 Helper(프로토콜 메시지)로 구동해 11개 상태(빈 화면·시작 중·연결 실패·도구 없음·설치 중·조회 중·조회 실패·조회 완료·경고 배지·오디오만·작업 목록)를 만든다. 마스크 없음(값 고정, data-visual-dynamic 제거). DOM 골든은 golden/dom(어디서나 비교), 픽셀 골든은 고정 환경(chrome-154-darwin27-arm64)에서만. G-ui 게이트 등록, panel/cep/test/**·playwright.config.ts 보호. 3회 연속 통과, 버튼 문구 1개 변경 시 실패, 비고정 환경에서 DOM 11개 비교·픽셀 건너뜀. 검토 중 발견해 고침: 구간 다운로드 진행률 모름 표시(빗금), 완료 라벨(구간 정렬/WAV/오디오만 재인코딩). 작업 통과는 사람 검토(L5) 뒤.",
+  "metrics": {
+    "durationMin": 9,
+    "evidence": 39,
+    "evidenceByLevel": {
+      "L1": 25,
+      "L2": 7,
+      "L3": 7
+    },
+    "pass": 38,
+    "fail": 0,
+    "skip": 0
+  },
+  "retro": {
+    "newChecks": [
+      "G-ui: DOM 골든 11 + 픽셀 골든 11(고정 환경), pageerror 없음",
+      "loopctl logSlug: 증적 로그 파일 이름 길이 제한(긴 sh -c에서 file name too long)"
+    ],
+    "specChanges": [
+      "loop/policy.json: gateLadder += G-ui, protected += panel/cep/test/**, panel/cep/playwright.config.ts",
+      "specs/principles.json W7: 픽스처는 실제 로직·마스크 없음, DOM 어디서나·픽셀 고정 환경, 강제 gate:G-ui"
+    ],
+    "lessons": [
+      "손으로 만든 State 픽스처는 실제 상태 모양과 어긋나도 모른다: 실제 Controller를 프로토콜 메시지로 구동하면 골든이 계약까지 검증한다.",
+      "골든을 만든 뒤 사람보다 먼저 직접 보는 단계에서 UX 결함 2개(진행률 5% 정지처럼 보임, 사실과 다른 리먹스 라벨)를 찾았다."
+    ]
+  },
+  "next": [
+    "사람 검토: panel/cep/test/golden/chrome-154-darwin27-arm64/*.png 11개 확인 → loopctl evidence --kind human --level L5 --verdict pass (sha256 E-20261003-080156-039 인용) → T-022 pass.",
+    "T-023(사람): Premiere 15.2·26에서 In/Out(setInPoint 단위)·배치 4종·소스 모니터·캡션 트랙·시퀀스 정보 확인."
+  ],
+  "approvals": [
+    {
+      "action": "session.multitask",
+      "by": "전형준",
+      "at": "2026-10-03T08:01:56Z",
+      "note": "2026-10-03 지시: T-017~T-022 연속 진행"
+    },
+    {
+      "action": "verifier.change",
+      "by": "전형준",
+      "at": "2026-10-03T08:01:56Z",
+      "note": "2026-10-03 지시('골든테스트까지 진행') — 승인된 제안: 골든 재생성(기존 chrome-154-darwin-arm64 삭제), G-ui 게이트 등록, panel/cep/test/** 보호 경로 추가. 골든 이미지는 사람 검토(L5) 후 작업 통과."
+    }
+  ]
+}

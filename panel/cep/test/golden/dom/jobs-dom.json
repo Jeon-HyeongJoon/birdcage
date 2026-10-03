@@ -1,0 +1,797 @@
+{
+  "tag": "div",
+  "attributes": {},
+  "children": [
+    {
+      "tag": "div",
+      "attributes": {
+        "class": "app",
+        "style": "background-color: rgb(35, 35, 35);"
+      },
+      "children": [
+        {
+          "tag": "header",
+          "attributes": {
+            "class": "row header"
+          },
+          "children": [
+            {
+              "tag": "strong",
+              "attributes": {},
+              "children": [
+                "Birdcage"
+              ]
+            },
+            {
+              "tag": "span",
+              "attributes": {
+                "class": "badge connected"
+              },
+              "children": [
+                "연결됨"
+              ]
+            },
+            {
+              "tag": "span",
+              "attributes": {
+                "class": "muted small"
+              },
+              "children": [
+                "helper",
+                "0.1.0-fixture",
+                "·",
+                "호환 모드"
+              ]
+            }
+          ]
+        },
+        {
+          "tag": "form",
+          "attributes": {
+            "class": "composer"
+          },
+          "children": [
+            {
+              "tag": "div",
+              "attributes": {
+                "class": "row"
+              },
+              "children": [
+                {
+                  "tag": "input",
+                  "attributes": {
+                    "class": "url",
+                    "type": "text",
+                    "placeholder": "YouTube · Instagram · TikTok 링크",
+                    "disabled": false,
+                    "value": ""
+                  },
+                  "children": []
+                },
+                {
+                  "tag": "button",
+                  "attributes": {
+                    "class": "primary",
+                    "type": "submit",
+                    "disabled": true
+                  },
+                  "children": [
+                    "받기"
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "tag": "div",
+          "attributes": {
+            "class": "section import-settings"
+          },
+          "children": [
+            {
+              "tag": "div",
+              "attributes": {
+                "class": "section-label"
+              },
+              "children": [
+                "가져온 뒤"
+              ]
+            },
+            {
+              "tag": "div",
+              "attributes": {
+                "class": "seg",
+                "role": "radiogroup",
+                "aria-label": "가져온 뒤"
+              },
+              "children": [
+                {
+                  "tag": "button",
+                  "attributes": {
+                    "class": true,
+                    "type": "button",
+                    "role": "radio",
+                    "aria-checked": "false",
+                    "disabled": false
+                  },
+                  "children": [
+                    "프로젝트"
+                  ]
+                },
+                {
+                  "tag": "button",
+                  "attributes": {
+                    "class": true,
+                    "type": "button",
+                    "role": "radio",
+                    "aria-checked": "false",
+                    "disabled": false
+                  },
+                  "children": [
+                    "소스 모니터"
+                  ]
+                },
+                {
+                  "tag": "button",
+                  "attributes": {
+                    "class": "on",
+                    "type": "button",
+                    "role": "radio",
+                    "aria-checked": "true",
+                    "disabled": false
+                  },
+                  "children": [
+                    "빈 트랙"
+                  ]
+                },
+                {
+                  "tag": "button",
+                  "attributes": {
+                    "class": true,
+                    "type": "button",
+                    "role": "radio",
+                    "aria-checked": "false",
+                    "disabled": false
+                  },
+                  "children": [
+                    "삽입"
+                  ]
+                },
+                {
+                  "tag": "button",
+                  "attributes": {
+                    "class": true,
+                    "type": "button",
+                    "role": "radio",
+                    "aria-checked": "false",
+                    "disabled": false
+                  },
+                  "children": [
+                    "덮어쓰기"
+                  ]
+                }
+              ]
+            },
+            {
+              "tag": "div",
+              "attributes": {
+                "class": "muted small hint"
+              },
+              "children": [
+                "재생 헤드 위치에서 비어 있는 가장 낮은 트랙에 놓습니다. 기존 클립은 건드리지 않습니다."
+              ]
+            },
+            {
+              "tag": "div",
+              "attributes": {
+                "class": "row options muted small"
+              },
+              "children": [
+                {
+                  "tag": "label",
+                  "attributes": {},
+                  "children": [
+                    {
+                      "tag": "input",
+                      "attributes": {
+                        "type": "checkbox",
+                        "disabled": false,
+                        "checked": true
+                      },
+                      "children": []
+                    },
+                    "완료되면 바로 가져오기"
+                  ]
+                },
+                {
+                  "tag": "label",
+                  "attributes": {},
+                  "children": [
+                    "기본 화질",
+                    {
+                      "tag": "select",
+                      "attributes": {
+                        "disabled": false,
+                        "value": "1080"
+                      },
+                      "children": [
+                        {
+                          "tag": "option",
+                          "attributes": {},
+                          "children": [
+                            "360",
+                            "p"
+                          ]
+                        },
+                        {
+                          "tag": "option",
+                          "attributes": {},
+                          "children": [
+                            "480",
+                            "p"
+                          ]
+                        },
+                        {
+                          "tag": "option",
+                          "attributes": {},
+                          "children": [
+                            "720",
+                            "p"
+                          ]
+                        },
+                        {
+                          "tag": "option",
+                          "attributes": {},
+                          "children": [
+                            "1080",
+                            "p"
+                          ]
+                        },
+                        {
+                          "tag": "option",
+                          "attributes": {},
+                          "children": [
+                            "1440",
+                            "p"
+                          ]
+                        },
+                        {
+                          "tag": "option",
+                          "attributes": {},
+                          "children": [
+                            "2160",
+                            "p"
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "tag": "ul",
+          "attributes": {
+            "class": "jobs"
+          },
+          "children": [
+            {
+              "tag": "li",
+              "attributes": {
+                "class": "job downloading"
+              },
+              "children": [
+                {
+                  "tag": "div",
+                  "attributes": {
+                    "class": "row"
+                  },
+                  "children": [
+                    {
+                      "tag": "span",
+                      "attributes": {
+                        "class": "title",
+                        "title": "https://www.youtube.com/watch?v=j1"
+                      },
+                      "children": [
+                        "편집용 인터뷰 클립"
+                      ]
+                    },
+                    {
+                      "tag": "span",
+                      "attributes": {
+                        "class": "state"
+                      },
+                      "children": [
+                        "다운로드"
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "tag": "div",
+                  "attributes": {
+                    "class": "bar"
+                  },
+                  "children": [
+                    {
+                      "tag": "div",
+                      "attributes": {
+                        "style": "width: 37%;"
+                      },
+                      "children": []
+                    }
+                  ]
+                },
+                {
+                  "tag": "div",
+                  "attributes": {
+                    "class": "muted small"
+                  },
+                  "children": [
+                    "5.0 MB/s · 11초 남음"
+                  ]
+                },
+                {
+                  "tag": "div",
+                  "attributes": {
+                    "class": "warn small"
+                  },
+                  "children": [
+                    "JS 런타임이 없어 YouTube 화질이 낮을 수 있습니다."
+                  ]
+                },
+                {
+                  "tag": "div",
+                  "attributes": {
+                    "class": "row actions"
+                  },
+                  "children": [
+                    {
+                      "tag": "button",
+                      "attributes": {
+                        "disabled": false
+                      },
+                      "children": [
+                        "취소"
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "tag": "li",
+              "attributes": {
+                "class": "job downloading"
+              },
+              "children": [
+                {
+                  "tag": "div",
+                  "attributes": {
+                    "class": "row"
+                  },
+                  "children": [
+                    {
+                      "tag": "span",
+                      "attributes": {
+                        "class": "title",
+                        "title": "https://www.youtube.com/watch?v=j2"
+                      },
+                      "children": [
+                        "구간만 받는 중"
+                      ]
+                    },
+                    {
+                      "tag": "span",
+                      "attributes": {
+                        "class": "state"
+                      },
+                      "children": [
+                        "다운로드"
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "tag": "div",
+                  "attributes": {
+                    "class": "bar unknown",
+                    "title": "진행률을 알 수 없습니다(구간 다운로드는 끝날 때 알려 줍니다)"
+                  },
+                  "children": []
+                },
+                {
+                  "tag": "div",
+                  "attributes": {
+                    "class": "muted small"
+                  },
+                  "children": [
+                    "구간",
+                    "1:00.0",
+                    "–",
+                    "1:15.0"
+                  ]
+                },
+                {
+                  "tag": "div",
+                  "attributes": {
+                    "class": "row actions"
+                  },
+                  "children": [
+                    {
+                      "tag": "button",
+                      "attributes": {
+                        "disabled": false
+                      },
+                      "children": [
+                        "취소"
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "tag": "li",
+              "attributes": {
+                "class": "job normalizing"
+              },
+              "children": [
+                {
+                  "tag": "div",
+                  "attributes": {
+                    "class": "row"
+                  },
+                  "children": [
+                    {
+                      "tag": "span",
+                      "attributes": {
+                        "class": "title",
+                        "title": "https://www.youtube.com/watch?v=j3"
+                      },
+                      "children": [
+                        "VP9 원본을 H.264로 변환 중"
+                      ]
+                    },
+                    {
+                      "tag": "span",
+                      "attributes": {
+                        "class": "state"
+                      },
+                      "children": [
+                        "Premiere용 변환"
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "tag": "div",
+                  "attributes": {
+                    "class": "bar"
+                  },
+                  "children": [
+                    {
+                      "tag": "div",
+                      "attributes": {
+                        "style": "width: 92%;"
+                      },
+                      "children": []
+                    }
+                  ]
+                },
+                {
+                  "tag": "div",
+                  "attributes": {
+                    "class": "row actions"
+                  },
+                  "children": [
+                    {
+                      "tag": "button",
+                      "attributes": {
+                        "disabled": false
+                      },
+                      "children": [
+                        "취소"
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "tag": "li",
+              "attributes": {
+                "class": "job done"
+              },
+              "children": [
+                {
+                  "tag": "div",
+                  "attributes": {
+                    "class": "row"
+                  },
+                  "children": [
+                    {
+                      "tag": "span",
+                      "attributes": {
+                        "class": "title",
+                        "title": "https://www.youtube.com/watch?v=j4"
+                      },
+                      "children": [
+                        "Me at the zoo"
+                      ]
+                    },
+                    {
+                      "tag": "span",
+                      "attributes": {
+                        "class": "state"
+                      },
+                      "children": [
+                        "완료"
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "tag": "div",
+                  "attributes": {
+                    "class": "muted small"
+                  },
+                  "children": [
+                    "320×240 H264 15fps · AAC 48kHz · 구간 정렬(오디오만 재인코딩)"
+                  ]
+                },
+                {
+                  "tag": "div",
+                  "attributes": {
+                    "class": "muted small"
+                  },
+                  "children": [
+                    "구간",
+                    "0:07.3",
+                    "–",
+                    "0:12.5",
+                    "· In/Out 설정됨"
+                  ]
+                },
+                {
+                  "tag": "div",
+                  "attributes": {
+                    "class": "row actions"
+                  },
+                  "children": [
+                    {
+                      "tag": "span",
+                      "attributes": {
+                        "class": "ok small"
+                      },
+                      "children": [
+                        "✓",
+                        "Birdcage / Youtube",
+                        "· 타임라인에 놓음",
+                        "· 캡션 트랙"
+                      ]
+                    },
+                    {
+                      "tag": "button",
+                      "attributes": {
+                        "disabled": false
+                      },
+                      "children": [
+                        "폴더에서 보기"
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "tag": "li",
+              "attributes": {
+                "class": "job done"
+              },
+              "children": [
+                {
+                  "tag": "div",
+                  "attributes": {
+                    "class": "row"
+                  },
+                  "children": [
+                    {
+                      "tag": "span",
+                      "attributes": {
+                        "class": "title",
+                        "title": "https://www.youtube.com/watch?v=j5"
+                      },
+                      "children": [
+                        "가져오기 실패한 완료 영상"
+                      ]
+                    },
+                    {
+                      "tag": "span",
+                      "attributes": {
+                        "class": "state"
+                      },
+                      "children": [
+                        "완료"
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "tag": "div",
+                  "attributes": {
+                    "class": "muted small"
+                  },
+                  "children": [
+                    "1280×720 H264 30fps · AAC 48kHz"
+                  ]
+                },
+                {
+                  "tag": "div",
+                  "attributes": {
+                    "class": "error small"
+                  },
+                  "children": [
+                    "가져오기 실패:",
+                    "열린 프로젝트가 없습니다."
+                  ]
+                },
+                {
+                  "tag": "div",
+                  "attributes": {
+                    "class": "row actions"
+                  },
+                  "children": [
+                    {
+                      "tag": "button",
+                      "attributes": {
+                        "disabled": false
+                      },
+                      "children": [
+                        "가져오기"
+                      ]
+                    },
+                    {
+                      "tag": "button",
+                      "attributes": {
+                        "disabled": false
+                      },
+                      "children": [
+                        "폴더에서 보기"
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "tag": "li",
+              "attributes": {
+                "class": "job failed"
+              },
+              "children": [
+                {
+                  "tag": "div",
+                  "attributes": {
+                    "class": "row"
+                  },
+                  "children": [
+                    {
+                      "tag": "span",
+                      "attributes": {
+                        "class": "title",
+                        "title": "https://www.youtube.com/watch?v=j6"
+                      },
+                      "children": [
+                        "접근할 수 없는 영상"
+                      ]
+                    },
+                    {
+                      "tag": "span",
+                      "attributes": {
+                        "class": "state"
+                      },
+                      "children": [
+                        "실패"
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "tag": "div",
+                  "attributes": {
+                    "class": "error small",
+                    "title": "ERROR: Private video"
+                  },
+                  "children": [
+                    "비공개 영상입니다."
+                  ]
+                },
+                {
+                  "tag": "div",
+                  "attributes": {
+                    "class": "row actions"
+                  },
+                  "children": []
+                }
+              ]
+            },
+            {
+              "tag": "li",
+              "attributes": {
+                "class": "job cancelled"
+              },
+              "children": [
+                {
+                  "tag": "div",
+                  "attributes": {
+                    "class": "row"
+                  },
+                  "children": [
+                    {
+                      "tag": "span",
+                      "attributes": {
+                        "class": "title",
+                        "title": "https://www.youtube.com/watch?v=j7"
+                      },
+                      "children": [
+                        "취소한 영상"
+                      ]
+                    },
+                    {
+                      "tag": "span",
+                      "attributes": {
+                        "class": "state"
+                      },
+                      "children": [
+                        "취소됨"
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "tag": "div",
+                  "attributes": {
+                    "class": "row actions"
+                  },
+                  "children": []
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "tag": "footer",
+          "attributes": {
+            "class": "row footer muted small"
+          },
+          "children": [
+            {
+              "tag": "span",
+              "attributes": {
+                "title": "/Users/editor/Movies/Birdcage"
+              },
+              "children": [
+                "저장 위치:",
+                "/Users/editor/Movies/Birdcage"
+              ]
+            },
+            {
+              "tag": "button",
+              "attributes": {
+                "disabled": false
+              },
+              "children": [
+                "완료 항목 지우기"
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

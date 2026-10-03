@@ -207,8 +207,7 @@ func runCommand(ctx context.Context, s *state, iter, kind, level, claim, dir str
 		Ref:        loopkit.Ref{Type: "command", Value: strings.TrimSpace((dir + " $ ") + strings.Join(argv, " "))},
 		Values:     map[string]any{"exit": exit},
 		DurationMs: float64(dur.Milliseconds())}
-	slug := strings.Trim(regexp.MustCompile(`[^a-z0-9]+`).ReplaceAllString(strings.ToLower(filepath.Base(argv[0])+"-"+strings.Join(argv[1:min(len(argv), 3)], "-")), "-"), "-")
-	e, aerr := appendEvidence(s, e, out.Bytes(), slug+".log", now())
+	e, aerr := appendEvidence(s, e, out.Bytes(), logSlug(argv)+".log", now())
 	if aerr != nil {
 		return e, aerr
 	}
@@ -386,4 +385,23 @@ func end(s *state, iter string, o endOpts, now time.Time) error {
 		_ = os.Remove(cur)
 	}
 	return nil
+}
+
+// maxSlug keeps artifact names well under file-name limits (255 bytes) with the sequence prefix.
+const maxSlug = 60
+
+// logSlug names a command's log from its first words, e.g. "go-test-count-1".
+// sh -c "<script>" 같은 긴 인자도 파일 이름 한도를 넘지 않게 자른다.
+func logSlug(argv []string) string {
+	if len(argv) == 0 {
+		return "run"
+	}
+	slug := strings.Trim(regexp.MustCompile(`[^a-z0-9]+`).ReplaceAllString(strings.ToLower(filepath.Base(argv[0])+"-"+strings.Join(argv[1:min(len(argv), 3)], "-")), "-"), "-")
+	if len(slug) > maxSlug {
+		slug = strings.TrimRight(slug[:maxSlug], "-")
+	}
+	if slug == "" {
+		return "run"
+	}
+	return slug
 }
