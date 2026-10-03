@@ -52,6 +52,7 @@ type Locator struct {
 	BundledDir string          // <helper exe dir>/tools, may be empty
 	Overrides  map[Name]string // explicit paths
 	LookPath   func(string) (string, error)
+	SystemDirs []string // GUI apps may not inherit shell PATH (notably Homebrew on macOS)
 
 	mu    sync.Mutex
 	cache map[Name]Tool
@@ -59,7 +60,17 @@ type Locator struct {
 
 // NewLocator returns a locator using exec.LookPath for PATH lookups.
 func NewLocator(root, bundled string, overrides map[Name]string) *Locator {
-	return &Locator{Root: root, BundledDir: bundled, Overrides: overrides, LookPath: exec.LookPath}
+	return &Locator{Root: root, BundledDir: bundled, Overrides: overrides, LookPath: exec.LookPath, SystemDirs: systemToolDirs(runtime.GOOS)}
+}
+
+// systemToolDirs are conventional package-manager locations omitted from the PATH of
+// applications launched by Finder/Creative Cloud. Premiere commonly gives CEP only
+// /usr/bin:/bin:/usr/sbin:/sbin, while Apple Silicon Homebrew installs into /opt/homebrew.
+func systemToolDirs(goos string) []string {
+	if goos != "darwin" {
+		return nil
+	}
+	return []string{"/opt/homebrew/bin", "/usr/local/bin", "/opt/local/bin"}
 }
 
 // Find returns the tool, probing its version on first use.
@@ -109,6 +120,9 @@ func (l *Locator) find(ctx context.Context, n Name) (Tool, error) {
 		if p, err := l.LookPath(string(n)); err == nil {
 			cands = append(cands, cand{p, "path"})
 		}
+	}
+	for _, dir := range l.SystemDirs {
+		cands = append(cands, cand{filepath.Join(dir, exeFor(n)), "path"})
 	}
 	var lastErr error
 	for _, c := range cands {

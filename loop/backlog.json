@@ -116,7 +116,7 @@
     },
     {
       "id": "T-005",
-      "title": "Premiere 15.2에서 CEP 패널 로드·다운로드·Birdcage/<플랫폼> 빈 임포트 확인",
+      "title": "Premiere 15.2에서 CEP 패널 로드·다운로드·Birdcage/\u003c플랫폼\u003e 빈 임포트 확인",
       "mode": "human",
       "status": "open",
       "passes": false,
@@ -525,7 +525,7 @@
     },
     {
       "id": "T-023",
-      "title": "Premiere 실기(15.2·26): 구간 In/Out(setInPoint 단위 자기 검증), 새 빈 트랙 배치(QE addTracks·대체 경로), 시퀀스 없을 때 소스 모니터, 캡션 트랙, 시퀀스 정보, 미리보기 <video> 재생, Space·I·O 단축키가 패널로 오는지(registerKeyEventsInterest)",
+      "title": "Premiere 실기(15.2·26): 구간 In/Out(setInPoint 단위 자기 검증), 새 빈 트랙 배치(QE addTracks·대체 경로), 시퀀스 없을 때 소스 모니터, 캡션 트랙, 시퀀스 정보, 미리보기 \u003cvideo\u003e 재생, Space·I·O 단축키가 패널로 오는지(registerKeyEventsInterest)",
       "mode": "human",
       "status": "open",
       "passes": false,
@@ -668,6 +668,29 @@
         }
       ],
       "blockedBy": "사람 검토(L5) 대기: 골든 15개(panel/cep/test/golden/chrome-154-darwin27-arm64) 확인 + Premiere 실기 QA"
+    },
+    {
+      "id": "T-029",
+      "title": "QA 수정: Premiere GUI PATH에서도 Homebrew ffmpeg/ffprobe 인식, 다시 확인 중 실패 화면 유지 후 성공할 때만 미리보기로 전환",
+      "mode": "compile",
+      "status": "done",
+      "passes": true,
+      "priority": 1,
+      "acceptance": [
+        {
+          "kind": "test",
+          "maxLevel": "L1",
+          "what": "Helper가 macOS 표준 Homebrew 경로의 도구를 PATH 없이 탐색하고 조회 때 도구 상태를 갱신(G-helper)"
+        },
+        {
+          "kind": "test",
+          "maxLevel": "L1",
+          "what": "재확인 중 기존 실패 UI를 유지하고 완료 뒤에만 성공 화면으로 전환(G-core·G-ui)"
+        }
+      ],
+      "evidence": [
+        "E-20261003-102438-006"
+      ]
     }
   ]
 }

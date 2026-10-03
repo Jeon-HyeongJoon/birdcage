@@ -285,6 +285,11 @@ func (ss *session) handle(ctx context.Context, data []byte) {
 
 // probe runs outside the read loop (yt-dlp -J takes seconds) and answers with media.info.
 func (ss *session) probe(ctx context.Context, id string, mp protocol.MediaProbe) {
+	// 사용자가 Helper 실행 뒤 Homebrew 등으로 도구를 설치했을 수 있다. 조회할 때 다시
+	// 탐색해 패널의 시작 시점 도구 상태도 함께 갱신한다(Locator는 실패를 캐시하지 않는다).
+	if ss.srv.Tools != nil {
+		_ = ss.send(ctx, protocol.TypeToolsStatus, "", protocol.ToolsStatus{Tools: ss.srv.Tools.Status(ctx)})
+	}
 	h := mp.MaxHeight
 	if h <= 0 {
 		h = ss.srv.DefaultHeight

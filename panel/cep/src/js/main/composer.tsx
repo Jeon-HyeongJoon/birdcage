@@ -53,7 +53,7 @@ export const Composer = ({ s, ctl }: { s: State; ctl: PanelController }) => {
             ×
           </button>
         )}
-        <button type="submit" className="primary" disabled={!connected || !isLink(d.url) || d.status === "probing"}>
+        <button type="submit" className="primary" disabled={!connected || !isLink(d.url) || d.status === "probing" || d.checking}>
           {ranged ? "구간 받기" : "받기"}
         </button>
       </div>
@@ -68,8 +68,8 @@ export const Composer = ({ s, ctl }: { s: State; ctl: PanelController }) => {
       {d.status === "failed" && (
         <div className="row status">
           <span className="error small">{d.failure?.message ?? "링크를 확인하지 못했습니다."}</span>
-          <button type="button" onClick={() => void ctl.probeDraft()}>
-            다시 확인
+          <button type="button" disabled={d.checking} onClick={() => void ctl.probeDraft()}>
+            {d.checking ? "확인 중…" : "다시 확인"}
           </button>
         </div>
       )}

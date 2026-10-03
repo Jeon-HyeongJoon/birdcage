@@ -1,0 +1,43 @@
+{
+  "$schema": "../schema/iteration.schema.json",
+  "id": "20261003-102438-T-029",
+  "task": "T-029",
+  "session": {
+    "kind": "worker"
+  },
+  "startedAt": "2026-10-03T10:24:38Z",
+  "endedAt": "2026-10-03T10:29:23Z",
+  "base": {
+    "branch": "feat/editing-options",
+    "commit": "a1d8c39de48f",
+    "dirty": true
+  },
+  "head": {
+    "branch": "feat/editing-options",
+    "commit": "a1d8c39de48f",
+    "dirty": true
+  },
+  "state": "success",
+  "hypothesis": "Premiere GUI의 제한된 PATH를 보완해 Homebrew 도구를 찾고, 재확인 동안 실패 상태를 유지하며 조회 시 도구 상태를 갱신하면 설치 오인식과 검은 미리보기 깜박임이 함께 사라진다",
+  "summary": "Premiere GUI PATH가 Homebrew 경로를 빼는 원인을 재현해 Helper가 /opt/homebrew/bin·/usr/local/bin·/opt/local/bin을 직접 탐색하도록 했다. 링크 조회마다 tools.status를 갱신하고, 실패 후 다시 확인은 오류 UI를 유지한 채 버튼만 '확인 중…'으로 바꾸며 성공 응답 뒤에만 미리보기로 전환한다. 제한 PATH 실기 명령과 G-core·G-helper·G-ui 포함 전체 게이트가 통과했다.",
+  "metrics": {
+    "durationMin": 4.7,
+    "evidence": 22,
+    "evidenceByLevel": {
+      "L1": 11,
+      "L2": 10,
+      "L3": 1
+    },
+    "pass": 22,
+    "fail": 0,
+    "skip": 0
+  },
+  "retro": {
+    "lessons": [
+      "GUI 앱의 PATH는 로그인 셸 PATH와 다르므로 외부 도구 탐색은 표준 설치 경로를 명시적으로 포함하고, 재시도 UI는 기존 상태를 파괴하지 않는 별도 in-flight 플래그로 표현한다."
+    ]
+  },
+  "next": [
+    "패널을 다시 빌드·로드한 뒤 사용자 Premiere QA에서 도구 경고 소멸과 재확인 전환을 확인한다."
+  ]
+}

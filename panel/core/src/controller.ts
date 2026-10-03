@@ -43,6 +43,8 @@ export type ProbeStatus = "idle" | "probing" | "ready" | "failed";
 export interface Draft {
   url: string;
   status: ProbeStatus;
+  /** A failed link is being checked again; keep the failure UI until the answer arrives. */
+  checking?: boolean;
   probeId?: string;
   info?: SourceInfo;
   failure?: Failure | { kind: "request"; message: string };
@@ -222,13 +224,18 @@ export class Controller {
     const url = this._state.draft.url.trim();
     if (!isLink(url)) return;
     const seq = ++this.draftSeq;
-    this.set({ draft: { ...EMPTY_DRAFT, url: this._state.draft.url, status: "probing" } });
+    const retrying = this._state.draft.status === "failed";
+    this.set({
+      draft: retrying
+        ? { ...this._state.draft, checking: true }
+        : { ...EMPTY_DRAFT, url: this._state.draft.url, status: "probing" },
+    });
     try {
       // 시퀀스는 조회와 함께 읽는다(추천이 현재 시퀀스를 따른다).
       const [res] = await Promise.all([this.requireClient().probe(url, this._state.settings.maxHeight), this.refreshSequence()]);
       if (seq !== this.draftSeq) return; // 사용자가 그새 링크를 바꿨다
       if (res.failure || !res.info) {
-        this.set({ draft: { ...this._state.draft, status: "failed", failure: res.failure } });
+        this.set({ draft: { ...this._state.draft, status: "failed", checking: false, failure: res.failure } });
         return;
       }
       const rec = recommendVariant(res.info.variants, targetRes(this._state.sequence, this._state.settings.maxHeight));
@@ -236,13 +243,23 @@ export class Controller {
       const t = startFromURL(url);
       const range: DraftRange = t !== undefined && (!res.info.durationSec || t < res.info.durationSec) ? { on: true, start: t, end: res.info.durationSec } : { on: false };
       this.set({
-        draft: { ...this._state.draft, status: "ready", probeId: res.probeId, info: res.info, formatId: rec?.formatId, recommendedId: rec?.formatId, range },
+        draft: {
+          ...this._state.draft,
+          status: "ready",
+          checking: false,
+          failure: undefined,
+          probeId: res.probeId,
+          info: res.info,
+          formatId: rec?.formatId,
+          recommendedId: rec?.formatId,
+          range,
+        },
       });
       // 미리보기: 스토리보드는 이미 info에 있고, 파형 → 재생 가능한 비디오가 preview.state로 이어진다.
       if (res.probeId) this.client?.openPreview(res.probeId);
     } catch (e) {
       if (seq !== this.draftSeq) return;
-      this.set({ draft: { ...this._state.draft, status: "failed", failure: { kind: "request", message: (e as Error).message } } });
+      this.set({ draft: { ...this._state.draft, status: "failed", checking: false, failure: { kind: "request", message: (e as Error).message } } });
     }
   }
 
