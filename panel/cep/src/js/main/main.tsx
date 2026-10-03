@@ -15,7 +15,7 @@ import {
 } from "@birdcage/core";
 import { subscribeBackgroundColor } from "../lib/utils/bolt";
 import { Composer } from "./composer";
-import { ImportSettings } from "./import-settings";
+import { SettingsRow, StatusDot } from "./status";
 import "./main.scss";
 
 export type PanelController = Pick<
@@ -41,14 +41,6 @@ export type PanelController = Pick<
 
 export type PanelHost = Pick<HostAdapter, "revealFile" | "captureKeys">;
 
-const CONNECTION_LABEL = {
-  idle: "대기",
-  starting: "Helper 시작 중…",
-  connected: "연결됨",
-  reconnecting: "다시 연결 중…",
-  failed: "연결 실패",
-} as const;
-
 export const App = ({ controller: ctl, host }: { controller: PanelController; host: PanelHost }) => {
   const s = useSyncExternalStore(
     (cb) => ctl.subscribe(cb),
@@ -68,17 +60,14 @@ export const App = ({ controller: ctl, host }: { controller: PanelController; ho
     <div className="app" style={{ backgroundColor: bg }}>
       <header className="row header">
         <strong>Birdcage</strong>
-        <span className={`badge ${s.connection}`}>{CONNECTION_LABEL[s.connection]}</span>
-        {s.helper && (
-          <span className="muted small">
-            helper {s.helper.helperVersion} · {s.helper.profile === "modern" ? "Premiere 26+" : "호환 모드"}
-          </span>
-        )}
-        {s.connection === "failed" && (
-          <button onClick={() => ctl.retryConnection()}>다시 시도</button>
-        )}
+        <StatusDot s={s} missing={missing} retry={() => ctl.retryConnection()} />
       </header>
-      {s.error && s.connection !== "connected" && <pre className="error">{s.error}</pre>}
+      {s.connection === "failed" && (
+        <div className="row status-error">
+          <pre className="error">{s.error}</pre>
+          <button onClick={() => ctl.retryConnection()}>다시 시도</button>
+        </div>
+      )}
 
       {missing.length > 0 && (
         <div className="notice">
@@ -92,7 +81,7 @@ export const App = ({ controller: ctl, host }: { controller: PanelController; ho
 
       <Composer s={s} ctl={ctl} />
 
-      <ImportSettings s={s} ctl={ctl} />
+      <SettingsRow s={s} ctl={ctl} />
 
       <ul className="jobs">
         {s.jobs.map((j) => (

@@ -63,3 +63,60 @@ test("타임라인: Out 핸들 드래그, 클릭 탐색, I 키, 프레임 이동
   await expect.poll(async () => sec((await page.locator(".ticks span").first().textContent())!)).toBeGreaterThan(1);
   expect(errors).toEqual([]);
 });
+
+test("스크러버·Space·양끝 손잡이: 프로그레스 바처럼 끌기, 패널 어디서나 Space, 구간 없이 처음 손잡이 끌기", async ({ page }) => {
+  const errors: string[] = [];
+  page.on("pageerror", (e) => errors.push(String(e)));
+  const sec = (s: string) => {
+    const [m, rest] = s.split(":");
+    return Number(m) * 60 + Number(rest);
+  };
+  await page.goto("/fixture.html?scenario=preview-ready");
+  await expect(page.locator("#app")).toHaveAttribute("data-ready", "1");
+  const time = page.locator(".overlay.time");
+  const now = async () => sec((await time.textContent())!.split(" / ")[0]);
+
+  // 진행 막대(영상 전체 길이 19s)를 끌어 15s로.
+  const bar = (await page.locator(".scrub").boundingBox())!;
+  const xBar = (s: number) => bar.x + (s / 19) * bar.width;
+  await page.mouse.move(xBar(5), bar.y + bar.height / 2);
+  await page.mouse.down();
+  await page.mouse.move(xBar(10), bar.y + bar.height / 2, { steps: 3 });
+  await page.mouse.move(xBar(15), bar.y + 40, { steps: 3 }); // 막대 밖으로 벗어나도 계속 따라간다
+  await page.mouse.up();
+  await expect.poll(async () => Math.abs((await now()) - 15)).toBeLessThan(0.2);
+
+  // Space: 포커스가 패널 어디에 있어도(본문) 재생/정지.
+  await page.locator(".info-title").click();
+  const before = await page.evaluate(() => document.querySelector("video")!.currentTime);
+  await page.keyboard.press(" ");
+  await expect.poll(() => page.evaluate(() => !document.querySelector("video")!.paused)).toBe(true);
+  await page.waitForTimeout(600);
+  await page.keyboard.press(" ");
+  await expect.poll(() => page.evaluate(() => document.querySelector("video")!.paused)).toBe(true);
+  expect(await page.evaluate(() => document.querySelector("video")!.currentTime)).toBeGreaterThan(before + 0.2);
+  // 버튼을 누른 뒤에도 Space는 버튼을 다시 누르지 않고 재생/정지다.
+  await page.getByRole("button", { name: "In", exact: true }).click();
+  await expect.poll(async () => page.locator(".inout input").nth(0).inputValue()).not.toBe("0:07.2"); // In = 재생헤드
+  const inAfterClick = await page.locator(".inout input").nth(0).inputValue();
+  await page.keyboard.press(" ");
+  await expect.poll(() => page.evaluate(() => !document.querySelector("video")!.paused)).toBe(true);
+  await page.keyboard.press(" ");
+  expect(await page.locator(".inout input").nth(0).inputValue()).toBe(inAfterClick);
+  expect(errors).toEqual([]);
+});
+
+test("구간이 없을 때 처음 손잡이를 끌어 구간을 만든다", async ({ page }) => {
+  await page.goto("/fixture.html?scenario=probed-warnings"); // 47s, 구간 없음
+  await expect(page.locator("#app")).toHaveAttribute("data-ready", "1");
+  const tl = (await page.locator(".timeline").boundingBox())!;
+  const y = tl.y + tl.height / 2;
+  await expect(page.locator(".handle.in")).toBeVisible();
+  await expect(page.locator(".handle.out")).toBeVisible();
+  await page.mouse.move(tl.x + 2, y);
+  await page.mouse.down();
+  await page.mouse.move(tl.x + (10 / 47) * tl.width, y, { steps: 4 });
+  await page.mouse.up();
+  await expect.poll(async () => page.locator(".inout input").nth(0).inputValue()).toMatch(/^0:(09\.[89]|10\.[0-2])$/);
+  await expect(page.locator(".inout input").nth(1)).toHaveValue("0:47.0");
+});

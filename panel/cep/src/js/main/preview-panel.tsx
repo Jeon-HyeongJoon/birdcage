@@ -1,7 +1,7 @@
 // 미리보기 패널: 큰 16:9 플레이어 + 재생 조작 + 타임라인(필름스트립·선 파형·In/Out 핸들·재생헤드) + In/Out 입력.
 // 미리보기에서 사용자가 가장 많은 정보를 얻는다(docs/decisions/0011): 플레이어는 패널 폭 전체를 쓴다.
 // 좌표·확대·핸들 규칙은 @birdcage/core timeline(테스트됨)을 쓰고, 여기서는 그리기와 입력만 한다.
-import { KeyboardEvent, PointerEvent, WheelEvent, useEffect, useMemo, useRef, useState } from "react";
+import { MouseEvent as ReactMouseEvent, WheelEvent, useEffect, useMemo, useRef, useState } from "react";
 import {
   Draft,
   Handle,
@@ -13,6 +13,7 @@ import {
   follow,
   formatTime,
   fullView,
+  handlesOf,
   hitHandle,
   markAt,
   moveHandle,
@@ -30,6 +31,27 @@ import { TimeField } from "./time-field";
 
 const STRIP_H = 36;
 const WAVE_H = 30;
+
+/**
+ * Drag with window-level mouse events: works the same in CEF 74 (Premiere 15) and new Chrome, and keeps
+ * following the mouse outside the element. 포인터 캡처 대신 창 전체에서 끝까지 따라간다.
+ */
+function startDrag(e: ReactMouseEvent, onMove: (clientX: number) => void, onEnd?: () => void): void {
+  if (e.button !== 0) return;
+  e.preventDefault();
+  onMove(e.clientX);
+  const move = (ev: MouseEvent) => onMove(ev.clientX);
+  const up = () => {
+    window.removeEventListener("mousemove", move);
+    window.removeEventListener("mouseup", up);
+    onEnd?.();
+  };
+  window.addEventListener("mousemove", move);
+  window.addEventListener("mouseup", up);
+}
+
+/** Buttons that never take keyboard focus (Space stays play/pause instead of re-pressing the button). */
+const noFocus = (e: ReactMouseEvent) => e.preventDefault();
 
 export const PreviewPanel = ({ d, ctl }: { d: Draft; ctl: Pick<PanelController, "setRange"> }) => {
   const info = d.info!;
@@ -65,8 +87,11 @@ export const PreviewPanel = ({ d, ctl }: { d: Draft; ctl: Pick<PanelController, 
   const step = (dt: number) => seek(t + dt);
   const zoom = (f: number) => setView((v) => zoomView(v, f, t, duration));
 
-  const onKey = (e: KeyboardEvent) => {
-    if ((e.target as HTMLElement).tagName === "INPUT") return; // 시간 입력 중에는 단축키 없음
+  // 단축키는 패널 어디서나(시간·링크 입력 중 제외). Space 재생/정지가 기본 동작.
+  const keyRef = useRef<(e: KeyboardEvent) => void>(() => undefined);
+  keyRef.current = (e: KeyboardEvent) => {
+    const tag = (e.target as HTMLElement | null)?.tagName;
+    if (tag === "INPUT" || tag === "SELECT" || tag === "TEXTAREA" || e.metaKey || e.ctrlKey || e.altKey) return;
     const frame = 1 / fps;
     const k = e.key;
     if (k === " ") togglePlay();
@@ -79,13 +104,18 @@ export const PreviewPanel = ({ d, ctl }: { d: Draft; ctl: Pick<PanelController, 
     else return;
     e.preventDefault();
   };
+  useEffect(() => {
+    const h = (e: KeyboardEvent) => keyRef.current(e);
+    window.addEventListener("keydown", h);
+    return () => window.removeEventListener("keydown", h);
+  }, []);
 
   const r = d.range;
   const selLen = r.on && r.start !== undefined && r.end !== undefined ? r.end - r.start : undefined;
   return (
-    <div className="preview-panel" tabIndex={0} onKeyDown={onKey}>
+    <div className="preview-panel">
       <div className="player">
-        <div className="frame">
+        <div className="frame" onClick={togglePlay}>
           {videoSrc && videoOk ? (
             <video
               ref={videoRef}
@@ -112,31 +142,32 @@ export const PreviewPanel = ({ d, ctl }: { d: Draft; ctl: Pick<PanelController, 
           </div>
           <StageChip d={d} />
         </div>
+        <ScrubBar t={t} duration={duration} range={handlesOf(r, duration)} ranged={r.on} seek={seek} />
       </div>
       <div className="transport row">
-        <button type="button" className="icon" disabled={!videoSrc || !videoOk} onClick={togglePlay} title="재생/정지 (Space)">
+        <button type="button" className="icon" disabled={!videoSrc || !videoOk} onMouseDown={noFocus} onClick={togglePlay} title="재생/정지 (Space)">
           {playing ? "❚❚" : "▶"}
         </button>
-        <button type="button" className="icon" onClick={() => step(-1 / fps)} title="이전 프레임 (←)">
+        <button type="button" className="icon" onMouseDown={noFocus} onClick={() => step(-1 / fps)} title="이전 프레임 (←)">
           ◀|
         </button>
-        <button type="button" className="icon" onClick={() => step(1 / fps)} title="다음 프레임 (→)">
+        <button type="button" className="icon" onMouseDown={noFocus} onClick={() => step(1 / fps)} title="다음 프레임 (→)">
           |▶
         </button>
-        <button type="button" onClick={() => mark("in")} title="재생헤드를 In으로 (I)">
+        <button type="button" onMouseDown={noFocus} onClick={() => mark("in")} title="재생헤드를 In으로 (I)">
           In
         </button>
-        <button type="button" onClick={() => mark("out")} title="재생헤드를 Out으로 (O)">
+        <button type="button" onMouseDown={noFocus} onClick={() => mark("out")} title="재생헤드를 Out으로 (O)">
           Out
         </button>
         <span className="spacer" />
-        <button type="button" className="icon" onClick={() => zoom(0.5)} title="축소">
+        <button type="button" className="icon" onMouseDown={noFocus} onClick={() => zoom(0.5)} title="축소">
           −
         </button>
-        <button type="button" className="icon" onClick={() => zoom(2)} title="확대">
+        <button type="button" className="icon" onMouseDown={noFocus} onClick={() => zoom(2)} title="확대">
           +
         </button>
-        <button type="button" onClick={() => setView(fitView(r, duration))} title="구간에 맞춤">
+        <button type="button" onMouseDown={noFocus} onClick={() => setView(fitView(r, duration))} title="구간에 맞춤">
           맞춤
         </button>
       </div>
@@ -152,6 +183,42 @@ export const PreviewPanel = ({ d, ctl }: { d: Draft; ctl: Pick<PanelController, 
           </button>
         )}
       </div>
+    </div>
+  );
+};
+
+/**
+ * 재생 진행 막대형 스크러버(영상 전체 길이): 누른 곳으로 이동하고 손잡이를 끌면 따라간다.
+ * 선택 구간(In–Out)은 막대 위에 띠로 보인다.
+ */
+const ScrubBar = ({
+  t,
+  duration,
+  range,
+  ranged,
+  seek,
+}: {
+  t: number;
+  duration: number;
+  range: { start: number; end: number };
+  ranged: boolean;
+  seek: (t: number) => void;
+}) => {
+  const ref = useRef<HTMLDivElement>(null);
+  const pct = (x: number) => `${duration > 0 ? Math.max(0, Math.min(100, (x / duration) * 100)) : 0}%`;
+  const toTime = (clientX: number) => {
+    const el = ref.current;
+    if (!el || duration <= 0) return 0;
+    const r = el.getBoundingClientRect();
+    return (Math.max(0, Math.min(r.width, clientX - r.left)) / Math.max(1, r.width)) * duration;
+  };
+  return (
+    <div className="scrub" ref={ref} onMouseDown={(e) => startDrag(e, (x) => seek(toTime(x)))} title="끌어서 이동">
+      <div className="bar-bg">
+        {ranged && <div className="band" style={{ left: pct(range.start), width: `calc(${pct(range.end)} - ${pct(range.start)})` }} />}
+        <div className="played" style={{ width: pct(t) }} />
+      </div>
+      <div className="knob" style={{ left: pct(t) }} />
     </div>
   );
 };
@@ -268,29 +335,27 @@ const Timeline = ({
     }
   }, [peaks, bytes, view, width, r.on, r.start, r.end]);
 
-  const xOf = (e: PointerEvent | WheelEvent) => e.clientX - (ref.current?.getBoundingClientRect().left ?? 0);
-  const onDown = (e: PointerEvent) => {
-    const x = xOf(e);
-    const h = hitHandle(x, width, view, r);
+  const xAt = (clientX: number) => clientX - (ref.current?.getBoundingClientRect().left ?? 0);
+  const xOf = (e: WheelEvent) => xAt(e.clientX);
+  // 손잡이를 잡으면 In/Out을, 그 밖은 재생헤드를 끈다(프로그레스 바처럼). 창 전체 마우스 이벤트로 끝까지 따라간다.
+  const onDown = (e: ReactMouseEvent) => {
+    const h = hitHandle(xAt(e.clientX), width, view, r, 6, duration);
     drag.current = h ?? "seek";
-    ref.current?.setPointerCapture(e.pointerId);
-    const at = xToTime(x, width, view);
-    if (!h) seek(at);
+    let cur = r;
+    startDrag(
+      e,
+      (clientX) => {
+        const at = xToTime(xAt(clientX), width, view);
+        if (h) {
+          cur = moveHandle(cur, h, at, duration);
+          setRange(cur);
+          seek(h === "in" ? cur.start! : cur.end!); // 끄는 손잡이 위치의 프레임을 크게 보여 준다
+        } else seek(at);
+      },
+      () => (drag.current = null),
+    );
   };
-  const onMove = (e: PointerEvent) => {
-    const at = xToTime(xOf(e), width, view);
-    setHover(at);
-    const h = drag.current;
-    if (h === "in" || h === "out") {
-      const next = moveHandle(r, h, at, duration);
-      setRange(next);
-      seek(h === "in" ? next.start! : next.end!); // 끄는 핸들 위치의 프레임을 크게 보여 준다
-    } else if (h === "seek") seek(at);
-  };
-  const onUp = (e: PointerEvent) => {
-    drag.current = null;
-    ref.current?.releasePointerCapture(e.pointerId);
-  };
+  const onHover = (e: ReactMouseEvent) => setHover(xToTime(xAt(e.clientX), width, view));
   const onWheel = (e: WheelEvent) => {
     if (e.ctrlKey || e.metaKey) setView((v) => zoomView(v, e.deltaY < 0 ? 1.25 : 0.8, xToTime(xOf(e), width, v), duration));
     else setView((v) => panView(v, ((e.deltaX || e.deltaY) / Math.max(1, width)) * (v.end - v.start), duration));
@@ -306,14 +371,15 @@ const Timeline = ({
     });
   }, [board, width, view]);
 
-  const sel = r.on && r.start !== undefined && r.end !== undefined ? { a: timeToX(r.start, width, view), b: timeToX(r.end, width, view) } : undefined;
+  const hs = handlesOf(r, duration);
+  const sel = duration > 0 ? { a: timeToX(hs.start, width, view), b: timeToX(hs.end, width, view) } : undefined;
   const step = tickStep(view, width);
   const ticks: number[] = [];
   for (let s = Math.ceil(view.start / step) * step; s <= view.end && ticks.length < 50; s += step) ticks.push(s);
 
   return (
     <div className="timeline-wrap">
-      <div className="timeline" ref={ref} onPointerDown={onDown} onPointerMove={onMove} onPointerUp={onUp} onPointerLeave={() => setHover(undefined)} onWheel={onWheel}>
+      <div className="timeline" ref={ref} onMouseDown={onDown} onMouseMove={onHover} onMouseLeave={() => setHover(undefined)} onWheel={onWheel}>
         <div className="strip">
           {tiles.map(({ left, w, tile }, i) =>
             tile ? (
@@ -335,15 +401,18 @@ const Timeline = ({
         {!d.preview?.peaks && <div className="wave-pending muted small">{d.preview?.stage === "failed" || d.preview?.stage === "ready" ? "파형 없음" : "파형 준비 중"}</div>}
         {sel && (
           <>
-            <div className="dim" style={{ left: 0, width: Math.max(0, sel.a) }} />
-            <div className="dim" style={{ left: Math.min(width, sel.b), right: 0 }} />
-            <div className="sel" style={{ left: sel.a, width: Math.max(0, sel.b - sel.a) }} />
-            <div className="handle in" style={{ left: sel.a - 2 }} />
-            <div className="handle out" style={{ left: sel.b - 2 }} />
+            {r.on && <div className="dim" style={{ left: 0, width: Math.max(0, sel.a) }} />}
+            {r.on && <div className="dim" style={{ left: Math.min(width, sel.b), right: 0 }} />}
+            {r.on && <div className="sel" style={{ left: sel.a, width: Math.max(0, sel.b - sel.a) }} />}
+            {/* 손잡이는 구간이 없어도 처음·끝에 보인다(끌면 구간이 생긴다) */}
+            <div className="handle in" style={{ left: Math.max(0, sel.a) }} title="In (끌어서 조정)" />
+            <div className="handle out" style={{ left: Math.min(width - 6, sel.b - 6) }} title="Out (끌어서 조정)" />
           </>
         )}
         {hover !== undefined && <div className="hover" style={{ left: timeToX(hover, width, view) }} />}
-        <div className="playhead" style={{ left: timeToX(t, width, view) }} />
+        <div className="playhead" style={{ left: timeToX(t, width, view) }}>
+          <div className="cap" />
+        </div>
       </div>
       <div className="ticks muted">
         {ticks.map((s) => {

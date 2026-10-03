@@ -1,13 +1,13 @@
 // ExtendScript (ES3) side of the CEP panel. bolt-cep transpiles this file to ES3.
-import { firstFreeTrack, firstTargeted, Span } from "./placement";
+import { firstFreeTrack, Span } from "./placement";
 // Keep logic minimal here (ES3, hard to debug); decisions live in the TS panel/core.
 // ASCII ONLY (strings and comments): ExtendScript may read BOM-less files in the system code page
 // (e.g. Windows CP949), garbling non-ASCII text. The panel builds user-facing (Korean) messages from `code`.
 
 export type ImportCode = "no_project" | "file_missing" | "import_failed";
 export type InOutState = "set" | "unverified" | "unsupported";
-export type PlaceMode = "track" | "insert" | "overwrite";
-export type PlaceState = "ok" | "unverified" | "no_sequence" | "no_free_track" | "failed";
+export type PlaceMode = "newTrack";
+export type PlaceState = "ok" | "source" | "unverified" | "no_sequence" | "no_free_track" | "failed";
 export type CaptionState = "imported" | "track" | "unsupported" | "before_start" | "failed";
 type ImportResult = {
   ok: boolean;
@@ -146,38 +146,73 @@ const placedAt = (tracks: TrackCollection, index: number, item: ProjectItem, t: 
   return false;
 };
 
+/** First track with no clips at all, or -1. */
+const emptyTrack = (tracks: TrackCollection): number => {
+  for (let i = 0; i < tracks.numTracks; i++) {
+    if (tracks[i].clips.numItems === 0) return i;
+  }
+  return -1;
+};
+
 /**
- * Places the item at the playhead. "track": the lowest video/audio tracks that are empty over the
- * clip's length (overwrite there touches nothing). "insert"/"overwrite": the first targeted tracks.
+ * Appends tracks with the QE DOM (unsupported by Adobe, but the only scripting way to add tracks).
+ * Returns true only when the track counts actually grew.
  */
-const place = (item: ProjectItem, mode: PlaceMode, hasVideo: boolean): { placed: PlaceState; track?: number; at?: number } => {
+const addTracks = (seq: Sequence, video: number, audio: number): boolean => {
+  const v0 = seq.videoTracks.numTracks;
+  const a0 = seq.audioTracks.numTracks;
+  try {
+    app.enableQE();
+    const qs = qe ? qe.project.getActiveSequence() : undefined;
+    if (!qs) return false;
+    // addTracks(numVideo, videoIndex, numAudio, audioChannelType(1 = stereo), audioIndex, numSubmix, submixType, submixIndex)
+    qs.addTracks(video, v0, audio, 1, a0, 0, 1, 0);
+  } catch (e) {
+    return false;
+  }
+  return seq.videoTracks.numTracks >= v0 + video && seq.audioTracks.numTracks >= a0 + audio;
+};
+
+/**
+ * Places the item at the playhead on empty tracks so existing work is never touched (user request
+ * 2026-10-03): a track with no clips at all, else a new track (QE). If adding fails, the lowest track
+ * that is empty over the clip's length. With no open sequence the item opens in the Source Monitor.
+ */
+const place = (item: ProjectItem, hasVideo: boolean): { placed: PlaceState; track?: number; at?: number } => {
   const seq = app.project.activeSequence;
-  if (!seq) return { placed: "no_sequence" };
+  if (!seq) {
+    try {
+      app.sourceMonitor.openProjectItem(item);
+      return { placed: "source" };
+    } catch (e) {
+      return { placed: "no_sequence" };
+    }
+  }
   const pos = seq.getPlayerPosition();
   const t = Number(pos.seconds);
-  let v = 0;
-  let a = 0;
-  if (mode === "track") {
-    const len = itemSeconds(item);
-    v = hasVideo ? firstFreeTrack(spans(seq.videoTracks), t, t + len) : 0;
-    a = firstFreeTrack(spans(seq.audioTracks), t, t + len);
-    if (v < 0 || a < 0) return { placed: "no_free_track" };
-  } else {
-    v = firstTargeted(targeted(seq.videoTracks));
-    a = firstTargeted(targeted(seq.audioTracks));
-  }
-  // Sequence.insertClip/overwriteClip(item, time, vIndex, aIndex); older builds only have Track methods.
-  type Place4 = (item: ProjectItem, time: Time, vIndex: number, aIndex: number) => unknown;
-  const s = seq as unknown as { insertClip?: Place4; overwriteClip?: Place4 };
-  try {
-    if (mode === "insert") {
-      if (typeof s.insertClip === "function") s.insertClip(item, pos, v, a);
-      else seq.videoTracks[v].insertClip(item, t);
-    } else if (typeof s.overwriteClip === "function") {
-      s.overwriteClip(item, pos, v, a);
+  let v = hasVideo ? emptyTrack(seq.videoTracks) : 0;
+  let a = emptyTrack(seq.audioTracks);
+  const needV = hasVideo && v < 0;
+  const needA = a < 0;
+  if (needV || needA) {
+    const v0 = seq.videoTracks.numTracks;
+    const a0 = seq.audioTracks.numTracks;
+    if (addTracks(seq, needV ? 1 : 0, needA ? 1 : 0)) {
+      if (needV) v = v0;
+      if (needA) a = a0;
     } else {
-      seq.videoTracks[v].overwriteClip(item, pos);
+      const len = itemSeconds(item);
+      v = hasVideo ? firstFreeTrack(spans(seq.videoTracks), t, t + len) : 0;
+      a = firstFreeTrack(spans(seq.audioTracks), t, t + len);
+      if (v < 0 || a < 0) return { placed: "no_free_track" };
     }
+  }
+  // Sequence.overwriteClip(item, time, vIndex, aIndex) on empty tracks touches nothing; older builds only have Track methods.
+  type Place4 = (item: ProjectItem, time: Time, vIndex: number, aIndex: number) => unknown;
+  const s = seq as unknown as { overwriteClip?: Place4 };
+  try {
+    if (typeof s.overwriteClip === "function") s.overwriteClip(item, pos, v, a);
+    else seq.videoTracks[v].overwriteClip(item, pos);
   } catch (e) {
     return { placed: "failed", track: v };
   }
@@ -241,7 +276,7 @@ export const birdcageImport = (path: string, binPath: string[], opts?: ImportOpt
     if (!item) {
       res.placed = "failed";
     } else {
-      const p = place(item, opts.place, opts.hasVideo !== false);
+      const p = place(item, opts.hasVideo !== false);
       res.placed = p.placed;
       res.track = p.track;
       if (p.placed === "ok") at = p.at;

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { clampView, fitView, follow, fullView, hitHandle, markAt, MIN_SPAN, moveHandle, panView, tickStep, timeToX, xToTime, zoomView } from "../src/timeline";
+import { clampView, fitView, follow, fullView, handlesOf, hitHandle, markAt, MIN_SPAN, moveHandle, panView, tickStep, timeToX, xToTime, zoomView } from "../src/timeline";
 
 const D = 600; // 10분
 
@@ -36,7 +36,11 @@ describe("handles", () => {
     expect(hitHandle(100, 400, v, r)).toBe("in");
     expect(hitHandle(305, 400, v, r)).toBe("out");
     expect(hitHandle(200, 400, v, r)).toBeNull();
-    expect(hitHandle(100, 400, v, { on: false })).toBeNull();
+    expect(hitHandle(100, 400, v, { on: false })).toBeNull(); // 길이를 모르면 손잡이 없음
+    // 구간이 없어도 손잡이는 처음과 끝에 있다(양끝을 끌어 구간을 만든다).
+    const whole = { start: 0, end: 600 };
+    expect(hitHandle(3, 400, whole, { on: false }, 6, 600)).toBe("in");
+    expect(hitHandle(398, 400, whole, { on: false }, 6, 600)).toBe("out");
   });
   it("moves a handle without crossing the other", () => {
     expect(moveHandle(r, "in", 110, D)).toEqual({ on: true, start: 110, end: 120 });
@@ -49,5 +53,12 @@ describe("handles", () => {
     expect(markAt(r, "out", 150, D)).toEqual({ on: true, start: 100, end: 150 });
     expect(markAt(r, "in", 130, D)).toEqual({ on: true, start: 130, end: 600 }); // Out을 넘으면 Out은 끝으로
     expect(markAt(r, "out", 90, D)).toEqual({ on: true, start: 0, end: 90 }); // In보다 앞이면 In은 처음으로
+  });
+});
+
+describe("handles without a range", () => {
+  it("sit at the start and end", () => {
+    expect(handlesOf({ on: false }, 600)).toEqual({ start: 0, end: 600 });
+    expect(handlesOf({ on: true, start: 5, end: 9 }, 600)).toEqual({ start: 5, end: 9 });
   });
 });

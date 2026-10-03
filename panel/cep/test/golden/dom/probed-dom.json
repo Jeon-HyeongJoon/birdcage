@@ -25,23 +25,12 @@
             {
               "tag": "span",
               "attributes": {
-                "class": "badge connected"
+                "class": "dot ok",
+                "role": "status",
+                "aria-label": "사용 가능",
+                "title": "사용 가능\nHelper 0.1.0-fixture"
               },
-              "children": [
-                "연결됨"
-              ]
-            },
-            {
-              "tag": "span",
-              "attributes": {
-                "class": "muted small"
-              },
-              "children": [
-                "helper",
-                "0.1.0-fixture",
-                "·",
-                "호환 모드"
-              ]
+              "children": []
             }
           ]
         },
@@ -138,6 +127,47 @@
                           "children": [
                             "미리보기 받는 중 35%"
                           ]
+                        }
+                      ]
+                    },
+                    {
+                      "tag": "div",
+                      "attributes": {
+                        "class": "scrub",
+                        "title": "끌어서 이동"
+                      },
+                      "children": [
+                        {
+                          "tag": "div",
+                          "attributes": {
+                            "class": "bar-bg"
+                          },
+                          "children": [
+                            {
+                              "tag": "div",
+                              "attributes": {
+                                "class": "band",
+                                "style": "left: 26.3158%; width: calc(73.6842%);"
+                              },
+                              "children": []
+                            },
+                            {
+                              "tag": "div",
+                              "attributes": {
+                                "class": "played",
+                                "style": "width: 26.3158%;"
+                              },
+                              "children": []
+                            }
+                          ]
+                        },
+                        {
+                          "tag": "div",
+                          "attributes": {
+                            "class": "knob",
+                            "style": "left: 26.3158%;"
+                          },
+                          "children": []
                         }
                       ]
                     }
@@ -363,7 +393,8 @@
                           "tag": "div",
                           "attributes": {
                             "class": "handle in",
-                            "style": "left: 104.316px;"
+                            "title": "In (끌어서 조정)",
+                            "style": "left: 106.316px;"
                           },
                           "children": []
                         },
@@ -371,7 +402,8 @@
                           "tag": "div",
                           "attributes": {
                             "class": "handle out",
-                            "style": "left: 402px;"
+                            "title": "Out (끌어서 조정)",
+                            "style": "left: 398px;"
                           },
                           "children": []
                         },
@@ -381,7 +413,15 @@
                             "class": "playhead",
                             "style": "left: 106.316px;"
                           },
-                          "children": []
+                          "children": [
+                            {
+                              "tag": "div",
+                              "attributes": {
+                                "class": "cap"
+                              },
+                              "children": []
+                            }
+                          ]
                         }
                       ]
                     },
@@ -614,184 +654,85 @@
         {
           "tag": "div",
           "attributes": {
-            "class": "section import-settings"
+            "class": "row options muted small"
           },
           "children": [
             {
-              "tag": "div",
+              "tag": "label",
               "attributes": {
-                "class": "section-label"
+                "title": "받기가 끝나면 열린 시퀀스의 재생헤드 위치, 새 빈 트랙에 넣습니다(기존 클립은 그대로). 시퀀스가 없으면 소스 모니터로 엽니다."
               },
               "children": [
-                "가져온 뒤"
+                {
+                  "tag": "input",
+                  "attributes": {
+                    "type": "checkbox",
+                    "disabled": false,
+                    "checked": true
+                  },
+                  "children": []
+                },
+                "완료되면 새 트랙에 바로 넣기"
               ]
             },
             {
-              "tag": "div",
-              "attributes": {
-                "class": "seg",
-                "role": "radiogroup",
-                "aria-label": "가져온 뒤"
-              },
+              "tag": "label",
+              "attributes": {},
               "children": [
+                "기본 화질",
                 {
-                  "tag": "button",
+                  "tag": "select",
                   "attributes": {
-                    "class": "on",
-                    "type": "button",
-                    "role": "radio",
-                    "aria-checked": "true",
-                    "disabled": false
+                    "disabled": false,
+                    "value": "1080"
                   },
-                  "children": [
-                    "프로젝트"
-                  ]
-                },
-                {
-                  "tag": "button",
-                  "attributes": {
-                    "class": true,
-                    "type": "button",
-                    "role": "radio",
-                    "aria-checked": "false",
-                    "disabled": false
-                  },
-                  "children": [
-                    "소스 모니터"
-                  ]
-                },
-                {
-                  "tag": "button",
-                  "attributes": {
-                    "class": true,
-                    "type": "button",
-                    "role": "radio",
-                    "aria-checked": "false",
-                    "disabled": false
-                  },
-                  "children": [
-                    "빈 트랙"
-                  ]
-                },
-                {
-                  "tag": "button",
-                  "attributes": {
-                    "class": true,
-                    "type": "button",
-                    "role": "radio",
-                    "aria-checked": "false",
-                    "disabled": false
-                  },
-                  "children": [
-                    "삽입"
-                  ]
-                },
-                {
-                  "tag": "button",
-                  "attributes": {
-                    "class": true,
-                    "type": "button",
-                    "role": "radio",
-                    "aria-checked": "false",
-                    "disabled": false
-                  },
-                  "children": [
-                    "덮어쓰기"
-                  ]
-                }
-              ]
-            },
-            {
-              "tag": "div",
-              "attributes": {
-                "class": "muted small hint"
-              },
-              "children": [
-                "Birdcage/<플랫폼> 빈에만 넣습니다."
-              ]
-            },
-            {
-              "tag": "div",
-              "attributes": {
-                "class": "row options muted small"
-              },
-              "children": [
-                {
-                  "tag": "label",
-                  "attributes": {},
                   "children": [
                     {
-                      "tag": "input",
-                      "attributes": {
-                        "type": "checkbox",
-                        "disabled": false,
-                        "checked": true
-                      },
-                      "children": []
-                    },
-                    "완료되면 바로 가져오기"
-                  ]
-                },
-                {
-                  "tag": "label",
-                  "attributes": {},
-                  "children": [
-                    "기본 화질",
-                    {
-                      "tag": "select",
-                      "attributes": {
-                        "disabled": false,
-                        "value": "1080"
-                      },
+                      "tag": "option",
+                      "attributes": {},
                       "children": [
-                        {
-                          "tag": "option",
-                          "attributes": {},
-                          "children": [
-                            "360",
-                            "p"
-                          ]
-                        },
-                        {
-                          "tag": "option",
-                          "attributes": {},
-                          "children": [
-                            "480",
-                            "p"
-                          ]
-                        },
-                        {
-                          "tag": "option",
-                          "attributes": {},
-                          "children": [
-                            "720",
-                            "p"
-                          ]
-                        },
-                        {
-                          "tag": "option",
-                          "attributes": {},
-                          "children": [
-                            "1080",
-                            "p"
-                          ]
-                        },
-                        {
-                          "tag": "option",
-                          "attributes": {},
-                          "children": [
-                            "1440",
-                            "p"
-                          ]
-                        },
-                        {
-                          "tag": "option",
-                          "attributes": {},
-                          "children": [
-                            "2160",
-                            "p"
-                          ]
-                        }
+                        "360",
+                        "p"
+                      ]
+                    },
+                    {
+                      "tag": "option",
+                      "attributes": {},
+                      "children": [
+                        "480",
+                        "p"
+                      ]
+                    },
+                    {
+                      "tag": "option",
+                      "attributes": {},
+                      "children": [
+                        "720",
+                        "p"
+                      ]
+                    },
+                    {
+                      "tag": "option",
+                      "attributes": {},
+                      "children": [
+                        "1080",
+                        "p"
+                      ]
+                    },
+                    {
+                      "tag": "option",
+                      "attributes": {},
+                      "children": [
+                        "1440",
+                        "p"
+                      ]
+                    },
+                    {
+                      "tag": "option",
+                      "attributes": {},
+                      "children": [
+                        "2160",
+                        "p"
                       ]
                     }
                   ]

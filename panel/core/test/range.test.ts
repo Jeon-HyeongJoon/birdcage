@@ -80,7 +80,7 @@ describe("range through the controller", () => {
     fh.last.push("job.done", { job: job("j1", "done", { file: "/lib/a.mp4", clip: { inSec: 1.3, outSec: 6.8 } }) });
     await flush();
     await flush();
-    expect(imports).toEqual([{ path: "/lib/a.mp4", opts: { clip: { inSec: 1.3, outSec: 6.8 } } }]);
+    expect(imports).toEqual([{ path: "/lib/a.mp4", opts: { place: "newTrack", hasVideo: false, clip: { inSec: 1.3, outSec: 6.8 } } }]);
     expect(ctl.state.jobs[0].import).toMatchObject({ state: "done", inout: "set" });
   });
 

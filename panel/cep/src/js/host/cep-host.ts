@@ -18,8 +18,8 @@ const IMPORT_ERRORS = {
 // 배치 결과 중 사용자에게 알릴 것(가져오기 자체는 성공). ok는 알리지 않는다.
 const PLACE_WARNINGS: Partial<Record<NonNullable<ImportResult["placed"]>, string>> = {
   unverified: "타임라인에 놓았지만 위치를 확인하지 못했습니다.",
-  no_sequence: "열린 시퀀스가 없어 프로젝트에만 가져왔습니다.",
-  no_free_track: "재생 헤드 위치에 빈 트랙이 없어 프로젝트에만 가져왔습니다. 트랙을 추가하거나 삽입·덮어쓰기를 쓰세요.",
+  no_sequence: "열린 시퀀스가 없고 소스 모니터도 열지 못해 프로젝트에만 가져왔습니다.",
+  no_free_track: "새 트랙을 만들 수 없고 재생 헤드 위치에 빈 트랙도 없어 프로젝트에만 가져왔습니다.",
   failed: "타임라인에 놓지 못했습니다(프로젝트에는 가져옴).",
 };
 

@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 import { firstFreeTrack, firstTargeted } from "../../cep/src/jsx/ppro/placement";
 import { Controller, importOptions } from "../src/controller";
 import type { HostAdapter, ImportOptions } from "../src/host";
-import { FakeHelper, flush, job, mediaInfo } from "./fake";
+import { FakeHelper, flush, job } from "./fake";
 
 describe("firstFreeTrack", () => {
   // V1: 0–10s, V2: 12–20s, V3: 비어 있음
@@ -27,20 +27,20 @@ describe("firstFreeTrack", () => {
 });
 
 describe("importOptions", () => {
-  const done = job("j", "done", { file: "/a.mp4", clip: { inSec: 1, outSec: 2 }, media: { container: "mp4", durationSec: 3, sizeBytes: 1, video: { index: 0, codec: "h264", pixFmt: "yuv420p", width: 1, height: 1, fps: 30 } } });
-  it("maps each placement", () => {
-    expect(importOptions(job("j", "done"), "project")).toBeUndefined();
-    expect(importOptions(done, "project")).toEqual({ clip: { inSec: 1, outSec: 2 } });
-    expect(importOptions(done, "source")).toEqual({ clip: { inSec: 1, outSec: 2 }, openSource: true });
-    expect(importOptions(done, "track")).toEqual({ clip: { inSec: 1, outSec: 2 }, place: "track", hasVideo: true });
-    expect(importOptions(job("j", "done"), "insert")).toEqual({ place: "insert", hasVideo: false });
+  const video = { container: "mp4", durationSec: 3, sizeBytes: 1, video: { index: 0, codec: "h264", pixFmt: "yuv420p", width: 1, height: 1, fps: 30 } };
+  it("always places on a new empty track at the playhead (사용자 지시: 배치 선택 없음)", () => {
+    expect(importOptions(job("j", "done"))).toEqual({ place: "newTrack", hasVideo: false });
+    expect(importOptions(job("j", "done", { media: video, clip: { inSec: 1, outSec: 2 } }))).toEqual({
+      place: "newTrack",
+      hasVideo: true,
+      clip: { inSec: 1, outSec: 2 },
+    });
   });
 });
 
-describe("placement is captured when the download starts", () => {
-  it("auto-import uses the placement chosen at submit, not the current setting", async () => {
+describe("auto-import after download", () => {
+  it("imports the finished file onto a new track with its In/Out", async () => {
     const fh = new FakeHelper();
-    const timers: Array<() => void> = [];
     const calls: Array<ImportOptions | undefined> = [];
     const host: HostAdapter = {
       info: () => ({ app: "PPRO", version: "15.2.0", api: "cep", os: "mac" }),
@@ -51,20 +51,12 @@ describe("placement is captured when the download starts", () => {
         return { ok: true, bin, placed: "ok" };
       },
     };
-    const ctl = new Controller({ host, clientName: "t", clientVersion: "0", ws: fh.factory, setTimer: (fn) => timers.push(fn) });
-    fh.probeReply = (url) => mediaInfo(url, [{ formatId: "18", res: 360 }]);
+    const ctl = new Controller({ host, clientName: "t", clientVersion: "0", ws: fh.factory });
     await ctl.start();
-    ctl.updateSettings({ placement: "insert" });
-    ctl.setUrl("https://youtu.be/x");
-    timers.splice(0).forEach((f) => f());
+    fh.last.push("job.done", { job: job("j1", "done", { file: "/lib/a.mp4", clip: { inSec: 1, outSec: 3 } }) });
     await flush();
     await flush();
-    await ctl.submitDraft(); // → j1, 삽입으로 받기 시작
-    ctl.updateSettings({ placement: "project" }); // 받는 중에 설정을 바꿔도
-    fh.last.push("job.done", { job: job("j1", "done", { file: "/lib/a.mp4" }) });
-    await flush();
-    await flush();
-    expect(calls).toEqual([{ place: "insert", hasVideo: false }]);
-    expect(ctl.state.jobs[0]).toMatchObject({ placement: "insert", import: { state: "done", placed: "ok" } });
+    expect(calls).toEqual([{ place: "newTrack", hasVideo: false, clip: { inSec: 1, outSec: 3 } }]);
+    expect(ctl.state.jobs[0]).toMatchObject({ import: { state: "done", placed: "ok" } });
   });
 });

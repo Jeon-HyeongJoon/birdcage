@@ -14,22 +14,23 @@ export interface ImportResult {
   inout?: "set" | "unverified" | "unsupported";
   /** Non-fatal problems to show (e.g. In/Out not verified). */
   warnings?: string[];
-  /** Timeline placement outcome (when requested). */
-  placed?: "ok" | "unverified" | "no_sequence" | "no_free_track" | "failed";
+  /** Timeline placement outcome: ok (new empty track at the playhead), source (no sequence → Source Monitor), … */
+  placed?: "ok" | "source" | "unverified" | "no_sequence" | "no_free_track" | "failed";
   /** Subtitle sidecar: imported into the bin, and as a caption track when placed on the timeline. */
   captions?: "imported" | "track" | "unsupported" | "before_start" | "failed";
 }
 
-/** What happens after import: stay in the project, open in the Source Monitor, or go to the timeline at the playhead. */
-export type Placement = "project" | "source" | "track" | "insert" | "overwrite";
 
 export interface ImportOptions {
   /** Requested range inside the file → In/Out on the imported item. */
   clip?: Clip;
   /** Open the item in the Source Monitor after import. */
   openSource?: boolean;
-  /** Put the item on the active sequence at the playhead. */
-  place?: "track" | "insert" | "overwrite";
+  /**
+   * Put the item at the playhead on a new empty track (existing clips are never touched); with no
+   * open sequence it opens in the Source Monitor. 사용자 지시(2026-10-03): 배치 선택 없이 항상 이렇게.
+   */
+  place?: "newTrack";
   /** The file has video (audio-only items only need a free audio track). */
   hasVideo?: boolean;
   /** SRT sidecar to import next to the media (caption track if placed on the timeline). */

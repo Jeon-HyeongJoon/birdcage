@@ -1,0 +1,65 @@
+{
+  "$schema": "../schema/iteration.schema.json",
+  "id": "20261003-095015-T-028",
+  "task": "T-028",
+  "session": {
+    "kind": "worker",
+    "id": "2df3dff7-1152-4794-b7b9-d1f8c6d6a92c",
+    "model": "claude-opus-5-5"
+  },
+  "startedAt": "2026-10-03T09:50:15Z",
+  "endedAt": "2026-10-03T09:59:04Z",
+  "base": {
+    "branch": "feat/editing-options",
+    "commit": "b0d740e54c62"
+  },
+  "head": {
+    "branch": "feat/editing-options",
+    "commit": "b0d740e54c62",
+    "dirty": true
+  },
+  "state": "success",
+  "hypothesis": "QA 지적 반영: 상태는 점(초록/빨강)만, 재생 진행 막대형 스크러버(손잡이 드래그·클릭 이동, 창 전체 마우스 이벤트로 CEF에서도 확실히), In/Out 손잡이 항상 표시, Space 재생/정지(패널 어디서나, 입력 중 제외), 배치는 항상 새 빈 트랙(QE addTracks)·시퀀스 없으면 소스 모니터, 받는 중에는 미리보기 아래에 단계·진행률·남은 시간을 크게. 검증: 코어·상호작용·골든 테스트, Premiere 실기(CDP).",
+  "summary": "QA 반영: 상단 상태는 초록/빨강 점(버전·호환 표시 제거, 자세한 내용은 툴팁, 빨강은 눌러 다시 시도), 영상 아래 재생 진행 막대형 스크러버(누른 곳 이동·손잡이 끌기, 창 전체 마우스 이벤트로 CEF에서도 확실히), 타임라인도 같은 끌기 방식, In/Out 손잡이 항상 표시(구간 없으면 양끝), Space·I·O·←→를 패널 어디서나(입력 중 제외, 버튼이 포커스를 갖지 않게), '가져온 뒤' 제거 → 항상 재생헤드의 새 빈 트랙(빈 트랙 재사용, 없으면 QE addTracks, 실패 시 그 구간이 빈 트랙, 시퀀스 없으면 소스 모니터), 미리보기 아래 큰 진행 표시(단계·굵은 막대·속도·남은 시간·취소, 모르면 움직이는 빗금). Premiere 실기 QA 스크립트(scripts/qa-premiere.mjs: CDP로 링크→미리보기→In/Out→받기→넣기 단계별 시간).",
+  "metrics": {
+    "durationMin": 8.8,
+    "evidence": 54,
+    "evidenceByLevel": {
+      "L1": 31,
+      "L2": 12,
+      "L3": 11
+    },
+    "pass": 53,
+    "fail": 0,
+    "skip": 0
+  },
+  "retro": {
+    "newChecks": [
+      "interaction.spec.ts: 스크러버 끌기(막대 밖까지), Space(본문 포커스·버튼 클릭 뒤), 구간 없이 처음 손잡이 끌기",
+      "scripts/qa-premiere.mjs: Premiere 안 패널 실제 조작 E2E"
+    ],
+    "specChanges": [
+      "ImportOptions.place = newTrack(배치 선택 제거), placed = source 추가"
+    ],
+    "lessons": [
+      "CEF의 포인터 이벤트 동작을 확인할 수 없을 때는 모든 버전에서 같은 창 단위 mouse 이벤트로 끌기를 구현한다."
+    ]
+  },
+  "next": [
+    "사용자 Premiere QA(scripts/qa-premiere.mjs 또는 직접): QE addTracks·새 트랙 배치·Space가 Premiere에서 패널로 오는지 확인 → T-023·T-028 L5."
+  ],
+  "approvals": [
+    {
+      "action": "session.multitask",
+      "by": "전형준",
+      "at": "2026-10-03T09:50:15Z",
+      "note": "2026-10-03 QA 지시"
+    },
+    {
+      "action": "verifier.change",
+      "by": "전형준",
+      "at": "2026-10-03T09:50:15Z",
+      "note": "같은 지시 — UI 변경에 따른 골든·상호작용·배치 테스트 기대 갱신('가져온 뒤' 제거)"
+    }
+  ]
+}

@@ -19,6 +19,7 @@ import {
   variantLabel,
 } from "@birdcage/core";
 import type { PanelController } from "./main";
+import { DraftJobs } from "./job-progress";
 import { PreviewPanel } from "./preview-panel";
 
 export const Composer = ({ s, ctl }: { s: State; ctl: PanelController }) => {
@@ -76,9 +77,9 @@ export const Composer = ({ s, ctl }: { s: State; ctl: PanelController }) => {
       {d.status === "ready" && d.info && (
         <>
           <PreviewPanel d={d} ctl={ctl} />
+          <DraftJobs s={s} d={d} ctl={ctl} />
           <InfoLine d={d} seq={s.sequence} />
           <Options d={d} seq={s.sequence} ctl={ctl} />
-          {(d.submitted ?? 0) > 0 && <div className="ok small status">작업 목록에 추가했습니다({d.submitted}). 다른 구간을 이어서 고를 수 있습니다.</div>}
         </>
       )}
     </form>

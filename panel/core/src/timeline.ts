@@ -61,11 +61,17 @@ export function timeToX(t: number, width: number, v: View): number {
 
 export type Handle = "in" | "out";
 
+/** In/Out to draw: the selection, or the whole video when no range is set (손잡이는 항상 보인다). */
+export function handlesOf(r: DraftRange, duration: number): { start: number; end: number } {
+  return r.on && r.start !== undefined && r.end !== undefined ? { start: r.start, end: r.end } : { start: 0, end: duration };
+}
+
 /** Which handle is under x (within tol px), preferring the nearer one. */
-export function hitHandle(x: number, width: number, v: View, r: DraftRange, tolPx = 6): Handle | null {
-  if (!r.on || r.start === undefined || r.end === undefined) return null;
-  const dIn = Math.abs(x - timeToX(r.start, width, v));
-  const dOut = Math.abs(x - timeToX(r.end, width, v));
+export function hitHandle(x: number, width: number, v: View, r: DraftRange, tolPx = 6, duration = 0): Handle | null {
+  const h = r.on && r.start !== undefined && r.end !== undefined ? { start: r.start, end: r.end } : duration > 0 ? { start: 0, end: duration } : null;
+  if (!h) return null;
+  const dIn = Math.abs(x - timeToX(h.start, width, v));
+  const dOut = Math.abs(x - timeToX(h.end, width, v));
   if (Math.min(dIn, dOut) > tolPx) return null;
   return dIn <= dOut ? "in" : "out";
 }

@@ -33,7 +33,6 @@ describe("audio only and subtitles", () => {
 
   it("clears the subtitle with null and imports the sidecar with the media", () => {
     const snap = job("j", "done", { file: "/a.wav", subtitleFile: "/a.en.srt" });
-    expect(importOptions(snap, "project")).toEqual({ subtitle: "/a.en.srt" });
-    expect(importOptions(snap, "track")).toEqual({ subtitle: "/a.en.srt", place: "track", hasVideo: false });
+    expect(importOptions(snap)).toEqual({ subtitle: "/a.en.srt", place: "newTrack", hasVideo: false });
   });
 });

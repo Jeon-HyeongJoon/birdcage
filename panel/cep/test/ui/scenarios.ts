@@ -194,6 +194,49 @@ export const scenarios: Record<string, Scenario> = {
       ctl.setRange({ on: true, start: 7.2, end: 12.5 });
     },
   },
+  "preview-downloading": {
+    about: "미리보기에서 구간 받기 시작 → 미리보기 아래 큰 진행 표시(단계·막대·속도·남은 시간)",
+    probe: (url) => ({ url, probeId: "p6", info: zoo }),
+    preview: () => [{ stage: "ready", progress: 1, cached: true, peaks: peaks(19), video: { path: "http://127.0.0.1:4173/assets/preview.mp4", width: 320, height: 180, fps: 10, durationSec: 19 } }],
+    run: async (ctl, helper) => {
+      ctl.setUrl("https://www.youtube.com/watch?v=jNQXAC9IVRw");
+      await waitFor(() => ctl.state.draft.preview?.stage === "ready");
+      ctl.setRange({ on: true, start: 7.2, end: 12.5 });
+      await ctl.submitDraft(); // → j1
+      helper.push("job.update", {
+        job: baseJob("j1", "downloading", {
+          progress: 0.42,
+          info: info("j1", "Me at the zoo"),
+          options: { maxHeight: 1080, profile: "compat", range: { startSec: 7.2, endSec: 12.5 } },
+          download: { status: "downloading", downloadedBytes: 2_520_000, totalBytes: 6_000_000, speedBps: 5_250_000, etaSec: 1, fraction: 0.42 },
+        }),
+      });
+      await waitFor(() => ctl.state.jobs.some((j) => j.snap.jobId === "j1"));
+    },
+  },
+  "preview-placed": {
+    about: "받기·변환·넣기 완료: 새 트랙에 넣었다고 표시",
+    probe: (url) => ({ url, probeId: "p7", info: zoo }),
+    preview: () => [{ stage: "ready", progress: 1, cached: true, peaks: peaks(19), video: { path: "http://127.0.0.1:4173/assets/preview.mp4", width: 320, height: 180, fps: 10, durationSec: 19 } }],
+    importFile: () => ({ ok: true, bin: ["Birdcage", "Youtube"], inout: "set", placed: "ok" }),
+    run: async (ctl, helper) => {
+      ctl.updateSettings({ autoImport: true });
+      ctl.setUrl("https://www.youtube.com/watch?v=jNQXAC9IVRw");
+      await waitFor(() => ctl.state.draft.preview?.stage === "ready");
+      ctl.setRange({ on: true, start: 7.2, end: 12.5 });
+      await ctl.submitDraft();
+      helper.push("job.done", {
+        job: baseJob("j1", "done", {
+          info: info("j1", "Me at the zoo"),
+          options: { maxHeight: 1080, profile: "compat", range: { startSec: 7.2, endSec: 12.5 } },
+          file: "/Users/editor/Movies/Birdcage/Youtube/Me at the zoo [j1] 0m07.2s-0m12.5s.mp4",
+          clip: { inSec: 1.8, outSec: 7.1 },
+          media: { container: "mov,mp4", durationSec: 8.2, sizeBytes: 261_000, video: { index: 0, codec: "h264", pixFmt: "yuv420p", width: 320, height: 240, fps: 15 }, audio: { index: 1, codec: "aac", sampleRate: 48000, channels: 2 } },
+        }),
+      });
+      await waitFor(() => ctl.state.jobs[0]?.import?.state === "done");
+    },
+  },
   "preview-failed": {
     about: "미리보기 실패(분류된 메시지): 스토리보드·정보는 그대로 쓴다",
     probe: (url) => ({ url, probeId: "p5", info: zoo }),
@@ -204,23 +247,21 @@ export const scenarios: Record<string, Scenario> = {
     },
   },
   "probed-warnings": {
-    about: "경고 배지: 변환 필요(HEVC 10bit)·HDR·세로·시퀀스 fps 다름, 긴 제목 말줄임, 스토리보드 없음(썸네일), 파형 받는 중",
+    about: "경고 배지: 변환 필요(HEVC 10bit)·HDR·세로·시퀀스 fps 다름, 긴 제목 말줄임, 스토리보드 없음(썸네일), 파형 받는 중, 구간 없음(손잡이는 양끝)",
     probe: (url) => ({ url, probeId: "p2", info: vertical }),
     preview: () => [{ stage: "audio", progress: 0.4 }],
     sequence: { name: "Vertical 1080", width: 1080, height: 1920, fps: 29.97 },
     run: async (ctl) => {
-      ctl.updateSettings({ placement: "track" });
       ctl.setUrl("https://www.tiktok.com/@creator.kr/video/7400000000000000001");
       await waitFor(() => ctl.state.draft.status === "ready");
       // 세로 시퀀스(짧은 변 1080)라 1080p HEVC가 추천된다: 추천과 변환 배지가 함께 보인다.
     },
   },
   "audio-only": {
-    about: "오디오만(WAV) + 자동 자막 + 구간 + 소스 모니터: 받기 옵션 요약",
+    about: "오디오만(WAV) + 자동 자막 + 구간: 받기 옵션 요약",
     probe: (url) => ({ url, probeId: "p3", info: zoo }),
     preview: () => [{ stage: "video", progress: 0.8, peaks: peaks(19) }],
     run: async (ctl) => {
-      ctl.updateSettings({ placement: "source" });
       ctl.setUrl("https://www.youtube.com/watch?v=jNQXAC9IVRw");
       await waitFor(() => ctl.state.draft.status === "ready");
       ctl.setExtras({ audioOnly: true, subtitle: "en-orig:auto" });
@@ -234,7 +275,7 @@ export const scenarios: Record<string, Scenario> = {
         ? { ok: false, error: "열린 프로젝트가 없습니다.", bin: ["Birdcage", "Youtube"] }
         : { ok: true, bin: ["Birdcage", "Youtube"], inout: "set", placed: "ok", captions: "track" },
     run: async (ctl, helper) => {
-      ctl.updateSettings({ autoImport: true, placement: "track" });
+      ctl.updateSettings({ autoImport: true });
       const push = (t: string, job: JobSnapshot) => helper.push(t, { job });
       push("job.failed", baseJob("j7", "cancelled", { info: info("j7", "취소한 영상"), failure: { kind: "cancelled", message: "취소되었습니다.", policy: "stop" } }));
       push("job.failed", baseJob("j6", "failed", { info: info("j6", "접근할 수 없는 영상"), failure: { kind: "private", message: "비공개 영상입니다.", detail: "ERROR: Private video", policy: "stop" } }));
