@@ -116,7 +116,7 @@
     },
     {
       "id": "T-005",
-      "title": "Premiere 15.2에서 CEP 패널 로드·다운로드·Birdcage/\u003c플랫폼\u003e 빈 임포트 확인",
+      "title": "Premiere 15.2에서 CEP 패널 로드·다운로드·Birdcage/<플랫폼> 빈 임포트 확인",
       "mode": "human",
       "status": "open",
       "passes": false,
@@ -295,7 +295,7 @@
     },
     {
       "id": "T-015",
-      "title": "UI 골든 하네스: ① 패널 UI 골든(Playwright·픽스처 재생·마스킹) ② Premiere 구조 스냅샷 골든(ExtendScript JSON) ②' CEP 디버그 포트 CDP 캡처 PoC ③ 사람 확인 스크린샷 첨부(loopctl evidence --artifact)",
+      "title": "UI 골든 하네스 잔여: ① 패널 UI 골든은 T-022로 대체됨 ② Premiere 구조 스냅샷 골든(ExtendScript JSON) ②' CEP 디버그 포트 CDP 캡처(일부: scripts/qa-premiere.mjs) ③ 사람 확인 스크린샷 첨부(loopctl evidence --artifact)",
       "mode": "compile",
       "status": "open",
       "passes": false,
@@ -502,7 +502,7 @@
       "id": "T-022",
       "title": "UI 골든 재작성: 모든 UI 상태 시나리오, 실제 코어 로직 픽스처(마스크 없음), DOM 골든은 환경 무관·픽셀 골든은 환경 고정(OS 버전 포함), G-ui 게이트 등록, 사람 검토 증적",
       "mode": "compile",
-      "status": "open",
+      "status": "blocked",
       "passes": false,
       "priority": 1,
       "dependsOn": [
@@ -520,18 +520,19 @@
           "maxLevel": "L5",
           "what": "골든 이미지 사람 검토(전형준)"
         }
-      ]
+      ],
+      "blockedBy": "사람 검토(L5) 대기: 골든 15개(panel/cep/test/golden/chrome-154-darwin27-arm64) 확인"
     },
     {
       "id": "T-023",
-      "title": "Premiere 실기: 구간 In/Out(setInPoint 단위)·배치 4종·소스 모니터·캡션 트랙·시퀀스 정보·미리보기 \u003cvideo\u003e 재생·단축키(registerKeyEventsInterest) (15.2와 26)",
+      "title": "Premiere 실기(15.2·26): 구간 In/Out(setInPoint 단위 자기 검증), 새 빈 트랙 배치(QE addTracks·대체 경로), 시퀀스 없을 때 소스 모니터, 캡션 트랙, 시퀀스 정보, 미리보기 <video> 재생, Space·I·O 단축키가 패널로 오는지(registerKeyEventsInterest)",
       "mode": "human",
       "status": "open",
       "passes": false,
       "priority": 2,
       "dependsOn": [
         "T-005",
-        "T-020"
+        "T-028"
       ],
       "acceptance": [
         {
@@ -573,7 +574,7 @@
       "id": "T-025",
       "title": "미리보기·타임라인 UI: 큰 16:9 플레이어, 필름스트립, 선 파형(미니멀), In/Out 핸들 드래그, 확대/축소, 단축키(Space·I·O·←→), 시간 입력 동기화, 골든 갱신",
       "mode": "compile",
-      "status": "open",
+      "status": "blocked",
       "passes": false,
       "priority": 1,
       "dependsOn": [
@@ -595,7 +596,8 @@
           "maxLevel": "L5",
           "what": "미리보기·타임라인 골든 사람 검토"
         }
-      ]
+      ],
+      "blockedBy": "사람 검토(L5) 대기: 골든 15개(panel/cep/test/golden/chrome-154-darwin27-arm64) 확인"
     },
     {
       "id": "T-026",
@@ -647,7 +649,7 @@
       "id": "T-028",
       "title": "QA 반영: 상태는 초록/빨강 점만(버전·호환 표시 제거), 프로그레스 바형 스크러버(손잡이 드래그), Space 재생/정지(패널 어디서나), In/Out 손잡이 항상 표시, '가져온 뒤' 제거 → 새 빈 트랙(QE addTracks)에 재생헤드 위치로 자동 삽입(시퀀스 없으면 소스 모니터), 받는 중 진행 표시를 크게",
       "mode": "compile",
-      "status": "open",
+      "status": "blocked",
       "passes": false,
       "priority": 1,
       "dependsOn": [
@@ -664,7 +666,8 @@
           "maxLevel": "L5",
           "what": "Premiere 실기 QA(전형준)"
         }
-      ]
+      ],
+      "blockedBy": "사람 검토(L5) 대기: 골든 15개(panel/cep/test/golden/chrome-154-darwin27-arm64) 확인 + Premiere 실기 QA"
     }
   ]
 }
