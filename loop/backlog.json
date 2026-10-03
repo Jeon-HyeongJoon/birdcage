@@ -476,8 +476,8 @@
       "id": "T-021",
       "title": "오디오만(WAV 48k, conform 생략) · 자막 사이드카(srt, 별도 호출로 실패 격리, 구간 시프트, 캡션 트랙은 기능 검사 후)",
       "mode": "compile",
-      "status": "open",
-      "passes": false,
+      "status": "done",
+      "passes": true,
       "priority": 2,
       "dependsOn": [
         "T-019"
@@ -493,6 +493,9 @@
           "maxLevel": "L1",
           "what": "패널 코어(G-core)"
         }
+      ],
+      "evidence": [
+        "E-20261003-075200-006"
       ]
     },
     {

@@ -80,6 +80,10 @@ type JobCreate struct {
 	FormatID  string `json:"formatId,omitempty"`  // chosen variant (media.info variants[].formatId)
 	// Range downloads only this part of the source (plus 1s handles); job.done carries clip In/Out.
 	Range *engine.Section `json:"range,omitempty"`
+	// AudioOnly downloads the best audio as WAV (PCM 16-bit 48 kHz).
+	AudioOnly bool `json:"audioOnly,omitempty"`
+	// Subtitles fetches one track (media.info subtitles) as an SRT sidecar; failure is only a warning.
+	Subtitles *jobs.SubtitleRequest `json:"subtitles,omitempty"`
 }
 
 // MediaProbe asks for a link's metadata before downloading (answered by media.info, same id).

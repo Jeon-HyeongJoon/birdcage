@@ -16,6 +16,8 @@ export interface ImportResult {
   warnings?: string[];
   /** Timeline placement outcome (when requested). */
   placed?: "ok" | "unverified" | "no_sequence" | "no_free_track" | "failed";
+  /** Subtitle sidecar: imported into the bin, and as a caption track when placed on the timeline. */
+  captions?: "imported" | "track" | "unsupported" | "before_start" | "failed";
 }
 
 /** What happens after import: stay in the project, open in the Source Monitor, or go to the timeline at the playhead. */
@@ -30,6 +32,8 @@ export interface ImportOptions {
   place?: "track" | "insert" | "overwrite";
   /** The file has video (audio-only items only need a free audio track). */
   hasVideo?: boolean;
+  /** SRT sidecar to import next to the media (caption track if placed on the timeline). */
+  subtitle?: string;
 }
 
 export interface HostAdapter {

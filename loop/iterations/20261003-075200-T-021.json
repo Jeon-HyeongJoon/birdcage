@@ -1,0 +1,69 @@
+{
+  "$schema": "../schema/iteration.schema.json",
+  "id": "20261003-075200-T-021",
+  "task": "T-021",
+  "session": {
+    "kind": "worker",
+    "id": "2df3dff7-1152-4794-b7b9-d1f8c6d6a92c",
+    "model": "claude-opus-5-5"
+  },
+  "startedAt": "2026-10-03T07:52:00Z",
+  "endedAt": "2026-10-03T08:00:54Z",
+  "base": {
+    "branch": "feat/editing-options",
+    "commit": "c5611789c194"
+  },
+  "head": {
+    "branch": "feat/editing-options",
+    "commit": "c5611789c194",
+    "dirty": true
+  },
+  "state": "success",
+  "hypothesis": "오디오만은 WAV(PCM 16bit 48k)로 만들면 Premiere conform이 없고, 구간은 시작 시각을 믿을 수 있는 경우에만 구간 다운로드를 쓰며 아니면 전체 오디오를 받아 샘플 정확도로 자른다. 자막은 영상과 별도의 yt-dlp 호출로 받아 실패해도 작업은 성공하고, 구간 오프셋만큼 SRT를 옮겨 미디어 파일 타임라인과 맞춘다. 검증: G-helper(WAV 구간 정확도·SRT 시프트·자막 실패 격리), G-core, 실제 yt-dlp 로컬/온라인.",
+  "summary": "오디오만: 최고 음질 오디오를 WAV(PCM 16bit 48k)로. 구간은 m4a면 구간 다운로드+정렬(시작 시각 보존), webm/Opus면 전체 받고 변환 중 샘플 단위로 자름(webm 구간은 시작 시각을 잃음, 실측). 자막: 영상 뒤 별도 yt-dlp 호출(--load-info-json --skip-download, srt 변환), 파일 시작만큼 시프트한 \u003c파일\u003e.\u003c언어\u003e.srt 사이드카, 실패·미지원은 경고만. 가져오기 때 SRT도 같은 빈에 넣고, 타임라인에 놓았고 createCaptionTrack이 있으면 (놓은 위치 − In)에 캡션 트랙. 패널: 오디오만(WAV 예상 크기)·자막 선택(수동/자동) 행. 실제 YouTube: WAV 구간 In 1.004s + 영어 자막 사이드카.",
+  "metrics": {
+    "durationMin": 8.9,
+    "evidence": 37,
+    "evidenceByLevel": {
+      "L1": 21,
+      "L2": 8,
+      "L3": 8
+    },
+    "pass": 37,
+    "fail": 0,
+    "skip": 0
+  },
+  "retro": {
+    "newChecks": [
+      "TestAudioOnlyWAVExact: 전체+자르기 0.00ms, m4a 구간 정렬 −0.67ms(노이즈 상관)",
+      "TestEndToEndLocalAudioOnlyRange: 실제 yt-dlp, 직접 링크 → 전체 받고 자르기, clip·WAV 형식·오디오 일치",
+      "TestSubtitlesSidecarAndIsolation: 자막 시프트·파일 범위 밖 제거, 429 실패와 미지원 엔진은 경고만",
+      "TestEndToEndOnlineAudioAndSubtitles(G-e2e): YouTube m4a 구간 WAV + 영어 자막"
+    ],
+    "specChanges": [
+      "protocol: job.create.audioOnly/subtitles, job.subtitleFile, plan.audioOnly/trimStartSec/trimDurSec"
+    ],
+    "lessons": [
+      "같은 기법(-copyts 구간)도 컨테이너에 따라 결과가 다르다(mp4 계열만 시작 시각 보존): 경로 선택을 컨테이너로 가른다.",
+      "Write 도구가 Go 문자열의 \\\\ufeff를 실제 BOM 바이트로 써서 컴파일이 실패했다: 소스에는 이스케이프만 쓴다.",
+      "좁은 패널에서 flex 행의 한글 라벨이 글자 단위로 줄바꿈된다: 라벨은 nowrap, 행을 나눈다(스크린샷으로 발견)."
+    ]
+  },
+  "next": [
+    "T-022: UI 골든 재작성 — 모든 UI 상태 시나리오, DOM 골든 환경 무관·픽셀 골든 환경 고정, G-ui 게이트, 사람 검토 증적."
+  ],
+  "approvals": [
+    {
+      "action": "session.multitask",
+      "by": "전형준",
+      "at": "2026-10-03T07:52:00Z",
+      "note": "2026-10-03 지시: T-017~T-022 연속 진행"
+    },
+    {
+      "action": "verifier.change",
+      "by": "전형준",
+      "at": "2026-10-03T07:52:00Z",
+      "note": "2026-10-03 지시 — 승인된 제안의 오디오만·자막(프로토콜 픽스처 갱신). 기존 검사는 추가만 한다."
+    }
+  ]
+}

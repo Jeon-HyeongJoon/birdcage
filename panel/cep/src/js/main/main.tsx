@@ -27,6 +27,7 @@ export type PanelController = Pick<
   | "probeDraft"
   | "selectVariant"
   | "setRange"
+  | "setExtras"
   | "submitDraft"
   | "retryConnection"
   | "installTools"
@@ -165,6 +166,7 @@ const JobItem = ({ view, controller: ctl, host }: { view: JobView; controller: P
           <span className="ok small">
             ✓ {view.import.bin?.join(" / ")}
             {view.import.placed === "ok" ? " · 타임라인에 놓음" : ""}
+            {view.import.captions === "track" ? " · 캡션 트랙" : view.import.captions === "imported" ? " · 자막" : ""}
           </span>
         )}
         {j.file && host.revealFile && <button onClick={() => host.revealFile!(j.file!)}>폴더에서 보기</button>}

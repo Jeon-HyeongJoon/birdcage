@@ -389,3 +389,22 @@ button.primary {
     margin-bottom: 0;
   }
 }
+
+// --- 오디오만·자막 ---
+.extras .row {
+  margin-bottom: $space-1;
+}
+
+.nowrap {
+  white-space: nowrap;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.subs {
+  select {
+    margin-left: $space-1;
+    max-width: 160px;
+  }
+}

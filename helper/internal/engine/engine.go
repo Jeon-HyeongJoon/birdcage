@@ -157,6 +157,8 @@ type DownloadRequest struct {
 	// Section limits the download to part of the source. The output keeps the source timeline
 	// (stream start times = original positions) so the caller can align streams and place In/Out.
 	Section *Section
+	// AudioOnly downloads audio (FormatID, else the best audio, else the best muxed format).
+	AudioOnly bool
 }
 
 // DownloadResult is the engine's output file.
@@ -164,6 +166,12 @@ type DownloadResult struct {
 	Path  string
 	Bytes int64
 	Proc  perf.ProcStats
+}
+
+// SubtitleFetcher is implemented by engines that fetch one subtitle track as SRT in a separate
+// call, so a subtitle failure (자주 HTTP 429) never fails the media download.
+type SubtitleFetcher interface {
+	Subtitles(ctx context.Context, info *Info, lang string, auto bool, workDir string) (path string, err error)
 }
 
 // Engine downloads media for URLs it supports.

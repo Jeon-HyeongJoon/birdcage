@@ -10,6 +10,10 @@
     "range": {
       "startSec": 2.5,
       "endSec": 7.25
+    },
+    "subtitles": {
+      "lang": "en-orig",
+      "auto": true
     }
   }
 }

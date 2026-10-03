@@ -61,7 +61,8 @@ export const Composer = ({ s, ctl }: { s: State; ctl: PanelController }) => {
       )}
       {submitError && <div className="error small">{submitError}</div>}
       {d.status === "ready" && d.info && <InfoCard d={d} seq={s.sequence} />}
-      {d.status === "ready" && (d.info?.variants?.length ?? 0) > 0 && <Variants d={d} seq={s.sequence} ctl={ctl} />}
+      {d.status === "ready" && !d.audioOnly && (d.info?.variants?.length ?? 0) > 0 && <Variants d={d} seq={s.sequence} ctl={ctl} />}
+      {d.status === "ready" && <Extras d={d} ctl={ctl} />}
       {d.status === "ready" && <RangeSection d={d} ctl={ctl} />}
     </form>
   );
@@ -202,6 +203,47 @@ const RangeSection = ({ d, ctl }: { d: Draft; ctl: PanelController }) => {
           )}
         </>
       )}
+    </div>
+  );
+};
+
+/** WAV PCM 16-bit 48 kHz stereo: 192,000 bytes per second. */
+const WAV_BPS = 48000 * 2 * 2;
+
+const Extras = ({ d, ctl }: { d: Draft; ctl: PanelController }) => {
+  const subs = d.info?.subtitles ?? [];
+  const r = d.range.on ? rangeToSend(d.range, d.info?.durationSec).range : undefined;
+  const seconds = r ? r.endSec - r.startSec + 2 : d.info?.durationSec;
+  const ba = d.info?.bestAudio;
+  return (
+    <div className="section extras">
+      <div className="row">
+        <label className="check nowrap">
+          <input type="checkbox" checked={!!d.audioOnly} onChange={(e) => ctl.setExtras({ audioOnly: e.target.checked })} />
+          오디오만
+          <span className="muted small after">
+            · WAV 48kHz{seconds ? ` · 약 ${bytes(seconds * WAV_BPS)}` : ""}
+            {ba?.acodec ? ` · 원본 ${codecLabel(ba.acodec)}` : ""}
+          </span>
+        </label>
+      </div>
+      <div className="row">
+        <label className="subs nowrap">
+          <span className="muted">자막</span>
+          <select
+            value={d.subtitle ?? ""}
+            disabled={subs.length === 0}
+            onChange={(e) => ctl.setExtras({ subtitle: e.target.value || null })}
+          >
+            <option value="">{subs.length === 0 ? "없음" : "받지 않음"}</option>
+            {subs.map((t) => (
+              <option key={t.lang + (t.auto ? ":auto" : "")} value={t.auto ? `${t.lang}:auto` : t.lang}>
+                {(t.name || t.lang) + (t.auto ? " (자동)" : "")}
+              </option>
+            ))}
+          </select>
+        </label>
+      </div>
     </div>
   );
 };

@@ -101,3 +101,54 @@ func TestEndToEndLocalRange(t *testing.T) {
 	}
 	t.Logf("clip %+v, file %.2fs, timings %+v, range requests %d", j.Clip, j.Media.DurationSec, j.Timings, rangeRequests.Load())
 }
+
+// TestEndToEndLocalAudioOnlyRange: 직접 링크(오디오 전용 포맷 없음)에서 오디오만 + 구간 → 전체를 받아
+// WAV로 바꿀 때 자른다. In 위치 오디오가 원본과 같아야 한다.
+func TestEndToEndLocalAudioOnlyRange(t *testing.T) {
+	perftest.Track(t)
+	tp := toolPaths(t)
+	dir := t.TempDir()
+	src := filepath.Join(dir, "clip.mp4")
+	if _, err := proc.Run(context.Background(), proc.Spec{Path: tp[tools.FFmpeg], StderrTail: 5, Args: []string{"-hide_banner", "-loglevel", "error", "-y",
+		"-f", "lavfi", "-i", "testsrc2=s=160x90:r=30:d=12", "-f", "lavfi", "-i", "anoisesrc=d=12:r=48000:a=0.3:seed=5",
+		"-c:v", "libx264", "-preset", "ultrafast", "-pix_fmt", "yuv420p", "-c:a", "aac", "-b:a", "192k", "-movflags", "+faststart", src}}); err != nil {
+		t.Fatal(err)
+	}
+	fs := httptest.NewServer(http.FileServer(http.Dir(dir)))
+	defer fs.Close()
+	h := startInProcess(t, "--yt-dlp", tp[tools.YtDlp], "--ffmpeg", tp[tools.FFmpeg], "--ffprobe", tp[tools.FFprobe])
+	c := connect(t, h.ready)
+	c.send(protocol.TypeHello, "h", protocol.Hello{Client: "e2e", Host: protocol.Host{App: "PPRO", Version: "15.2.0", API: "cep", OS: "mac"}})
+	c.until(30*time.Second, func(e protocol.Envelope) bool { return e.Type == protocol.TypeHelloOK })
+
+	const a, b = 4.4, 7.0
+	c.send(protocol.TypeJobCreate, "c", protocol.JobCreate{URL: fs.URL + "/clip.mp4", AudioOnly: true, Range: &engine.Section{Start: a, End: b}})
+	c.until(10*time.Second, func(e protocol.Envelope) bool { return e.Type == protocol.TypeJobAccepted })
+	env := c.until(2*time.Minute, func(e protocol.Envelope) bool {
+		return e.Type == protocol.TypeJobDone || e.Type == protocol.TypeJobFailed
+	})
+	var ev protocol.JobEvent
+	_ = protocol.DecodeData(env, &ev)
+	j := ev.Job
+	if env.Type == protocol.TypeJobFailed {
+		t.Fatalf("job failed: %+v", j.Failure)
+	}
+	if filepath.Ext(j.File) != ".wav" || j.Media.Video != nil || j.Media.Audio.Codec != "pcm_s16le" || j.Media.Audio.SampleRate != 48000 {
+		t.Fatalf("file %s media %+v / %+v", j.File, j.Media.Video, j.Media.Audio)
+	}
+	if j.Clip == nil || math.Abs(j.Clip.InSec-1.0) > 0.001 || math.Abs(j.Clip.OutSec-3.6) > 0.001 { // 3.4s부터 잘림
+		t.Fatalf("clip %+v, want In 1.0 Out 3.6", j.Clip)
+	}
+	if math.Abs(j.Media.DurationSec-4.6) > 0.05 {
+		t.Fatalf("wav %.3fs, want 4.6s (range + handles)", j.Media.DurationSec)
+	}
+	ctx := context.Background()
+	for _, off := range []float64{0.2, 2.0} {
+		ref, _ := mediatest.PCM(ctx, tp[tools.FFmpeg], src, a+off, 0.3)
+		cmp, _ := mediatest.PCM(ctx, tp[tools.FFmpeg], j.File, j.Clip.InSec+off, 0.3)
+		if lag := mediatest.AudioLag(ref, cmp, 2400); lag < -48 || lag > 48 {
+			t.Fatalf("audio at In%+.1fs off by %.2f ms", off, float64(lag)/48)
+		}
+	}
+	t.Logf("wav %.2fs clip %+v plan %+v", j.Media.DurationSec, j.Clip, j.Plan.Reasons)
+}

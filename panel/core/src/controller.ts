@@ -15,6 +15,7 @@ export interface ImportState {
   bin?: string[];
   inout?: "set" | "unverified" | "unsupported";
   placed?: "ok" | "unverified" | "no_sequence" | "no_free_track" | "failed";
+  captions?: "imported" | "track" | "unsupported" | "before_start" | "failed";
   warnings?: string[];
 }
 
@@ -35,6 +36,7 @@ export interface Settings {
 export function importOptions(snap: JobSnapshot, placement: Placement): ImportOptions | undefined {
   const o: ImportOptions = {};
   if (snap.clip) o.clip = snap.clip;
+  if (snap.subtitleFile) o.subtitle = snap.subtitleFile;
   if (placement === "source") o.openSource = true;
   if (placement === "track" || placement === "insert" || placement === "overwrite") {
     o.place = placement;
@@ -57,6 +59,10 @@ export interface Draft {
   recommendedId?: string;
   /** Part of the source to download (seconds); off = whole video. */
   range: DraftRange;
+  /** Best audio only, as WAV. */
+  audioOnly?: boolean;
+  /** Subtitle track to fetch ("lang" or "lang:auto"); undefined = none. */
+  subtitle?: string;
 }
 
 export interface DraftRange {
@@ -235,6 +241,14 @@ export class Controller {
     }
   }
 
+  /** Audio only (WAV) and subtitle choice ("lang" / "lang:auto" / undefined). */
+  setExtras(x: { audioOnly?: boolean; subtitle?: string | null }): void {
+    const d = { ...this._state.draft };
+    if (x.audioOnly !== undefined) d.audioOnly = x.audioOnly;
+    if (x.subtitle !== undefined) d.subtitle = x.subtitle ?? undefined;
+    this.set({ draft: d });
+  }
+
   /** Updates the range (seconds); pass on=false to download the whole video. */
   setRange(r: Partial<DraftRange>): void {
     this.set({ draft: { ...this._state.draft, range: { ...this._state.draft.range, ...r } } });
@@ -253,7 +267,9 @@ export class Controller {
     const c = this.requireClient();
     const { range, error } = rangeToSend(d.range, d.info?.durationSec);
     if (error) throw new Error(error);
-    const extra = d.status === "ready" ? { probeId: d.probeId, formatId: d.formatId, range } : { range };
+    const subtitles = d.subtitle ? { lang: d.subtitle.replace(/:auto$/, ""), auto: d.subtitle.endsWith(":auto") || undefined } : undefined;
+    const common = { range, audioOnly: d.audioOnly || undefined, subtitles };
+    const extra = d.status === "ready" ? { probeId: d.probeId, formatId: d.audioOnly ? undefined : d.formatId, ...common } : common;
     const variant = d.info?.variants?.find((v) => v.formatId === d.formatId);
     const placement = this._state.settings.placement;
     const jobId = await c.createJob(url, variant?.res ?? this._state.settings.maxHeight, JSON.parse(JSON.stringify(extra)));
@@ -295,7 +311,7 @@ export class Controller {
       const res = await this.opts.host.importFile(view.snap.file, bin, importOptions(view.snap, placement));
       this.patchJob(jobId, {
         import: res.ok
-          ? { state: "done", bin: res.bin, inout: res.inout, placed: res.placed, warnings: res.warnings }
+          ? { state: "done", bin: res.bin, inout: res.inout, placed: res.placed, captions: res.captions, warnings: res.warnings }
           : { state: "failed", error: res.error, bin },
       });
     } catch (e) {

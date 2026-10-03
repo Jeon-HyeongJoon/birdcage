@@ -19,6 +19,7 @@ const job: Shape = {
   plan: "object?",
   file: "string?",
   clip: "object?",
+  subtitleFile: "string?",
   failure: "object?",
   warnings: "array?",
   timings: "array?",
@@ -27,7 +28,7 @@ const job: Shape = {
 };
 
 const nested: Record<string, Shape> = {
-  "job.options": { maxHeight: "number", profile: "string", probeId: "string?", formatId: "string?", range: "object?" },
+  "job.options": { maxHeight: "number", profile: "string", probeId: "string?", formatId: "string?", range: "object?", audioOnly: "boolean?", subtitles: "object?" },
   "job.clip": { inSec: "number", outSec: "number" },
   "job.download": { status: "string", downloadedBytes: "number", fraction: "number", totalBytes: "number?", speedBps: "number?" },
   "job.info": { id: "string", title: "string", extractor: "string", webpageUrl: "string", selected: "array?", thumbnail: "string?", variants: "array?", subtitles: "array?" },
@@ -43,7 +44,7 @@ const range: Shape = { startSec: "number", endSec: "number" };
 const payloads: Record<string, Shape> = {
   hello: { client: "string", clientVersion: "string", host: "object" },
   "hello.ok": { helperVersion: "string", protocol: "number", profile: "string", libraryDir: "string", tools: "array", jobs: "array" },
-  "job.create": { url: "string", maxHeight: "number?", probeId: "string?", formatId: "string?", range: "object?" },
+  "job.create": { url: "string", maxHeight: "number?", probeId: "string?", formatId: "string?", range: "object?", audioOnly: "boolean?", subtitles: "object?" },
   "media.probe": { url: "string", maxHeight: "number?" },
   "media.info": { url: "string", probeId: "string?", info: "object?", failure: "object?" },
   "job.accepted": { jobId: "string" },
@@ -114,6 +115,7 @@ export function validatePayload(type: string, data: unknown): string[] {
   const d = (data ?? {}) as Record<string, unknown>;
   if (type === "job.update" || type === "job.done" || type === "job.failed") checkJob(d.job, `${type}.job`, errs);
   if (type === "job.create" && d.range !== undefined) check(d.range, range, `${type}.range`, errs);
+  if (type === "job.create" && d.subtitles !== undefined) check(d.subtitles, subtitle, `${type}.subtitles`, errs);
   if (type === "media.info") {
     if (d.info !== undefined) checkInfo(d.info, `${type}.info`, errs);
     if (d.failure !== undefined) checkFailure(d.failure, `${type}.failure`, errs);

@@ -23,6 +23,12 @@ const PLACE_WARNINGS: Partial<Record<NonNullable<ImportResult["placed"]>, string
   failed: "타임라인에 놓지 못했습니다(프로젝트에는 가져옴).",
 };
 
+const CAPTION_WARNINGS: Partial<Record<NonNullable<ImportResult["captions"]>, string>> = {
+  unsupported: "이 Premiere 버전은 스크립트로 캡션 트랙을 만들 수 없어 자막 파일만 빈에 넣었습니다.",
+  before_start: "자막이 시퀀스 시작보다 앞이라 캡션 트랙을 만들지 않았습니다(자막 파일은 빈에 있음).",
+  failed: "자막을 가져오지 못했습니다.",
+};
+
 export class CepHost implements HostAdapter {
   private child: ChildProcess | null = null;
   private endpoint: HelperEndpoint | null = null;
@@ -137,7 +143,14 @@ export class CepHost implements HostAdapter {
 
   async importFile(file: string, bin: string[], opts?: ImportOptions): Promise<ImportResult> {
     const es = opts
-      ? { inSec: opts.clip?.inSec, outSec: opts.clip?.outSec, openSource: opts.openSource, place: opts.place, hasVideo: opts.hasVideo }
+      ? {
+          inSec: opts.clip?.inSec,
+          outSec: opts.clip?.outSec,
+          openSource: opts.openSource,
+          place: opts.place,
+          hasVideo: opts.hasVideo,
+          subtitle: opts.subtitle,
+        }
       : undefined;
     const res = (await evalTS("birdcageImport", file, bin, es)) as
       | {
@@ -148,6 +161,7 @@ export class CepHost implements HostAdapter {
           inout?: ImportResult["inout"];
           source?: boolean;
           placed?: ImportResult["placed"];
+          captions?: ImportResult["captions"];
         }
       | undefined;
     if (!res) return { ok: false, error: "ExtendScript 응답이 없습니다.", bin };
@@ -158,7 +172,16 @@ export class CepHost implements HostAdapter {
       if (opts?.openSource && res.source === false) warnings.push("소스 모니터에서 열지 못했습니다.");
       const placeMsg = res.placed ? PLACE_WARNINGS[res.placed] : undefined;
       if (placeMsg) warnings.push(placeMsg);
-      return { ok: true, bin: res.bin, inout: res.inout, placed: res.placed, warnings: warnings.length ? warnings : undefined };
+      const capMsg = res.captions ? CAPTION_WARNINGS[res.captions] : undefined;
+      if (capMsg) warnings.push(capMsg);
+      return {
+        ok: true,
+        bin: res.bin,
+        inout: res.inout,
+        placed: res.placed,
+        captions: res.captions,
+        warnings: warnings.length ? warnings : undefined,
+      };
     }
     const msg = (res.code && IMPORT_ERRORS[res.code]) || "알 수 없는 오류";
     return { ok: false, error: res.detail ? `${msg} (${res.detail})` : msg, bin: res.bin };

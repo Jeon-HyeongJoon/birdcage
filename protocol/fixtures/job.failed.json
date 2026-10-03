@@ -13,6 +13,9 @@
         "range": {
           "startSec": 2.5,
           "endSec": 7.25
+        },
+        "subtitles": {
+          "lang": "en"
         }
       },
       "progress": 1,
@@ -53,6 +56,7 @@
         "inSec": 1.5,
         "outSec": 6.25
       },
+      "subtitleFile": "/Users/me/Movies/Birdcage/Youtube/youtube-dl test video [BaW_jenozKc] 0m02.5s-0m07.2s.en.srt",
       "failure": {
         "kind": "private",
         "message": "비공개 영상입니다.",

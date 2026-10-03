@@ -26,7 +26,8 @@ var fixedTime = time.Date(2026, 10, 1, 12, 0, 0, 0, time.UTC)
 func sampleJob() jobs.Snapshot {
 	return jobs.Snapshot{
 		JobID: "j0a1b2c3d4e5f", URL: "https://www.youtube.com/watch?v=BaW_jenozKc", State: jobs.Done,
-		Options:  jobs.Options{MaxHeight: 1080, Profile: media.ProfileCompat, FormatID: "137+140", Range: &engine.Section{Start: 2.5, End: 7.25}},
+		Options: jobs.Options{MaxHeight: 1080, Profile: media.ProfileCompat, FormatID: "137+140", Range: &engine.Section{Start: 2.5, End: 7.25},
+			Subtitles: &jobs.SubtitleRequest{Lang: "en"}},
 		Progress: 1,
 		Download: &engine.Progress{Status: "finished", DownloadedBytes: 2160000, TotalBytes: 2160000, SpeedBps: 1.5e6, Fraction: 1, FormatID: "140"},
 		Info: &engine.Info{ID: "BaW_jenozKc", Title: "youtube-dl test video", Uploader: "Philipp Hagemeister", Extractor: "Youtube",
@@ -36,11 +37,12 @@ func sampleJob() jobs.Snapshot {
 		Media: &media.Info{Container: "mov,mp4,m4a,3gp,3g2,mj2", DurationSec: 10, SizeBytes: 2150000,
 			Video: &media.Video{Codec: "h264", Profile: "High", PixFmt: "yuv420p", Width: 1920, Height: 1080, FPS: 30},
 			Audio: &media.Audio{Codec: "aac", Profile: "LC", SampleRate: 44100, Channels: 2}},
-		Plan:      &media.Plan{Profile: media.ProfileCompat, Video: media.Copy, Audio: media.Copy, Passthrough: true, Reasons: []string{"already Premiere-ready"}},
-		File:      "/Users/me/Movies/Birdcage/Youtube/youtube-dl test video [BaW_jenozKc] 0m02.5s-0m07.2s.mp4",
-		Clip:      &jobs.Clip{InSec: 1.5, OutSec: 6.25},
-		Timings:   []jobs.StageTiming{{Stage: "probe", MS: 1830.5}, {Stage: "download", MS: 2210.2}, {Stage: "analyze", MS: 61.3}, {Stage: "normalize", MS: 3.1}},
-		CreatedAt: fixedTime, UpdatedAt: fixedTime.Add(5 * time.Second),
+		Plan:         &media.Plan{Profile: media.ProfileCompat, Video: media.Copy, Audio: media.Copy, Passthrough: true, Reasons: []string{"already Premiere-ready"}},
+		File:         "/Users/me/Movies/Birdcage/Youtube/youtube-dl test video [BaW_jenozKc] 0m02.5s-0m07.2s.mp4",
+		Clip:         &jobs.Clip{InSec: 1.5, OutSec: 6.25},
+		SubtitleFile: "/Users/me/Movies/Birdcage/Youtube/youtube-dl test video [BaW_jenozKc] 0m02.5s-0m07.2s.en.srt",
+		Timings:      []jobs.StageTiming{{Stage: "probe", MS: 1830.5}, {Stage: "download", MS: 2210.2}, {Stage: "analyze", MS: 61.3}, {Stage: "normalize", MS: 3.1}},
+		CreatedAt:    fixedTime, UpdatedAt: fixedTime.Add(5 * time.Second),
 	}
 }
 
@@ -76,7 +78,7 @@ func fixtures() map[string]struct {
 				{Tool: tools.Tool{Name: tools.Deno}, Error: "tool not found: deno"}},
 			Jobs: []jobs.Snapshot{}}},
 		"job.create": {TypeJobCreate, "2", JobCreate{URL: "https://youtu.be/BaW_jenozKc", MaxHeight: 1080, ProbeID: "p0a1b2c3d4e5f", FormatID: "137+140",
-			Range: &engine.Section{Start: 2.5, End: 7.25}}},
+			Range: &engine.Section{Start: 2.5, End: 7.25}, Subtitles: &jobs.SubtitleRequest{Lang: "en-orig", Auto: true}}},
 		"media.probe":  {TypeMediaProbe, "6", MediaProbe{URL: "https://youtu.be/BaW_jenozKc", MaxHeight: 1080}},
 		"media.info":   {TypeMediaInfo, "6", sampleMediaInfo()},
 		"job.accepted": {TypeJobAccepted, "2", JobAccepted{JobID: "j0a1b2c3d4e5f"}},

@@ -8,6 +8,7 @@ export type ImportCode = "no_project" | "file_missing" | "import_failed";
 export type InOutState = "set" | "unverified" | "unsupported";
 export type PlaceMode = "track" | "insert" | "overwrite";
 export type PlaceState = "ok" | "unverified" | "no_sequence" | "no_free_track" | "failed";
+export type CaptionState = "imported" | "track" | "unsupported" | "before_start" | "failed";
 type ImportResult = {
   ok: boolean;
   code?: ImportCode;
@@ -18,9 +19,17 @@ type ImportResult = {
   source?: boolean;
   placed?: PlaceState;
   track?: number;
+  captions?: CaptionState;
 };
 /** Options from the panel: In/Out (seconds inside the file), Source Monitor, timeline placement. */
-export type ImportOptions = { inSec?: number; outSec?: number; openSource?: boolean; place?: PlaceMode; hasVideo?: boolean };
+export type ImportOptions = {
+  inSec?: number;
+  outSec?: number;
+  openSource?: boolean;
+  place?: PlaceMode;
+  hasVideo?: boolean;
+  subtitle?: string;
+};
 
 const BIN = 2; // ProjectItemType.BIN
 /** Ticks per second in Premiere time values. */
@@ -141,7 +150,7 @@ const placedAt = (tracks: TrackCollection, index: number, item: ProjectItem, t: 
  * Places the item at the playhead. "track": the lowest video/audio tracks that are empty over the
  * clip's length (overwrite there touches nothing). "insert"/"overwrite": the first targeted tracks.
  */
-const place = (item: ProjectItem, mode: PlaceMode, hasVideo: boolean): { placed: PlaceState; track?: number } => {
+const place = (item: ProjectItem, mode: PlaceMode, hasVideo: boolean): { placed: PlaceState; track?: number; at?: number } => {
   const seq = app.project.activeSequence;
   if (!seq) return { placed: "no_sequence" };
   const pos = seq.getPlayerPosition();
@@ -173,7 +182,32 @@ const place = (item: ProjectItem, mode: PlaceMode, hasVideo: boolean): { placed:
     return { placed: "failed", track: v };
   }
   const ok = hasVideo ? placedAt(seq.videoTracks, v, item, t) : placedAt(seq.audioTracks, a, item, t);
-  return { placed: ok ? "ok" : "unverified", track: hasVideo ? v : a };
+  return { placed: ok ? "ok" : "unverified", track: hasVideo ? v : a, at: t };
+};
+
+/**
+ * Imports the SRT sidecar into the same bin. When the media was placed at sequence time `at`
+ * starting from its In point, media time 0 sits at at - inSec: the caption track starts there.
+ * createCaptionTrack has no documented first version, so it is feature-checked.
+ */
+const importCaptions = (bin: ProjectItem, srtPath: string, at: number | undefined, inSec: number): CaptionState => {
+  const f = new File(srtPath);
+  if (!f.exists) return "failed";
+  if (!app.project.importFiles([f.fsName], true, bin, false) && !findItem(bin, f.fsName)) return "failed";
+  const srt = findItem(bin, f.fsName);
+  if (!srt) return "failed";
+  if (at === undefined) return "imported";
+  const seq = app.project.activeSequence;
+  const s = seq as unknown as { createCaptionTrack?: (item: ProjectItem, startAtTime: number) => unknown };
+  if (!seq || typeof s.createCaptionTrack !== "function") return "unsupported";
+  const start = at - inSec;
+  if (start < 0) return "before_start";
+  try {
+    s.createCaptionTrack(srt, start);
+    return "track";
+  } catch (e) {
+    return "failed";
+  }
 };
 
 /** Imports one file into the bin path (created as needed), e.g. ["Birdcage", "Youtube"]. */
@@ -202,6 +236,7 @@ export const birdcageImport = (path: string, binPath: string[], opts?: ImportOpt
   if (opts.inSec !== undefined && opts.outSec !== undefined) {
     res.inout = item ? setInOut(item, opts.inSec, opts.outSec) : "unverified";
   }
+  let at: number | undefined;
   if (opts.place) {
     if (!item) {
       res.placed = "failed";
@@ -209,7 +244,11 @@ export const birdcageImport = (path: string, binPath: string[], opts?: ImportOpt
       const p = place(item, opts.place, opts.hasVideo !== false);
       res.placed = p.placed;
       res.track = p.track;
+      if (p.placed === "ok") at = p.at;
     }
+  }
+  if (opts.subtitle) {
+    res.captions = importCaptions(bin, opts.subtitle, at, opts.inSec || 0);
   }
   if (opts.openSource && item) {
     try {

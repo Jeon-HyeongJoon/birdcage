@@ -52,6 +52,29 @@ type Plan struct {
 	// by -AlignShiftSec so the file starts at 0; audio is trimmed/padded to the video start.
 	Aligned       bool    `json:"aligned,omitempty"`
 	AlignShiftSec float64 `json:"alignShiftSec,omitempty"`
+	// AudioOnly writes WAV (PCM 16-bit, 48 kHz). Trim* cut it sample-accurately (input seek + decode).
+	AudioOnly    bool    `json:"audioOnly,omitempty"`
+	TrimStartSec float64 `json:"trimStartSec,omitempty"`
+	TrimDurSec   float64 `json:"trimDurSec,omitempty"`
+}
+
+// AudioPlan converts the first audio stream to WAV PCM 16-bit 48 kHz.
+//
+// Premiere는 무압축 오디오가 시퀀스와 같은 샘플레이트면 conform하지 않고, 압축 오디오(AAC·MP3 등)는
+// 가져올 때 항상 conform한다(Adobe Audio conforming specifications, docs/decisions/0010). 디코드 비용은 0.29s/분.
+func AudioPlan(info *Info, profile Profile) Plan {
+	p := Plan{Profile: profile, Video: Drop, Audio: Drop, AudioOnly: true}
+	if info.Audio != nil {
+		p.Audio = Transcode
+		p.Reasons = append(p.Reasons, fmt.Sprintf("audio only: %s %dHz → WAV PCM 16-bit 48k (no conform in Premiere)", info.Audio.Codec, info.Audio.SampleRate))
+	}
+	return p
+}
+
+// Trim cuts [start, start+dur) of the input timeline (audio only; sample-accurate).
+func (p *Plan) Trim(start, dur float64) {
+	p.TrimStartSec, p.TrimDurSec = start, dur
+	p.Reasons = append(p.Reasons, fmt.Sprintf("trim %.3fs+%.3fs", start, dur))
 }
 
 // AlignTo makes the output start at shift (the video start in the source timeline).
@@ -170,7 +193,18 @@ func (p Plan) Args(in, out string, info *Info) []string {
 	if p.Aligned {
 		args = append(args, "-copyts", "-itsoffset", strconv.FormatFloat(-p.AlignShiftSec, 'f', 6, 64))
 	}
+	if p.TrimDurSec > 0 {
+		// 입력 탐색 + 디코드(accurate_seek 기본값)라 샘플 단위로 정확하다.
+		args = append(args, "-ss", strconv.FormatFloat(p.TrimStartSec, 'f', 6, 64), "-t", strconv.FormatFloat(p.TrimDurSec, 'f', 6, 64))
+	}
 	args = append(args, "-i", in, "-map_metadata", "0", "-dn", "-sn")
+	if p.AudioOnly {
+		args = append(args, "-vn", "-map", "0:a:0")
+		if p.Aligned {
+			args = append(args, "-af", "atrim=start=0,aresample=async=1:first_pts=0")
+		}
+		return append(args, "-c:a", "pcm_s16le", "-ar", "48000", "-f", "wav", out)
+	}
 	if p.Video != Drop {
 		args = append(args, "-map", "0:v:0")
 	}

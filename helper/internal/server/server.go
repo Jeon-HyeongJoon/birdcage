@@ -217,7 +217,7 @@ func (ss *session) handle(ctx context.Context, data []byte) {
 		if prof == "" {
 			prof = media.ProfileCompat
 		}
-		id, err := ss.srv.Jobs.Submit(jc.URL, jobs.Options{MaxHeight: h, Profile: prof, ProbeID: jc.ProbeID, FormatID: jc.FormatID, Range: jc.Range})
+		id, err := ss.srv.Jobs.Submit(jc.URL, jobs.Options{MaxHeight: h, Profile: prof, ProbeID: jc.ProbeID, FormatID: jc.FormatID, Range: jc.Range, AudioOnly: jc.AudioOnly, Subtitles: jc.Subtitles})
 		if err != nil {
 			ss.fail(ctx, env.ID, "bad_request", err.Error())
 			return

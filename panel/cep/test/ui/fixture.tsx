@@ -28,6 +28,7 @@ class FixtureController implements PanelController {
   async probeDraft(): Promise<void> {}
   selectVariant(_formatId: string): void {}
   setRange(): void {}
+  setExtras(): void {}
   async submitDraft(): Promise<void> {}
   retryConnection(): void {}
   installTools(): void {}

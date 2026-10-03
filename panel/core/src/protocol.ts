@@ -59,6 +59,15 @@ export interface JobCreate {
   formatId?: string;
   /** Download only this part of the source (the helper adds 1s handles). */
   range?: TimeRange;
+  /** Best audio only, written as WAV (PCM 16-bit 48 kHz). */
+  audioOnly?: boolean;
+  /** One subtitle track as an SRT sidecar (failure is only a warning). */
+  subtitles?: SubtitleRequest;
+}
+
+export interface SubtitleRequest {
+  lang: string;
+  auto?: boolean;
 }
 
 /** A span of the source timeline in seconds. */
@@ -201,6 +210,9 @@ export interface Plan {
   bitrateBps?: number;
   aligned?: boolean;
   alignShiftSec?: number;
+  audioOnly?: boolean;
+  trimStartSec?: number;
+  trimDurSec?: number;
 }
 
 // 실패 분류표(FailureKind, FailurePolicy)는 specs/failures.json이 SSOT다(make gen → failures.gen.ts).
@@ -222,7 +234,15 @@ export interface JobSnapshot {
   jobId: string;
   url: string;
   state: JobState;
-  options: { maxHeight: number; profile: Profile | ""; probeId?: string; formatId?: string; range?: TimeRange };
+  options: {
+    maxHeight: number;
+    profile: Profile | "";
+    probeId?: string;
+    formatId?: string;
+    range?: TimeRange;
+    audioOnly?: boolean;
+    subtitles?: SubtitleRequest;
+  };
   progress: number; // stage progress 0..1, -1 unknown
   download?: DownloadProgress;
   info?: SourceInfo;
@@ -230,6 +250,8 @@ export interface JobSnapshot {
   plan?: Plan;
   file?: string;
   clip?: Clip;
+  /** SRT sidecar next to file, on the file's timeline. */
+  subtitleFile?: string;
   failure?: Failure;
   warnings?: string[];
   timings?: StageTiming[];

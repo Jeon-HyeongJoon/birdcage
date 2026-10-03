@@ -23,6 +23,7 @@ import (
 	"birdcage/helper/internal/library"
 	"birdcage/helper/internal/media"
 	"birdcage/helper/internal/perf"
+	"birdcage/helper/internal/subs"
 )
 
 // State of a job.
@@ -51,6 +52,16 @@ type Options struct {
 	FormatID string `json:"formatId,omitempty"`
 	// Range downloads only part of the source (plus handles) and reports In/Out in Snapshot.Clip.
 	Range *engine.Section `json:"range,omitempty"`
+	// AudioOnly downloads the best audio and writes WAV (PCM 16-bit 48 kHz).
+	AudioOnly bool `json:"audioOnly,omitempty"`
+	// Subtitles fetches one subtitle track as an SRT sidecar on the file's timeline.
+	Subtitles *SubtitleRequest `json:"subtitles,omitempty"`
+}
+
+// SubtitleRequest names one subtitle track from media.info subtitles.
+type SubtitleRequest struct {
+	Lang string `json:"lang"`
+	Auto bool   `json:"auto,omitempty"`
 }
 
 // RangeHandleSec is extra media kept before/after a requested range for trims and transitions.
@@ -70,22 +81,24 @@ type StageTiming struct {
 
 // Snapshot is the externally visible job state (sent to panels as-is).
 type Snapshot struct {
-	JobID     string           `json:"jobId"`
-	URL       string           `json:"url"`
-	State     State            `json:"state"`
-	Options   Options          `json:"options"`
-	Progress  float64          `json:"progress"` // stage progress 0..1, -1 unknown
-	Download  *engine.Progress `json:"download,omitempty"`
-	Info      *engine.Info     `json:"info,omitempty"`
-	Media     *media.Info      `json:"media,omitempty"` // final file
-	Plan      *media.Plan      `json:"plan,omitempty"`
-	File      string           `json:"file,omitempty"`
-	Clip      *Clip            `json:"clip,omitempty"`
-	Failure   *engine.Failure  `json:"failure,omitempty"`
-	Warnings  []string         `json:"warnings,omitempty"`
-	Timings   []StageTiming    `json:"timings,omitempty"`
-	CreatedAt time.Time        `json:"createdAt"`
-	UpdatedAt time.Time        `json:"updatedAt"`
+	JobID    string           `json:"jobId"`
+	URL      string           `json:"url"`
+	State    State            `json:"state"`
+	Options  Options          `json:"options"`
+	Progress float64          `json:"progress"` // stage progress 0..1, -1 unknown
+	Download *engine.Progress `json:"download,omitempty"`
+	Info     *engine.Info     `json:"info,omitempty"`
+	Media    *media.Info      `json:"media,omitempty"` // final file
+	Plan     *media.Plan      `json:"plan,omitempty"`
+	File     string           `json:"file,omitempty"`
+	Clip     *Clip            `json:"clip,omitempty"`
+	// SubtitleFile is the SRT sidecar next to File (aligned to File's timeline).
+	SubtitleFile string          `json:"subtitleFile,omitempty"`
+	Failure      *engine.Failure `json:"failure,omitempty"`
+	Warnings     []string        `json:"warnings,omitempty"`
+	Timings      []StageTiming   `json:"timings,omitempty"`
+	CreatedAt    time.Time       `json:"createdAt"`
+	UpdatedAt    time.Time       `json:"updatedAt"`
 }
 
 // Event is emitted on every visible change.
@@ -651,8 +664,16 @@ func (m *Manager) pipeline(ctx context.Context, j *job) (string, error) {
 			return "", err
 		}
 	}
-	if v, ok := info.Variant(opts.FormatID); ok {
+	formatID := opts.FormatID
+	if v, ok := info.Variant(opts.FormatID); ok && !opts.AudioOnly {
 		info.Selected = v.Parts // 진행률 합산과 예상 크기가 실제로 받을 포맷을 따른다
+	}
+	if opts.AudioOnly {
+		formatID = ""
+		if info.BestAudio != nil {
+			formatID = info.BestAudio.ID
+			info.Selected = []engine.Format{*info.BestAudio}
+		}
 	}
 	slim := *info // 작업 스냅샷은 진행률마다 전송되므로 선택지 목록은 빼고 보낸다
 	slim.Variants, slim.Subtitles, slim.BestAudio = nil, nil, nil
@@ -664,12 +685,17 @@ func (m *Manager) pipeline(ctx context.Context, j *job) (string, error) {
 		return "", err
 	}
 	var section *engine.Section
+	trim := false // 오디오만: 전체를 받아 WAV로 바꿀 때 자른다
 	if rng != nil {
-		if segmented(info.Selected) {
+		switch {
+		case opts.AudioOnly && !(info.BestAudio != nil && mp4Family(info.BestAudio.Ext)):
+			// webm/opus 구간은 원래 시작 시각을 잃는다(실측 0.021s, 길이 N/A). 오디오는 작아 전체를 받는다.
+			trim = true
+		case segmented(info.Selected):
 			m.update(j, true, func(s *Snapshot) {
 				s.Warnings = append(s.Warnings, "이 형식(HLS)은 구간만 받을 수 없어 전체를 받고 In/Out으로 구간을 표시합니다.")
 			})
-		} else {
+		default:
 			section = &engine.Section{Start: max(0, rng.Start-RangeHandleSec), End: rng.End + RangeHandleSec}
 			if info.DurationSec > 0 {
 				section.End = min(section.End, info.DurationSec)
@@ -683,7 +709,8 @@ func (m *Manager) pipeline(ctx context.Context, j *job) (string, error) {
 	err = m.withRetry(ctx, func() error {
 		sp := m.deps.Rec.StartJob(id, "stage.download", "engine", ts.Engine.Name(), "expected_bytes", info.ExpectedBytes())
 		var err error
-		dl, err = ts.Engine.Download(ctx, engine.DownloadRequest{Info: info, MaxHeight: opts.MaxHeight, FormatID: opts.FormatID, WorkDir: work, Section: section},
+		dl, err = ts.Engine.Download(ctx, engine.DownloadRequest{Info: info, MaxHeight: opts.MaxHeight, FormatID: formatID, WorkDir: work,
+			Section: section, AudioOnly: opts.AudioOnly},
 			func(p engine.Progress) {
 				m.update(j, false, func(s *Snapshot) {
 					pp := p
@@ -715,7 +742,7 @@ func (m *Manager) pipeline(ctx context.Context, j *job) (string, error) {
 		return "", engine.Fail(engine.KindMedia, "ffprobe: "+err.Error())
 	}
 	var vfr media.VFRReport
-	if in.Video != nil {
+	if in.Video != nil && !opts.AudioOnly {
 		var vps perf.ProcStats
 		vfr, vps, err = ts.Prober.AnalyzeVFR(ctx, dl.Path, in.Video, 30)
 		if err != nil {
@@ -729,6 +756,12 @@ func (m *Manager) pipeline(ctx context.Context, j *job) (string, error) {
 	// 4) plan + normalize
 	encoder := ""
 	plan := media.MakePlan(in, vfr, opts.Profile, "")
+	if opts.AudioOnly {
+		if in.Audio == nil {
+			return "", engine.Fail(engine.KindMedia, "오디오 스트림이 없습니다")
+		}
+		plan = media.AudioPlan(in, opts.Profile)
+	}
 	if plan.Video == media.Transcode {
 		encoder, err = ts.Normalizer.Encoder(ctx)
 		if err != nil {
@@ -737,8 +770,17 @@ func (m *Manager) pipeline(ctx context.Context, j *job) (string, error) {
 		plan = media.MakePlan(in, vfr, opts.Profile, encoder)
 	}
 	var clip *Clip
+	fileStart := 0.0 // 파일 0초가 원본의 몇 초인지(자막 시프트)
 	if rng != nil {
 		start := 0.0 // 전체 다운로드: 파일 타임라인 = 원본 타임라인
+		if trim {
+			start = max(0, rng.Start-RangeHandleSec)
+			end := rng.End + RangeHandleSec
+			if in.DurationSec > 0 {
+				end = min(end, in.DurationSec)
+			}
+			plan.Trim(start, end-start)
+		}
 		if section != nil {
 			start = streamStart(in)
 			plan.AlignTo(start)
@@ -750,9 +792,14 @@ func (m *Manager) pipeline(ctx context.Context, j *job) (string, error) {
 		}
 		if start >= 0 {
 			clip = &Clip{InSec: round3(rng.Start - start), OutSec: round3(rng.End - start)}
+			fileStart = start
 		}
 	}
-	dest, release, err := library.ReserveTagged(m.deps.LibraryDir, info.Extractor, info.Title, info.ID, rangeTag(rng), ".mp4")
+	ext := ".mp4"
+	if opts.AudioOnly {
+		ext = ".wav"
+	}
+	dest, release, err := library.ReserveTagged(m.deps.LibraryDir, info.Extractor, info.Title, info.ID, rangeTag(rng), ext)
 	if err != nil {
 		return "", engine.Fail(engine.KindInternal, err.Error())
 	}
@@ -800,7 +847,56 @@ func (m *Manager) pipeline(ctx context.Context, j *job) (string, error) {
 		s.Media = out
 		s.Clip = clip
 	})
+
+	// 6) 자막: 별도 호출이라 실패해도 작업은 성공(경고만). 시작 위치를 모르면(clip 없음·구간) 옮길 수 없어 건너뛴다.
+	if req := opts.Subtitles; req != nil && req.Lang != "" {
+		var warn string
+		if rng != nil && clip == nil {
+			warn = "구간 위치를 몰라 자막을 맞출 수 없어 받지 않았습니다."
+		} else if path, err := m.subtitles(ctx, j, ts, info, req, work, dest, fileStart, out.DurationSec); err != nil {
+			warn = "자막을 받지 못했습니다: " + err.Error()
+		} else {
+			m.update(j, true, func(s *Snapshot) { s.SubtitleFile = path })
+		}
+		if warn != "" {
+			m.update(j, true, func(s *Snapshot) { s.Warnings = append(s.Warnings, warn) })
+		}
+	}
 	return dest, nil
+}
+
+// subtitles fetches one track, shifts it onto the file's timeline and writes "<file>.<lang>.srt".
+func (m *Manager) subtitles(ctx context.Context, j *job, ts Toolset, info *engine.Info, req *SubtitleRequest, work, dest string, fileStart, length float64) (string, error) {
+	sf, ok := ts.Engine.(engine.SubtitleFetcher)
+	if !ok {
+		return "", fmt.Errorf("엔진 %s는 자막을 지원하지 않습니다", ts.Engine.Name())
+	}
+	sp := m.deps.Rec.StartJob(j.snap.JobID, "stage.subtitles", "lang", req.Lang, "auto", req.Auto)
+	src, err := sf.Subtitles(ctx, info, req.Lang, req.Auto, filepath.Join(work, "subs"))
+	if err != nil {
+		m.timing(j, "subtitles", sp.End(err))
+		var f *engine.Failure
+		if errors.As(err, &f) {
+			return "", errors.New(f.Message)
+		}
+		return "", err
+	}
+	b, err := os.ReadFile(src)
+	if err != nil {
+		m.timing(j, "subtitles", sp.End(err))
+		return "", err
+	}
+	cues := subs.Shift(subs.Parse(string(b)), fileStart, length)
+	sp.Set("cues", len(cues))
+	if len(cues) == 0 {
+		err := errors.New("이 구간에 자막이 없습니다")
+		m.timing(j, "subtitles", sp.End(err))
+		return "", err
+	}
+	path := strings.TrimSuffix(dest, filepath.Ext(dest)) + "." + library.Sanitize(req.Lang) + ".srt"
+	err = os.WriteFile(path, []byte(subs.Format(cues)), 0o644)
+	m.timing(j, "subtitles", sp.End(err))
+	return path, err
 }
 
 // clampRange validates a requested range against the source duration (0 = unknown).
@@ -821,6 +917,9 @@ func clampRange(r *engine.Section, dur float64) (*engine.Section, error) {
 	}
 	return &c, nil
 }
+
+// mp4Family: containers whose section downloads keep the source start time (-copyts).
+func mp4Family(ext string) bool { return ext == "m4a" || ext == "mp4" || ext == "mov" }
 
 func segmented(fs []engine.Format) bool {
 	for _, f := range fs {

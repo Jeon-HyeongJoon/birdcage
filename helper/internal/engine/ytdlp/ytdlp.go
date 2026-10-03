@@ -12,6 +12,7 @@ import (
 	"log/slog"
 	"os"
 	"path/filepath"
+	"regexp"
 	"strconv"
 	"strings"
 	"sync"
@@ -93,6 +94,11 @@ func (e *Engine) RequestArgs(req engine.DownloadRequest) []string {
 	args := e.DownloadArgs(req.Info.InfoPath, req.WorkDir, req.MaxHeight)
 	for i := range args[:len(args)-1] {
 		switch {
+		case args[i] == "-f" && req.AudioOnly:
+			args[i+1] = "ba/b" // 오디오 전용이 없으면(직접 링크 등) 합쳐진 포맷에서 오디오만 쓴다
+			if req.FormatID != "" {
+				args[i+1] = req.FormatID + "/" + args[i+1]
+			}
 		case args[i] == "-f" && req.FormatID != "":
 			args[i+1] = req.FormatID + "/" + args[i+1]
 		case args[i] == "--merge-output-format" && req.Section != nil:
@@ -168,6 +174,36 @@ func (e *Engine) Download(ctx context.Context, req engine.DownloadRequest, onPro
 		return nil, engine.Fail(engine.KindInternal, err.Error())
 	}
 	return &engine.DownloadResult{Path: path, Bytes: st.Size(), Proc: res.Stats}, nil
+}
+
+// SubtitleArgs builds the subtitle-only invocation (no media download).
+func (e *Engine) SubtitleArgs(infoPath, lang string, auto bool, workDir string) []string {
+	write := "--write-subs"
+	if auto {
+		write = "--write-auto-subs"
+	}
+	return append(e.commonArgs(), "--load-info-json", infoPath, "--skip-download", write, "--sub-langs", "^"+regexp.QuoteMeta(lang)+"$",
+		"--sub-format", "srt/vtt/best", "--convert-subs", "srt", "-o", filepath.Join(workDir, "subs.%(ext)s"))
+}
+
+// Subtitles implements engine.SubtitleFetcher: yt-dlp는 자막 실패를 DownloadError로 올리므로(ignoreerrors가
+// True가 아니면) 영상과 같은 호출에 넣지 않는다(docs/decisions/0010, P-0010-d).
+func (e *Engine) Subtitles(ctx context.Context, info *engine.Info, lang string, auto bool, workDir string) (string, error) {
+	if info == nil || info.InfoPath == "" {
+		return "", engine.Fail(engine.KindInternal, "subtitles without probe")
+	}
+	if err := os.MkdirAll(workDir, 0o755); err != nil {
+		return "", engine.Fail(engine.KindInternal, err.Error())
+	}
+	_, res, err := proc.Output(ctx, proc.Spec{Path: e.YtDlp, Args: e.SubtitleArgs(info.InfoPath, lang, auto, workDir), StderrTail: 20})
+	if err != nil {
+		return "", e.failure(ctx, err, res)
+	}
+	matches, _ := filepath.Glob(filepath.Join(workDir, "subs*.srt"))
+	if len(matches) == 0 {
+		return "", engine.Fail(engine.KindFormat, "no subtitles for "+lang)
+	}
+	return matches[0], nil
 }
 
 func (e *Engine) failure(ctx context.Context, err error, res proc.Result) error {

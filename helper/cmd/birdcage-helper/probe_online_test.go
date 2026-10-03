@@ -4,11 +4,13 @@ import (
 	"context"
 	"math"
 	"os"
+	"path/filepath"
 	"strings"
 	"testing"
 	"time"
 
 	"birdcage/helper/internal/engine"
+	"birdcage/helper/internal/jobs"
 	"birdcage/helper/internal/media/mediatest"
 	"birdcage/helper/internal/perf/perftest"
 	"birdcage/helper/internal/protocol"
@@ -147,4 +149,46 @@ func TestEndToEndOnlineRange(t *testing.T) {
 		}
 	}
 	t.Logf("clip %+v (file %.2fs vs full %.2fs), timings %+v", j.Clip, j.Media.DurationSec, full.Media.DurationSec, j.Timings)
+}
+
+// TestEndToEndOnlineAudioAndSubtitles: YouTube 오디오만(m4a 구간 경로) + 수동 영어 자막 사이드카.
+func TestEndToEndOnlineAudioAndSubtitles(t *testing.T) {
+	if os.Getenv("BIRDCAGE_E2E") != "1" {
+		t.Skip("set BIRDCAGE_E2E=1 to download from real platforms")
+	}
+	perftest.Track(t)
+	tp := toolPaths(t)
+	args := []string{"--yt-dlp", tp[tools.YtDlp], "--ffmpeg", tp[tools.FFmpeg], "--ffprobe", tp[tools.FFprobe]}
+	if d := tp[tools.Deno]; d != "" {
+		args = append(args, "--deno", d)
+	}
+	h := startInProcess(t, args...)
+	c := connect(t, h.ready)
+	c.send(protocol.TypeHello, "h", protocol.Hello{Client: "e2e", Host: protocol.Host{App: "PPRO", Version: "15.2.0", API: "cep", OS: "mac"}})
+	c.until(30*time.Second, func(e protocol.Envelope) bool { return e.Type == protocol.TypeHelloOK })
+
+	const url = "https://www.youtube.com/watch?v=jNQXAC9IVRw"
+	c.send(protocol.TypeJobCreate, "a", protocol.JobCreate{URL: url, AudioOnly: true, Range: &engine.Section{Start: 3, End: 12},
+		Subtitles: &jobs.SubtitleRequest{Lang: "en"}})
+	c.until(10*time.Second, func(e protocol.Envelope) bool { return e.Type == protocol.TypeJobAccepted })
+	env := c.until(5*time.Minute, func(e protocol.Envelope) bool {
+		return e.Type == protocol.TypeJobDone || e.Type == protocol.TypeJobFailed
+	})
+	var ev protocol.JobEvent
+	_ = protocol.DecodeData(env, &ev)
+	j := ev.Job
+	if env.Type == protocol.TypeJobFailed {
+		t.Fatalf("job failed: %+v", j.Failure)
+	}
+	if filepath.Ext(j.File) != ".wav" || j.Clip == nil || j.Plan == nil || !j.Plan.Aligned {
+		t.Fatalf("file %s clip %+v plan %+v", j.File, j.Clip, j.Plan)
+	}
+	if j.SubtitleFile == "" {
+		t.Fatalf("no subtitle sidecar, warnings %v", j.Warnings)
+	}
+	b, err := os.ReadFile(j.SubtitleFile)
+	if err != nil || !strings.Contains(string(b), " --> ") {
+		t.Fatalf("subtitle file %q: %v", b, err)
+	}
+	t.Logf("wav %.2fs clip %+v subtitle %s (%d bytes) timings %+v", j.Media.DurationSec, j.Clip, filepath.Base(j.SubtitleFile), len(b), j.Timings)
 }
