@@ -235,6 +235,38 @@ button {
   padding: $space-2 0;
   border-top: 1px solid $line;
   border-bottom: 1px solid $line;
+  align-items: flex-end;
+  .inline-download-progress {
+    display: block;
+    flex: 1;
+    min-width: 0;
+    .inline-status {
+      margin-bottom: $space-1;
+    }
+    .inline-detail {
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .bar {
+      display: block;
+      height: 5px;
+      margin: 0;
+      span {
+        display: block;
+        height: 100%;
+        background: $accent;
+        transition: width 0.2s;
+      }
+    }
+    &.done .bar span {
+      background: $ok;
+    }
+    &.bad .bar span {
+      background: $err;
+    }
+  }
   .download-submit {
     min-width: 96px;
     font-size: $font-sm;

@@ -1,11 +1,13 @@
-// 새 다운로드 준비: 링크 → 미리보기(큰 플레이어·타임라인에서 In/Out) → 받기.
+// 새 다운로드 준비: 링크 → 미리보기(큰 플레이어·타임라인에서 In/Out) → 다운로드.
 // 미리보기가 중심이고(docs/decisions/0011), 영상 정보는 한 줄, 받기 옵션은 접어 둔다.
 // 카드(반경 2px)는 쓰지 않는다: 미리보기 틀과 행·구분선으로만 묶는다(docs/decisions/0010).
-import { FormEvent, ReactNode, useState } from "react";
+import { FormEvent, ReactNode, useRef, useState } from "react";
 import {
   Draft,
+  JobView,
   SequenceInfo,
   State,
+  TERMINAL_STATES,
   Variant,
   bytes,
   codecLabel,
@@ -19,21 +21,39 @@ import {
   variantLabel,
 } from "@birdcage/core";
 import type { PanelController } from "./main";
-import { DraftJobs } from "./job-progress";
+import { DraftJobs, phaseOf } from "./job-progress";
 import { PreviewPanel } from "./preview-panel";
 
 export const Composer = ({ s, ctl, focusMode = false, settings }: { s: State; ctl: PanelController; focusMode?: boolean; settings?: ReactNode }) => {
   const [submitError, setSubmitError] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+  const [pendingSignature, setPendingSignature] = useState("");
+  const submitLock = useRef(false);
   const d = s.draft;
   const connected = s.connection === "connected";
+  const signature = draftSignature(d);
+  const draftJobs = (d.jobIds ?? []).map((id) => s.jobs.find((view) => view.snap.jobId === id)).filter((view): view is JobView => !!view);
+  const lastJobID = d.jobIds?.[d.jobIds.length - 1];
+  const latestJob = lastJobID ? s.jobs.find((view) => view.snap.jobId === lastJobID) : undefined;
+  const waitingForJob = !!lastJobID && !latestJob;
+  const matchingActive = draftJobs.some((view) => !TERMINAL_STATES.includes(view.snap.state) && matchesDraft(view, d));
+  const awaitingSameDownload = pendingSignature === signature && (submitting || waitingForJob);
+  const downloadDisabled = !connected || d.checking || submitting || matchingActive || awaitingSameDownload;
   const submit = async (e: FormEvent) => {
     e.preventDefault();
-    if (!isLink(d.url)) return;
+    if (!isLink(d.url) || downloadDisabled || submitLock.current) return;
+    submitLock.current = true;
+    setSubmitting(true);
+    setPendingSignature(signature);
     setSubmitError("");
     try {
       await ctl.submitDraft();
     } catch (err) {
+      setPendingSignature("");
       setSubmitError((err as Error).message);
+    } finally {
+      submitLock.current = false;
+      setSubmitting(false);
     }
   };
   const ranged = d.range.on && !!rangeToSend(d.range, d.info?.durationSec).range;
@@ -85,16 +105,56 @@ export const Composer = ({ s, ctl, focusMode = false, settings }: { s: State; ct
           {settings}
           {focusMode && (
             <div className="row download-actions">
-              <span className="muted small">백그라운드에서 진행 · 다운로드 창에서 확인</span>
-              <span className="spacer" />
-              <button type="submit" className="primary download-submit" disabled={!connected || d.checking}>
-                {ranged ? "구간 받기" : "받기"}
+              {submitting || waitingForJob || latestJob ? (
+                <InlineDownloadProgress view={latestJob} pending={submitting ? "다운로드 요청 중" : waitingForJob ? "다운로드 시작 중" : undefined} />
+              ) : <span className="spacer" />}
+              <button type="submit" className="primary download-submit" disabled={downloadDisabled}>
+                {submitting ? "요청 중…" : "다운로드"}
               </button>
             </div>
           )}
         </>
       )}
     </form>
+  );
+};
+
+const sameRange = (a?: { startSec: number; endSec: number }, b?: { startSec: number; endSec: number }): boolean =>
+  (!a && !b) || (!!a && !!b && Math.abs(a.startSec - b.startSec) < 0.01 && Math.abs(a.endSec - b.endSec) < 0.01);
+
+const subtitleOf = (d: Draft) => d.subtitle ? { lang: d.subtitle.replace(/:auto$/, ""), auto: d.subtitle.endsWith(":auto") } : undefined;
+
+const matchesDraft = (view: JobView, d: Draft): boolean => {
+  const expectedRange = rangeToSend(d.range, d.info?.durationSec).range;
+  const actual = view.snap.options;
+  const expectedSubtitle = subtitleOf(d);
+  const actualSubtitle = actual.subtitles;
+  return sameRange(actual.range, expectedRange)
+    && !!actual.audioOnly === !!d.audioOnly
+    && (actual.formatId === undefined || actual.formatId === (d.audioOnly ? undefined : d.formatId))
+    && ((!actualSubtitle && !expectedSubtitle) || (!!actualSubtitle && !!expectedSubtitle && actualSubtitle.lang === expectedSubtitle.lang && !!actualSubtitle.auto === expectedSubtitle.auto));
+};
+
+const draftSignature = (d: Draft): string => {
+  const range = rangeToSend(d.range, d.info?.durationSec).range;
+  return JSON.stringify({ url: d.url.trim(), range, formatId: d.audioOnly ? undefined : d.formatId, audioOnly: !!d.audioOnly, subtitle: subtitleOf(d) });
+};
+
+const InlineDownloadProgress = ({ view, pending }: { view?: JobView; pending?: string }) => {
+  const phase = view ? phaseOf(view) : undefined;
+  const label = pending ?? phase?.label ?? "다운로드 시작 중";
+  const fraction = pending ? undefined : phase?.fraction;
+  const tone = phase?.tone ?? "busy";
+  return (
+    <span className={`inline-download-progress ${tone}`} aria-live="polite">
+      <span className="row inline-status">
+        <span className={tone === "bad" ? "error small" : tone === "done" ? "ok small" : "small"}>{label}</span>
+        {!pending && phase?.detail && <span className="muted small inline-detail">{phase.detail}</span>}
+      </span>
+      <span className={`bar${fraction === undefined ? " unknown" : ""}`}>
+        {fraction !== undefined && <span style={{ width: `${Math.round(fraction * 100)}%` }} />}
+      </span>
+    </span>
   );
 };
 

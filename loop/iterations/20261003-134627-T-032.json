@@ -1,0 +1,54 @@
+{
+  "$schema": "../schema/iteration.schema.json",
+  "id": "20261003-134627-T-032",
+  "task": "T-032",
+  "session": {
+    "kind": "worker"
+  },
+  "startedAt": "2026-10-03T13:46:27Z",
+  "endedAt": "2026-10-03T13:54:46Z",
+  "base": {
+    "branch": "feat/editing-options",
+    "commit": "496688464c84",
+    "dirty": true
+  },
+  "head": {
+    "branch": "feat/editing-options",
+    "commit": "496688464c84",
+    "dirty": true
+  },
+  "state": "success",
+  "hypothesis": "다운로드 CTA 행에 현재 초안의 최근 작업 단계를 즉시 표시하고 동일 옵션의 활성 작업 동안 CTA를 잠그면 시작 여부가 분명해져 중복 요청을 막으면서 범위 변경 후 추가 다운로드는 허용할 수 있다",
+  "summary": "하단 실행 CTA를 다운로드, 상단 이동 버튼을 다운로드 목록으로 구분했다. 다운로드 요청 직후 CTA 옆에 요청·대기·다운로드·변환 단계와 진행 막대를 표시하고, 동일 옵션 작업 중에는 CTA를 잠가 중복 요청을 막되 범위나 옵션을 바꾸면 새 요청을 허용한다. 사용자 승인으로 focus UI 검증을 새 기준으로 갱신했고 UI 21개와 전체 게이트가 통과했다.",
+  "metrics": {
+    "durationMin": 8.3,
+    "evidence": 14,
+    "evidenceByLevel": {
+      "L1": 7,
+      "L2": 6,
+      "L3": 1
+    },
+    "pass": 14,
+    "fail": 0,
+    "skip": 0
+  },
+  "retro": {
+    "newChecks": [
+      "focus.spec.ts를 승인된 verifier.change로 갱신: CTA 명칭·42% 진행 막대·동일 옵션 잠금·범위 변경 재활성화·요청 직후 대기 표시 검증"
+    ],
+    "lessons": [
+      "백그라운드 작업 UX에서는 별도 목록으로 이동시키기 전에 요청 접수와 진행을 CTA 주변에서 즉시 확인시켜야 중복 제출을 예방할 수 있다."
+    ]
+  },
+  "next": [
+    "Premiere에서 실제 구간 다운로드를 눌러 CTA 옆 요청 중→받는 중 진행 막대와 중복 클릭 방지가 자연스러운지 사람 확인한다."
+  ],
+  "approvals": [
+    {
+      "action": "verifier.change",
+      "by": "전형준",
+      "at": "2026-10-03T13:54:09Z",
+      "note": "사용자 승인: 기존 focus UI 검증을 다운로드 CTA·진행 막대·중복 방지·다운로드 목록 명칭 기준으로 수정"
+    }
+  ]
+}

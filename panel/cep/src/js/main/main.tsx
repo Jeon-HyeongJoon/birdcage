@@ -70,7 +70,7 @@ export const App = ({ controller: ctl, host, downloadHistory = () => [] }: { con
           <>
             <span className="spacer" />
             <button className="downloads-window" onClick={() => host.openDownloads?.()}>
-              다운로드{activeJobs.length > 0 ? ` ${activeJobs.length}` : ""}
+              다운로드 목록{activeJobs.length > 0 ? ` ${activeJobs.length}` : ""}
             </button>
           </>
         )}
