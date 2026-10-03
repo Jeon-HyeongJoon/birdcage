@@ -46,6 +46,8 @@ export interface HostAdapter {
   importFile(path: string, bin: string[], opts?: ImportOptions): Promise<ImportResult>;
   /** Shows the file in Finder/Explorer (optional). */
   revealFile?(path: string): void;
+  /** Keeps the preview shortcuts in the panel instead of the host app (optional). */
+  captureKeys?(): void;
   /** The active sequence, or null when none is open (optional: recommendations fall back to settings). */
   sequenceInfo?(): Promise<SequenceInfo | null>;
 }

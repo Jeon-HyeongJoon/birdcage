@@ -50,6 +50,9 @@ describe("draft: paste → probe → choose → download", () => {
     await ctl.submitDraft();
     const create = fh.last.sent.find((e) => e.type === "job.create");
     expect(create?.data).toEqual({ url: URL, maxHeight: 2160, probeId: "p1", formatId: "313+140" });
+    // 받은 뒤에도 미리보기·선택을 유지한다(같은 영상의 다른 부분을 이어서 고르기).
+    expect(ctl.state.draft).toMatchObject({ url: URL, status: "ready", formatId: "313+140", submitted: 1 });
+    ctl.clearDraft();
     expect(ctl.state.draft).toEqual({ url: "", status: "idle", range: { on: false } });
   });
 

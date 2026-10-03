@@ -30,6 +30,7 @@ export type PanelController = Pick<
   | "setRange"
   | "setExtras"
   | "submitDraft"
+  | "clearDraft"
   | "retryConnection"
   | "installTools"
   | "updateSettings"
@@ -38,7 +39,7 @@ export type PanelController = Pick<
   | "importJob"
 >;
 
-export type PanelHost = Pick<HostAdapter, "revealFile">;
+export type PanelHost = Pick<HostAdapter, "revealFile" | "captureKeys">;
 
 const CONNECTION_LABEL = {
   idle: "대기",
@@ -57,8 +58,9 @@ export const App = ({ controller: ctl, host }: { controller: PanelController; ho
 
   useEffect(() => {
     if (window.cep) subscribeBackgroundColor(setBg);
+    host.captureKeys?.();
     void ctl.start();
-  }, [ctl]);
+  }, [ctl, host]);
 
   const missing = s.connection === "connected" ? ctl.missingTools() : [];
 

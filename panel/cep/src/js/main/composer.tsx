@@ -1,6 +1,7 @@
-// 새 다운로드 준비: 링크 → 조회(정보 카드) → 화질 선택 → 받기.
-// 카드는 영상 정보 하나만 쓴다(사각, 반경 2px). 선택지는 행·구분선으로 그린다(docs/decisions/0010).
-import { FormEvent, useEffect, useState } from "react";
+// 새 다운로드 준비: 링크 → 미리보기(큰 플레이어·타임라인에서 In/Out) → 받기.
+// 미리보기가 중심이고(docs/decisions/0011), 영상 정보는 한 줄, 받기 옵션은 접어 둔다.
+// 카드(반경 2px)는 쓰지 않는다: 미리보기 틀과 행·구분선으로만 묶는다(docs/decisions/0010).
+import { FormEvent, useState } from "react";
 import {
   Draft,
   SequenceInfo,
@@ -11,15 +12,14 @@ import {
   duration,
   fpsLabel,
   fpsMismatch,
-  formatTime,
   isLink,
-  parseTime,
-  rangeToSend,
   isVertical,
   platformLabel,
+  rangeToSend,
   variantLabel,
 } from "@birdcage/core";
 import type { PanelController } from "./main";
+import { PreviewPanel } from "./preview-panel";
 
 export const Composer = ({ s, ctl }: { s: State; ctl: PanelController }) => {
   const [submitError, setSubmitError] = useState("");
@@ -35,6 +35,7 @@ export const Composer = ({ s, ctl }: { s: State; ctl: PanelController }) => {
       setSubmitError((err as Error).message);
     }
   };
+  const ranged = d.range.on && !!rangeToSend(d.range, d.info?.durationSec).range;
   return (
     <form className="composer" onSubmit={submit}>
       <div className="row">
@@ -46,11 +47,23 @@ export const Composer = ({ s, ctl }: { s: State; ctl: PanelController }) => {
           onChange={(e) => ctl.setUrl(e.target.value)}
           disabled={!connected}
         />
+        {d.url && (
+          <button type="button" className="icon" onClick={() => ctl.clearDraft()} title="지우기">
+            ×
+          </button>
+        )}
         <button type="submit" className="primary" disabled={!connected || !isLink(d.url) || d.status === "probing"}>
-          받기
+          {ranged ? "구간 받기" : "받기"}
         </button>
       </div>
-      {d.status === "probing" && <div className="muted small status">링크 확인 중…</div>}
+      {d.status === "probing" && (
+        <div className="player">
+          <div className="frame">
+            <div className="still empty" />
+            <div className="overlay chip">링크 확인 중…</div>
+          </div>
+        </div>
+      )}
       {d.status === "failed" && (
         <div className="row status">
           <span className="error small">{d.failure?.message ?? "링크를 확인하지 못했습니다."}</span>
@@ -60,34 +73,31 @@ export const Composer = ({ s, ctl }: { s: State; ctl: PanelController }) => {
         </div>
       )}
       {submitError && <div className="error small">{submitError}</div>}
-      {d.status === "ready" && d.info && <InfoCard d={d} seq={s.sequence} />}
-      {d.status === "ready" && !d.audioOnly && (d.info?.variants?.length ?? 0) > 0 && <Variants d={d} seq={s.sequence} ctl={ctl} />}
-      {d.status === "ready" && <Extras d={d} ctl={ctl} />}
-      {d.status === "ready" && <RangeSection d={d} ctl={ctl} />}
+      {d.status === "ready" && d.info && (
+        <>
+          <PreviewPanel d={d} ctl={ctl} />
+          <InfoLine d={d} seq={s.sequence} />
+          <Options d={d} seq={s.sequence} ctl={ctl} />
+          {(d.submitted ?? 0) > 0 && <div className="ok small status">작업 목록에 추가했습니다({d.submitted}). 다른 구간을 이어서 고를 수 있습니다.</div>}
+        </>
+      )}
     </form>
   );
 };
 
 const selected = (d: Draft): Variant | undefined => d.info?.variants?.find((v) => v.formatId === d.formatId);
 
-const InfoCard = ({ d, seq }: { d: Draft; seq?: SequenceInfo | null }) => {
+const InfoLine = ({ d, seq }: { d: Draft; seq?: SequenceInfo | null }) => {
   const info = d.info!;
-  const v = selected(d);
-  const [thumbOk, setThumbOk] = useState(true);
+  const v = d.audioOnly ? undefined : selected(d);
   const meta = [info.uploader, platformLabel(info.extractor), duration(info.durationSec)].filter(Boolean).join(" · ");
   return (
-    <div className="card info">
-      {info.thumbnail && thumbOk ? (
-        <img className="thumb" src={info.thumbnail} width={96} height={54} alt="" onError={() => setThumbOk(false)} />
-      ) : (
-        <div className="thumb empty" />
-      )}
-      <div className="info-body">
-        <div className="info-title" title={info.title}>
-          {info.title}
-        </div>
-        <div className="muted small">{meta}</div>
-        <div className="badges">
+    <div className="info-line">
+      <div className="info-title" title={info.title}>
+        {info.title}
+      </div>
+      <div className="muted small nowrap meta">{meta}</div>
+      <div className="badges">
           {v && (v.transcode ? <span className="tag warn">변환 필요 · {codecLabel(v.vcodec)}→H.264</span> : <span className="tag ok">원본 그대로</span>)}
           {v?.hdr && <span className="tag warn">HDR</span>}
           {v && isVertical(v) && <span className="tag">세로</span>}
@@ -96,8 +106,32 @@ const InfoCard = ({ d, seq }: { d: Draft; seq?: SequenceInfo | null }) => {
               시퀀스 {fpsLabel(seq.fps)}와 다름
             </span>
           )}
-        </div>
       </div>
+    </div>
+  );
+};
+
+/** 받기 옵션(화질·오디오만·자막): 요약 한 줄, 누르면 펼친다. */
+const Options = ({ d, seq, ctl }: { d: Draft; seq?: SequenceInfo | null; ctl: PanelController }) => {
+  const [open, setOpen] = useState(false);
+  const v = selected(d);
+  const summary = d.audioOnly
+    ? "오디오만 · WAV 48kHz"
+    : v
+      ? [variantLabel(v), codecLabel(v.vcodec), bytes(v.sizeBytes)].filter(Boolean).join(" · ")
+      : "자동 화질";
+  const sub = d.subtitle ? ` · 자막 ${d.subtitle.replace(/:auto$/, " (자동)")}` : "";
+  return (
+    <div className="section options-box">
+      <button type="button" className="disclosure" aria-expanded={open} onClick={() => setOpen(!open)}>
+        <span className="caret">{open ? "▾" : "▸"}</span> 받기 옵션 <span className="muted">· {summary + sub}</span>
+      </button>
+      {open && (
+        <>
+          {!d.audioOnly && (d.info?.variants?.length ?? 0) > 0 && <Variants d={d} seq={seq} ctl={ctl} />}
+          <Extras d={d} ctl={ctl} />
+        </>
+      )}
     </div>
   );
 };
@@ -131,81 +165,6 @@ const Variants = ({ d, seq, ctl }: { d: Draft; seq?: SequenceInfo | null; ctl: P
     </div>
   </div>
 );
-
-/** Time input that keeps the typed text until it parses (blur/Enter commits). */
-const TimeField = ({ label, value, onCommit }: { label: string; value?: number; onCommit: (v?: number) => void }) => {
-  const [text, setText] = useState(value === undefined ? "" : formatTime(value));
-  const [bad, setBad] = useState(false);
-  useEffect(() => {
-    setText(value === undefined ? "" : formatTime(value));
-    setBad(false);
-  }, [value]);
-  const commit = () => {
-    if (text.trim() === "") {
-      onCommit(undefined);
-      return;
-    }
-    const v = parseTime(text);
-    setBad(v === undefined);
-    if (v !== undefined) onCommit(v);
-  };
-  return (
-    <label className="time">
-      <span className="muted">{label}</span>
-      <input
-        type="text"
-        className={bad ? "bad" : ""}
-        value={text}
-        placeholder="0:00.0"
-        onChange={(e) => setText(e.target.value)}
-        onBlur={commit}
-        onKeyDown={(e) => {
-          if (e.key === "Enter") {
-            e.preventDefault();
-            commit();
-          }
-        }}
-      />
-    </label>
-  );
-};
-
-const RangeSection = ({ d, ctl }: { d: Draft; ctl: PanelController }) => {
-  const dur = d.info?.durationSec;
-  const r = d.range;
-  const { range, error } = rangeToSend(r, dur);
-  const start = r.start ?? 0;
-  const end = r.end ?? dur ?? 0;
-  const pct = (x: number) => (dur ? `${Math.max(0, Math.min(100, (x / dur) * 100))}%` : "0%");
-  return (
-    <div className="section range">
-      <label className="section-label check">
-        <input type="checkbox" checked={r.on} onChange={(e) => ctl.setRange({ on: e.target.checked })} />
-        구간만 받기
-        {dur ? <span className="muted small after">· 전체 {duration(dur)}</span> : null}
-      </label>
-      {r.on && (
-        <>
-          <div className="row times">
-            <TimeField label="시작" value={r.start} onCommit={(v) => ctl.setRange({ start: v })} />
-            <TimeField label="끝" value={r.end ?? dur} onCommit={(v) => ctl.setRange({ end: v })} />
-            <span className="muted small">{range ? `${formatTime(range.endSec - range.startSec)} 길이` : ""}</span>
-          </div>
-          {dur ? (
-            <div className="rangebar" aria-hidden="true">
-              <div className="sel" style={{ left: pct(start), width: `calc(${pct(end)} - ${pct(start)})` }} />
-            </div>
-          ) : null}
-          {error ? (
-            <div className="error small">{error}</div>
-          ) : (
-            <div className="muted small">앞뒤 1초 여유를 붙여 받고, 프로젝트 항목에 In/Out을 설정합니다.</div>
-          )}
-        </>
-      )}
-    </div>
-  );
-};
 
 /** WAV PCM 16-bit 48 kHz stereo: 192,000 bytes per second. */
 const WAV_BPS = 48000 * 2 * 2;

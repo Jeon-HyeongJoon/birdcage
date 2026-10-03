@@ -71,6 +71,18 @@
                 {
                   "tag": "button",
                   "attributes": {
+                    "class": "icon",
+                    "type": "button",
+                    "title": "지우기",
+                    "disabled": false
+                  },
+                  "children": [
+                    "×"
+                  ]
+                },
+                {
+                  "tag": "button",
+                  "attributes": {
                     "class": "primary",
                     "type": "submit",
                     "disabled": false

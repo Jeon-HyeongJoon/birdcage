@@ -71,6 +71,18 @@
                 {
                   "tag": "button",
                   "attributes": {
+                    "class": "icon",
+                    "type": "button",
+                    "title": "지우기",
+                    "disabled": false
+                  },
+                  "children": [
+                    "×"
+                  ]
+                },
+                {
+                  "tag": "button",
+                  "attributes": {
                     "class": "primary",
                     "type": "submit",
                     "disabled": true
@@ -84,10 +96,33 @@
             {
               "tag": "div",
               "attributes": {
-                "class": "muted small status"
+                "class": "player"
               },
               "children": [
-                "링크 확인 중…"
+                {
+                  "tag": "div",
+                  "attributes": {
+                    "class": "frame"
+                  },
+                  "children": [
+                    {
+                      "tag": "div",
+                      "attributes": {
+                        "class": "still empty"
+                      },
+                      "children": []
+                    },
+                    {
+                      "tag": "div",
+                      "attributes": {
+                        "class": "overlay chip"
+                      },
+                      "children": [
+                        "링크 확인 중…"
+                      ]
+                    }
+                  ]
+                }
               ]
             }
           ]

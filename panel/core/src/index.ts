@@ -6,5 +6,6 @@ export * from "./format";
 export * from "./choice";
 export * from "./time";
 export * from "./preview";
+export * from "./timeline";
 export * from "./failures.gen";
 export { validatePayload } from "./validators";

@@ -71,6 +71,18 @@
                 {
                   "tag": "button",
                   "attributes": {
+                    "class": "icon",
+                    "type": "button",
+                    "title": "지우기",
+                    "disabled": false
+                  },
+                  "children": [
+                    "×"
+                  ]
+                },
+                {
+                  "tag": "button",
+                  "attributes": {
                     "class": "primary",
                     "type": "submit",
                     "disabled": false
@@ -84,118 +96,157 @@
             {
               "tag": "div",
               "attributes": {
-                "class": "card info"
+                "class": "preview-panel"
               },
               "children": [
                 {
-                  "tag": "img",
-                  "attributes": {
-                    "class": "thumb",
-                    "src": "data:312"
-                  },
-                  "children": []
-                },
-                {
                   "tag": "div",
                   "attributes": {
-                    "class": "info-body"
+                    "class": "player"
                   },
                   "children": [
                     {
                       "tag": "div",
                       "attributes": {
-                        "class": "info-title",
-                        "title": "세로 영상 — 업로더가 붙인 아주 긴 제목이 두 줄을 넘으면 말줄임으로 잘리고 카드 높이는 그대로 유지된다 #편집 #레퍼런스"
-                      },
-                      "children": [
-                        "세로 영상 — 업로더가 붙인 아주 긴 제목이 두 줄을 넘으면 말줄임으로 잘리고 카드 높이는 그대로 유지된다 #편집 #레퍼런스"
-                      ]
-                    },
-                    {
-                      "tag": "div",
-                      "attributes": {
-                        "class": "muted small"
-                      },
-                      "children": [
-                        "creator.kr · TikTok · 0:47"
-                      ]
-                    },
-                    {
-                      "tag": "div",
-                      "attributes": {
-                        "class": "badges"
+                        "class": "frame"
                       },
                       "children": [
                         {
-                          "tag": "span",
+                          "tag": "img",
                           "attributes": {
-                            "class": "tag warn"
+                            "class": "still",
+                            "src": "data:312"
+                          },
+                          "children": []
+                        },
+                        {
+                          "tag": "div",
+                          "attributes": {
+                            "class": "overlay time"
                           },
                           "children": [
-                            "변환 필요 ·",
-                            "HEVC",
-                            "→H.264"
+                            "0:00.0",
+                            "/",
+                            "0:47.0"
                           ]
                         },
                         {
-                          "tag": "span",
+                          "tag": "div",
                           "attributes": {
-                            "class": "tag warn"
+                            "class": "overlay chip"
                           },
                           "children": [
-                            "HDR"
-                          ]
-                        },
-                        {
-                          "tag": "span",
-                          "attributes": {
-                            "class": "tag"
-                          },
-                          "children": [
-                            "세로"
-                          ]
-                        },
-                        {
-                          "tag": "span",
-                          "attributes": {
-                            "class": "tag warn",
-                            "title": "시퀀스 \"Vertical 1080\""
-                          },
-                          "children": [
-                            "시퀀스",
-                            "29.97fps",
-                            "와 다름"
+                            "파형 받는 중 40%"
                           ]
                         }
                       ]
                     }
                   ]
-                }
-              ]
-            },
-            {
-              "tag": "div",
-              "attributes": {
-                "class": "section"
-              },
-              "children": [
+                },
                 {
                   "tag": "div",
                   "attributes": {
-                    "class": "section-label"
+                    "class": "transport row"
                   },
                   "children": [
-                    "화질",
+                    {
+                      "tag": "button",
+                      "attributes": {
+                        "class": "icon",
+                        "type": "button",
+                        "title": "재생/정지 (Space)",
+                        "disabled": true
+                      },
+                      "children": [
+                        "▶"
+                      ]
+                    },
+                    {
+                      "tag": "button",
+                      "attributes": {
+                        "class": "icon",
+                        "type": "button",
+                        "title": "이전 프레임 (←)",
+                        "disabled": false
+                      },
+                      "children": [
+                        "◀|"
+                      ]
+                    },
+                    {
+                      "tag": "button",
+                      "attributes": {
+                        "class": "icon",
+                        "type": "button",
+                        "title": "다음 프레임 (→)",
+                        "disabled": false
+                      },
+                      "children": [
+                        "|▶"
+                      ]
+                    },
+                    {
+                      "tag": "button",
+                      "attributes": {
+                        "type": "button",
+                        "title": "재생헤드를 In으로 (I)",
+                        "disabled": false
+                      },
+                      "children": [
+                        "In"
+                      ]
+                    },
+                    {
+                      "tag": "button",
+                      "attributes": {
+                        "type": "button",
+                        "title": "재생헤드를 Out으로 (O)",
+                        "disabled": false
+                      },
+                      "children": [
+                        "Out"
+                      ]
+                    },
                     {
                       "tag": "span",
                       "attributes": {
-                        "class": "muted small"
+                        "class": "spacer"
+                      },
+                      "children": []
+                    },
+                    {
+                      "tag": "button",
+                      "attributes": {
+                        "class": "icon",
+                        "type": "button",
+                        "title": "축소",
+                        "disabled": false
                       },
                       "children": [
-                        "· 시퀀스",
-                        "1080",
-                        "×",
-                        "1920"
+                        "−"
+                      ]
+                    },
+                    {
+                      "tag": "button",
+                      "attributes": {
+                        "class": "icon",
+                        "type": "button",
+                        "title": "확대",
+                        "disabled": false
+                      },
+                      "children": [
+                        "+"
+                      ]
+                    },
+                    {
+                      "tag": "button",
+                      "attributes": {
+                        "type": "button",
+                        "title": "구간에 맞춤",
+                        "disabled": false
+                      },
+                      "children": [
+                        "맞춤"
                       ]
                     }
                   ]
@@ -203,172 +254,103 @@
                 {
                   "tag": "div",
                   "attributes": {
-                    "class": "choices",
-                    "role": "radiogroup",
-                    "aria-label": "화질"
+                    "class": "timeline-wrap"
                   },
                   "children": [
                     {
-                      "tag": "label",
+                      "tag": "div",
                       "attributes": {
-                        "class": "choice on"
+                        "class": "timeline"
                       },
                       "children": [
                         {
-                          "tag": "input",
+                          "tag": "div",
                           "attributes": {
-                            "type": "radio",
-                            "disabled": false,
-                            "checked": true
+                            "class": "strip"
                           },
                           "children": []
                         },
                         {
-                          "tag": "span",
+                          "tag": "canvas",
                           "attributes": {
-                            "class": "choice-main"
+                            "class": "wave",
+                            "style": "width: 100%; height: 30px;"
+                          },
+                          "children": []
+                        },
+                        {
+                          "tag": "div",
+                          "attributes": {
+                            "class": "wave-pending muted small"
                           },
                           "children": [
-                            "1080p"
+                            "파형 준비 중"
                           ]
                         },
                         {
-                          "tag": "span",
+                          "tag": "div",
                           "attributes": {
-                            "class": "choice-meta muted"
+                            "class": "playhead",
+                            "style": "left: 0px;"
                           },
-                          "children": [
-                            "HEVC · 25fps"
-                          ]
-                        },
-                        {
-                          "tag": "span",
-                          "attributes": {
-                            "class": "choice-size muted"
-                          },
-                          "children": [
-                            "17.5 MB"
-                          ]
-                        },
-                        {
-                          "tag": "span",
-                          "attributes": {
-                            "class": "choice-tags"
-                          },
-                          "children": [
-                            {
-                              "tag": "span",
-                              "attributes": {
-                                "class": "tag accent"
-                              },
-                              "children": [
-                                "추천"
-                              ]
-                            },
-                            {
-                              "tag": "span",
-                              "attributes": {
-                                "class": "tag warn"
-                              },
-                              "children": [
-                                "변환"
-                              ]
-                            }
-                          ]
+                          "children": []
                         }
                       ]
                     },
                     {
-                      "tag": "label",
+                      "tag": "div",
                       "attributes": {
-                        "class": "choice"
+                        "class": "ticks muted"
                       },
                       "children": [
                         {
-                          "tag": "input",
-                          "attributes": {
-                            "type": "radio",
-                            "disabled": false,
-                            "checked": false
-                          },
-                          "children": []
-                        },
-                        {
                           "tag": "span",
                           "attributes": {
-                            "class": "choice-main"
+                            "class": "first",
+                            "style": "left: 0px;"
                           },
                           "children": [
-                            "720p"
+                            "0:00"
                           ]
                         },
                         {
                           "tag": "span",
                           "attributes": {
-                            "class": "choice-meta muted"
+                            "class": true,
+                            "style": "left: 85.9574px;"
                           },
                           "children": [
-                            "H.264 · 25fps"
+                            "0:10"
                           ]
                         },
                         {
                           "tag": "span",
                           "attributes": {
-                            "class": "choice-size muted"
+                            "class": true,
+                            "style": "left: 171.915px;"
                           },
                           "children": [
-                            "8.7 MB"
+                            "0:20"
                           ]
                         },
                         {
                           "tag": "span",
                           "attributes": {
-                            "class": "choice-tags"
+                            "class": true,
+                            "style": "left: 257.872px;"
                           },
-                          "children": []
-                        }
-                      ]
-                    }
-                  ]
-                }
-              ]
-            },
-            {
-              "tag": "div",
-              "attributes": {
-                "class": "section extras"
-              },
-              "children": [
-                {
-                  "tag": "div",
-                  "attributes": {
-                    "class": "row"
-                  },
-                  "children": [
-                    {
-                      "tag": "label",
-                      "attributes": {
-                        "class": "check nowrap"
-                      },
-                      "children": [
-                        {
-                          "tag": "input",
-                          "attributes": {
-                            "type": "checkbox",
-                            "disabled": false,
-                            "checked": false
-                          },
-                          "children": []
+                          "children": [
+                            "0:30"
+                          ]
                         },
-                        "오디오만",
                         {
                           "tag": "span",
                           "attributes": {
-                            "class": "muted small after"
+                            "class": true,
+                            "style": "left: 343.83px;"
                           },
                           "children": [
-                            "· WAV 48kHz",
-                            "· 약 8.6 MB"
+                            "0:40"
                           ]
                         }
                       ]
@@ -378,13 +360,13 @@
                 {
                   "tag": "div",
                   "attributes": {
-                    "class": "row"
+                    "class": "row inout"
                   },
                   "children": [
                     {
                       "tag": "label",
                       "attributes": {
-                        "class": "subs nowrap"
+                        "class": "time"
                       },
                       "children": [
                         {
@@ -393,25 +375,140 @@
                             "class": "muted"
                           },
                           "children": [
-                            "자막"
+                            "In"
                           ]
                         },
                         {
-                          "tag": "select",
+                          "tag": "input",
                           "attributes": {
-                            "disabled": true,
+                            "class": true,
+                            "type": "text",
+                            "placeholder": "0:00.0",
+                            "disabled": false,
                             "value": ""
                           },
-                          "children": [
-                            {
-                              "tag": "option",
-                              "attributes": {},
-                              "children": [
-                                "없음"
-                              ]
-                            }
-                          ]
+                          "children": []
                         }
+                      ]
+                    },
+                    {
+                      "tag": "label",
+                      "attributes": {
+                        "class": "time"
+                      },
+                      "children": [
+                        {
+                          "tag": "span",
+                          "attributes": {
+                            "class": "muted"
+                          },
+                          "children": [
+                            "Out"
+                          ]
+                        },
+                        {
+                          "tag": "input",
+                          "attributes": {
+                            "class": true,
+                            "type": "text",
+                            "placeholder": "0:47.0",
+                            "disabled": false,
+                            "value": ""
+                          },
+                          "children": []
+                        }
+                      ]
+                    },
+                    {
+                      "tag": "span",
+                      "attributes": {
+                        "class": "muted small"
+                      },
+                      "children": [
+                        "전체"
+                      ]
+                    },
+                    {
+                      "tag": "span",
+                      "attributes": {
+                        "class": "spacer"
+                      },
+                      "children": []
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "tag": "div",
+              "attributes": {
+                "class": "info-line"
+              },
+              "children": [
+                {
+                  "tag": "div",
+                  "attributes": {
+                    "class": "info-title",
+                    "title": "세로 영상 — 업로더가 붙인 아주 긴 제목이 두 줄을 넘으면 말줄임으로 잘리고 카드 높이는 그대로 유지된다 #편집 #레퍼런스"
+                  },
+                  "children": [
+                    "세로 영상 — 업로더가 붙인 아주 긴 제목이 두 줄을 넘으면 말줄임으로 잘리고 카드 높이는 그대로 유지된다 #편집 #레퍼런스"
+                  ]
+                },
+                {
+                  "tag": "div",
+                  "attributes": {
+                    "class": "muted small nowrap meta"
+                  },
+                  "children": [
+                    "creator.kr · TikTok · 0:47"
+                  ]
+                },
+                {
+                  "tag": "div",
+                  "attributes": {
+                    "class": "badges"
+                  },
+                  "children": [
+                    {
+                      "tag": "span",
+                      "attributes": {
+                        "class": "tag warn"
+                      },
+                      "children": [
+                        "변환 필요 ·",
+                        "HEVC",
+                        "→H.264"
+                      ]
+                    },
+                    {
+                      "tag": "span",
+                      "attributes": {
+                        "class": "tag warn"
+                      },
+                      "children": [
+                        "HDR"
+                      ]
+                    },
+                    {
+                      "tag": "span",
+                      "attributes": {
+                        "class": "tag"
+                      },
+                      "children": [
+                        "세로"
+                      ]
+                    },
+                    {
+                      "tag": "span",
+                      "attributes": {
+                        "class": "tag warn",
+                        "title": "시퀀스 \"Vertical 1080\""
+                      },
+                      "children": [
+                        "시퀀스",
+                        "29.97fps",
+                        "와 다름"
                       ]
                     }
                   ]
@@ -421,33 +518,35 @@
             {
               "tag": "div",
               "attributes": {
-                "class": "section range"
+                "class": "section options-box"
               },
               "children": [
                 {
-                  "tag": "label",
+                  "tag": "button",
                   "attributes": {
-                    "class": "section-label check"
+                    "class": "disclosure",
+                    "type": "button",
+                    "disabled": false
                   },
                   "children": [
                     {
-                      "tag": "input",
+                      "tag": "span",
                       "attributes": {
-                        "type": "checkbox",
-                        "disabled": false,
-                        "checked": false
+                        "class": "caret"
                       },
-                      "children": []
+                      "children": [
+                        "▸"
+                      ]
                     },
-                    "구간만 받기",
+                    "받기 옵션",
                     {
                       "tag": "span",
                       "attributes": {
-                        "class": "muted small after"
+                        "class": "muted"
                       },
                       "children": [
-                        "· 전체",
-                        "0:47"
+                        "·",
+                        "1080p · HEVC · 17.5 MB"
                       ]
                     }
                   ]

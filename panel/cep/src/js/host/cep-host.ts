@@ -195,6 +195,25 @@ export class CepHost implements HostAdapter {
     return { name: res.name ?? "", width: res.width, height: res.height, fps: res.fps ?? 0 };
   }
 
+  /**
+   * Keeps the preview shortcuts (Space, I, O, ←/→, Home/End) in the panel while it has focus;
+   * otherwise Premiere handles them for its own timeline. 전체 키를 가로채지 않고 이 키만(Shift 조합 포함).
+   * 키 코드: macOS는 가상 키 코드, Windows는 VK. Premiere 실기 확인은 T-023.
+   */
+  captureKeys(): void {
+    const mac = os.platform() === "darwin";
+    const codes = mac ? [49, 34, 31, 123, 124, 115, 119] : [32, 73, 79, 37, 39, 36, 35];
+    const keys = codes.flatMap((keyCode) => [
+      { keyCode },
+      { keyCode, shiftKey: true },
+    ]);
+    try {
+      csi.registerKeyEventsInterest(JSON.stringify(keys));
+    } catch {
+      /* older hosts: keys go to Premiere */
+    }
+  }
+
   revealFile(file: string): void {
     if (os.platform() === "win32") {
       child_process.spawn("explorer.exe", ["/select,", file], { detached: true, stdio: "ignore" });

@@ -1,0 +1,66 @@
+{
+  "$schema": "../schema/iteration.schema.json",
+  "id": "20261003-085358-T-025",
+  "task": "T-025",
+  "session": {
+    "kind": "worker",
+    "id": "2df3dff7-1152-4794-b7b9-d1f8c6d6a92c",
+    "model": "claude-opus-5-5"
+  },
+  "startedAt": "2026-10-03T08:53:58Z",
+  "endedAt": "2026-10-03T09:05:08Z",
+  "base": {
+    "branch": "feat/editing-options",
+    "commit": "b6025f82f3e7"
+  },
+  "head": {
+    "branch": "feat/editing-options",
+    "commit": "b6025f82f3e7",
+    "dirty": true
+  },
+  "state": "success",
+  "hypothesis": "미리보기를 패널 폭 전체 16:9로 키우고 그 아래 필름스트립·선 파형·In/Out 핸들·재생헤드가 있는 확대 가능한 타임라인을 두면, 사용자가 받기 전에 보고 들으며 구간을 바로 고를 수 있다. 좌표·확대·핸들 규칙을 순수 함수로 두면 Premiere 없이 검증되고, 골든은 미리보기 단계별 화면을 고정한다. 검증: G-core(타임라인 계산), G-ui(골든), 사람 검토.",
+  "summary": "미리보기 중심 UI: 패널 폭 전체 16:9 플레이어(재생본 전엔 스토리보드 정지 화면, 열 때 In 위치로 탐색), 재생 조작(재생·프레임 이동·In/Out·확대/축소/맞춤), 타임라인(필름스트립 + 선 파형: 구간 밖 흐리게·안 밝게, 막대·채움 없음 + In/Out 핸들 드래그 + 재생헤드 + 눈금), In/Out 입력 동기화, 정보 한 줄, 받기 옵션 접기, 받은 뒤에도 미리보기 유지(같은 영상 여러 구간). 단축키 Space·I·O·←→(Shift 1s)·Home/End, CEP에서는 이 키만 registerKeyEventsInterest. 상호작용 테스트가 실제 버그(타임라인에 this 풀린 setRange 전달 → 핸들 드래그 무반응)를 잡아 고침. 골든 13개(사람 검토 대기).",
+  "metrics": {
+    "durationMin": 11.1,
+    "evidence": 41,
+    "evidenceByLevel": {
+      "L1": 25,
+      "L2": 7,
+      "L3": 9
+    },
+    "pass": 40,
+    "fail": 0,
+    "skip": 0
+  },
+  "retro": {
+    "newChecks": [
+      "interaction.spec.ts: 핸들 드래그·클릭 탐색·I 키·프레임 이동·확대·맞춤, pageerror 감시",
+      "timeline.test.ts: 보기·확대·핸들·I/O 표시 규칙"
+    ],
+    "specChanges": [
+      "draft: 받은 뒤 유지(submitted), clearDraft; HostAdapter.captureKeys"
+    ],
+    "lessons": [
+      "정지 화면 골든은 상호작용 버그를 못 잡는다: 메서드를 콜백으로 넘겨 this가 풀린 버그는 실제 포인터 이벤트 테스트에서만 드러났다.",
+      "React 입력란은 effect로 갱신되므로 테스트는 값을 기다려(poll) 읽어야 한다."
+    ]
+  },
+  "next": [
+    "사용자 QA: 브라우저 QA 모드(실제 Helper) + Premiere 실기(T-023). 골든 13개 사람 검토(T-022·T-025)."
+  ],
+  "approvals": [
+    {
+      "action": "session.multitask",
+      "by": "전형준",
+      "at": "2026-10-03T08:53:59Z",
+      "note": "2026-10-03 미리보기 진행 지시(T-024~T-025)"
+    },
+    {
+      "action": "verifier.change",
+      "by": "전형준",
+      "at": "2026-10-03T08:53:59Z",
+      "note": "같은 지시 — UI 변경에 따른 골든 재생성과 픽스처(미리보기 시나리오) 추가, draft 유지 동작에 맞춘 기존 테스트 기대 갱신"
+    }
+  ]
+}

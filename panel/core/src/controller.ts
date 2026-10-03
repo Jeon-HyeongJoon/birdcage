@@ -65,6 +65,8 @@ export interface Draft {
   subtitle?: string;
   /** Staged preview (waveform, playable video, generated storyboard) for this probe. */
   preview?: PreviewState;
+  /** Downloads started from this draft (UI feedback). */
+  submitted?: number;
 }
 
 export interface DraftRange {
@@ -285,6 +287,12 @@ export class Controller {
     const jobId = await c.createJob(url, variant?.res ?? this._state.settings.maxHeight, JSON.parse(JSON.stringify(extra)));
     this.placements.set(jobId, placement);
     if (this._state.jobs.some((j) => j.snap.jobId === jobId)) this.patchJob(jobId, { placement });
+    // 찾아보기 흐름: 받은 뒤에도 미리보기를 유지해 같은 영상의 다른 부분을 이어서 고를 수 있다.
+    this.set({ draft: { ...this._state.draft, submitted: (this._state.draft.submitted ?? 0) + 1 } });
+  }
+
+  /** Clears the link field and closes the preview. */
+  clearDraft(): void {
     this.draftSeq++;
     this.closePreview();
     this.set({ draft: EMPTY_DRAFT });
