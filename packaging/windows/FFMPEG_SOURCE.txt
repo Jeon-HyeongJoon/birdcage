@@ -1,0 +1,15 @@
+FFmpeg 8.1.2 Essentials Build for Windows x64
+================================================
+
+Binary provider: Gyan Doshi Windows builds
+Binary URL: https://www.gyan.dev/ffmpeg/builds/packages/ffmpeg-8.1.2-essentials_build.zip
+Binary archive SHA-256: db580001caa24ac104c8cb856cd113a87b0a443f7bdf47d8c12b1d740584a2ec
+Build information: https://www.gyan.dev/ffmpeg/builds/
+Build scripts: https://github.com/GyanD/codexffmpeg
+FFmpeg source: https://ffmpeg.org/releases/ffmpeg-8.1.2.tar.xz
+FFmpeg project: https://ffmpeg.org/
+
+The provider identifies this static Essentials build as GPLv3 and lists libx264 among
+its included libraries. The unmodified ffmpeg.exe and ffprobe.exe are redistributed
+as separate programs invoked by Birdcage. See licenses/ffmpeg/LICENSE.txt and the
+upstream source/build links above for license and corresponding-source information.

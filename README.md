@@ -95,14 +95,15 @@ V0 실측(Apple Silicon, 이 Mac):
 | VP9/Opus 4초 → H.264/AAC | 정규화 ~0.3–0.4s (h264_videotoolbox) |
 | H.264 인코더 감지 | 185–191ms (1회, 캐시) |
 
-## Windows (추후 테스트)
+## Windows x64 (실기 테스트 전)
 
 - Helper: `GOOS=windows go build ./cmd/birdcage-helper` (크로스 컴파일 확인됨). 자식 프로세스는 Job Object로 묶어 종료.
 - 개발 설치: `scripts/cep-dev-install.ps1` (PlayerDebugMode 레지스트리 + 빌드).
-- ffmpeg/ffprobe는 V0에서 수동 배치(PATH 또는 `--ffmpeg/--ffprobe`).
+- 개인용 배포 ZIP: `make package-windows` → `artifacts/windows/Birdcage-Windows-x64-<version>.zip`.
+- 배포 ZIP은 checksum으로 고정한 FFmpeg/ffprobe GPLv3 정적 빌드를 Helper 옆 `tools/`에 포함한다. PATH·별도 설치는 필요 없다.
 - 미검증 항목: 패널의 `bin/win32-x64` 경로, 한글 사용자명 경로, Defender 오탐, 콘솔 창 숨김.
 
 ## 라이선스 메모
 
 - `panel/cep`는 bolt-cep(MIT) 템플릿 기반: `panel/cep/THIRD_PARTY_LICENSE_bolt-cep.txt`
-- 런타임 도구(yt-dlp Unlicense, deno MIT, ffmpeg LGPL/GPL)는 번들하지 않고 사용자 기기에 설치한다.
+- yt-dlp(Unlicense)·Deno(MIT)는 Helper가 최초 실행 시 설치한다. Windows 개인용 ZIP은 FFmpeg/ffprobe(GPLv3)를 번들하고 출처·라이선스 고지를 포함한다.

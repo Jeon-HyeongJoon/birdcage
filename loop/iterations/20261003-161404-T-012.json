@@ -1,0 +1,42 @@
+{
+  "$schema": "../schema/iteration.schema.json",
+  "id": "20261003-161404-T-012",
+  "task": "T-012",
+  "session": {
+    "kind": "worker"
+  },
+  "startedAt": "2026-10-03T16:14:04Z",
+  "endedAt": "2026-10-03T16:27:11Z",
+  "base": {
+    "branch": "feat/editing-options",
+    "commit": "963d43674a51"
+  },
+  "head": {
+    "branch": "feat/editing-options",
+    "commit": "963d43674a51",
+    "dirty": true
+  },
+  "state": "success",
+  "hypothesis": "Windows x64 배포 ZIP에 checksum으로 고정한 GPL FFmpeg 정적 빌드와 설치·제거 스크립트를 포함하면 PATH나 별도 도구 설치 없이 개인용 Premiere CEP 패널을 설치할 수 있다.",
+  "summary": "Windows x64 개인용 CEP 배포 ZIP 생성 경로를 추가했다. FFmpeg 8.1.2 GPLv3 정적 빌드를 고정 SHA-256으로 검증해 ffmpeg/ffprobe를 Helper 옆에 번들하고, 무서명 CEP 설치·복구형 제거 스크립트와 패키지 파일 checksum 검증, 라이선스 고지를 포함했다. 77,933,512바이트 ZIP의 내부 checksum·x64 PE·Helper 0.1.0·libx264 구성을 검증했고 전체 게이트가 통과했다.",
+  "metrics": {
+    "durationMin": 13.1,
+    "evidence": 12,
+    "evidenceByLevel": {
+      "L1": 6,
+      "L2": 5,
+      "L3": 1
+    },
+    "pass": 12,
+    "fail": 0,
+    "skip": 0
+  },
+  "retro": {
+    "lessons": [
+      "개인용 오프라인 배포에서는 원격 ffmpeg 설치기보다 기존 bundled locator 경로에 고정 checksum 바이너리를 넣는 방식이 설치 실패 지점을 줄인다."
+    ]
+  },
+  "next": [
+    "Windows 10/11 x64에서 ZIP 압축 해제 후 install.cmd를 실행하고 Premiere의 패널 로드, 도구 인식, 미리보기, 다운로드, 가져오기, Defender 반응을 사람 확인한다."
+  ]
+}

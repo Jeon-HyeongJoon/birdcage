@@ -10,8 +10,8 @@ out="$root/panel/cep/src/bin"
 target="${1:-all}"
 cd "$root/helper"
 
-ver="0.1.0-dev"
-if sha=$(git -C "$root" rev-parse --short HEAD 2>/dev/null); then
+ver="${BIRDCAGE_VERSION:-0.1.0-dev}"
+if [ -z "${BIRDCAGE_VERSION:-}" ] && sha=$(git -C "$root" rev-parse --short HEAD 2>/dev/null); then
   ver="$ver+$sha"
   git -C "$root" diff --quiet 2>/dev/null || ver="$ver.dirty"
 fi
