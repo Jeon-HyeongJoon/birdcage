@@ -1,0 +1,46 @@
+{
+  "$schema": "../schema/iteration.schema.json",
+  "id": "20261003-132816-T-031",
+  "task": "T-031",
+  "session": {
+    "kind": "worker"
+  },
+  "startedAt": "2026-10-03T13:28:16Z",
+  "endedAt": "2026-10-03T13:36:24Z",
+  "base": {
+    "branch": "feat/editing-options",
+    "commit": "d55a72350f6c",
+    "dirty": true
+  },
+  "head": {
+    "branch": "feat/editing-options",
+    "commit": "d55a72350f6c",
+    "dirty": true
+  },
+  "state": "success",
+  "hypothesis": "완료된 JobView를 제한된 로컬 기록으로 병합하고, 동일한 병합 목록에서 메인 현황 요약과 별도 완료 기록을 렌더링하면 패널 재시작 뒤 기록과 창을 열지 않은 상태의 진행 가시성을 함께 제공할 수 있다",
+  "summary": "완료된 다운로드를 패널 로컬 기록에 중복 없이 최근 100개까지 보존하고, 별도 다운로드 패널을 현재 다운로드·최근 상태·완료 기록으로 구분했다. 메인 패널에는 다운로드 창을 열지 않아도 최근 작업 제목·단계·진행률·진행 중/완료 개수를 볼 수 있는 요약을 추가했다. UI 21개와 전체 게이트가 통과했다.",
+  "metrics": {
+    "durationMin": 8.1,
+    "evidence": 13,
+    "evidenceByLevel": {
+      "L1": 6,
+      "L2": 6,
+      "L3": 1
+    },
+    "pass": 13,
+    "fail": 0,
+    "skip": 0
+  },
+  "retro": {
+    "newChecks": [
+      "history.spec.ts: 완료 기록 중복 제거·재시작 유지·삭제와 메인 42% 현황 요약을 실제 Controller 픽스처로 검증"
+    ],
+    "lessons": [
+      "Helper 작업 목록은 프로세스 수명에 묶여 있으므로 사용자 기록은 패널 로컬 저장소에 별도로 보존하고, 실시간 작업이 같은 ID를 가질 때 우선하도록 병합해야 한다."
+    ]
+  },
+  "next": [
+    "Premiere 재시작 후 실제 다운로드 1건으로 메인 요약의 실시간 진행과 다운로드 패널의 완료 기록이 앱 재시작 뒤 유지되는지 사람 확인한다."
+  ]
+}

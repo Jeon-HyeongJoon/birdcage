@@ -7,6 +7,8 @@ const ACTION_EVENT = "com.birdcage.jobs.action";
 
 export interface JobsSnapshot {
   jobs: JobView[];
+  /** 현재 Controller가 소유한 작업. 없으면(테스트·구버전) 모든 jobs를 현재 작업으로 본다. */
+  liveJobIds?: string[];
   libraryDir?: string;
 }
 

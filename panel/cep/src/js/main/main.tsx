@@ -14,7 +14,9 @@ import {
   title,
 } from "@birdcage/core";
 import { subscribeBackgroundColor } from "../lib/utils/bolt";
+import { withDownloadHistory } from "../download-history";
 import { Composer } from "./composer";
+import { phaseOf } from "./job-progress";
 import { SettingsRow, StatusDot } from "./status";
 import "./main.scss";
 
@@ -41,14 +43,15 @@ export type PanelController = Pick<
 
 export type PanelHost = Pick<HostAdapter, "revealFile" | "captureKeys"> & { openDownloads?: () => void };
 
-export const App = ({ controller: ctl, host }: { controller: PanelController; host: PanelHost }) => {
+export const App = ({ controller: ctl, host, downloadHistory = () => [] }: { controller: PanelController; host: PanelHost; downloadHistory?: () => JobView[] }) => {
   const s = useSyncExternalStore(
     (cb) => ctl.subscribe(cb),
     () => ctl.state,
   );
   const [bg, setBg] = useState("#232323");
   const focusMode = !!host.openDownloads;
-  const activeJobs = s.jobs.filter((j) => !TERMINAL_STATES.includes(j.snap.state) || j.import?.state === "pending" || j.import?.state === "importing").length;
+  const visibleJobs = focusMode ? withDownloadHistory(s.jobs, downloadHistory()) : s.jobs;
+  const activeJobs = visibleJobs.filter(isActiveJob);
 
   useEffect(() => {
     if (window.cep) subscribeBackgroundColor(setBg);
@@ -67,11 +70,12 @@ export const App = ({ controller: ctl, host }: { controller: PanelController; ho
           <>
             <span className="spacer" />
             <button className="downloads-window" onClick={() => host.openDownloads?.()}>
-              다운로드{activeJobs > 0 ? ` ${activeJobs}` : ""}
+              다운로드{activeJobs.length > 0 ? ` ${activeJobs.length}` : ""}
             </button>
           </>
         )}
       </header>
+      {focusMode && visibleJobs.length > 0 && <DownloadSummary jobs={visibleJobs} open={() => host.openDownloads?.()} />}
       {s.connection === "failed" && (
         <div className="row status-error">
           <pre className="error">{s.error}</pre>
@@ -112,6 +116,39 @@ export const App = ({ controller: ctl, host }: { controller: PanelController; ho
         </footer>
       )}
     </div>
+  );
+};
+
+const isActiveJob = (view: JobView): boolean =>
+  !TERMINAL_STATES.includes(view.snap.state) || view.import?.state === "pending" || view.import?.state === "importing";
+
+const DownloadSummary = ({ jobs, open }: { jobs: JobView[]; open: () => void }) => {
+  const active = jobs.filter(isActiveJob);
+  const completed = jobs.filter((view) => view.snap.state === "done");
+  const current = active[0] ?? completed[0] ?? jobs[0];
+  const phase = phaseOf(current);
+  const running = active.length > 0;
+  return (
+    <button type="button" className={`download-summary ${phase.tone}`} onClick={open} aria-live="polite">
+      <span className="row summary-head">
+        <span className="summary-title" title={current.snap.info?.title || current.snap.url}>{title(current.snap)}</span>
+        <span className={phase.tone === "bad" ? "error small" : phase.tone === "done" ? "ok small" : "small"}>
+          {running ? phase.label : current.snap.state === "done" ? "다운로드 완료" : phase.label}
+        </span>
+      </span>
+      {running && (
+        <span className={`bar${phase.fraction === undefined ? " unknown" : ""}`}>
+          {phase.fraction !== undefined && <span style={{ width: `${Math.round(phase.fraction * 100)}%` }} />}
+        </span>
+      )}
+      <span className="row summary-meta muted small">
+        {phase.detail && <span>{phase.detail}</span>}
+        <span className="spacer" />
+        {active.length > 0 && <span>진행 중 {active.length}</span>}
+        {completed.length > 0 && <span>완료 기록 {completed.length}</span>}
+        <span>자세히 ›</span>
+      </span>
+    </button>
   );
 };
 
