@@ -294,6 +294,7 @@ func ParseInfo(b []byte) (*engine.Info, error) {
 		Subtitles:   subtitleList(r.Subtitles, r.AutoCaps, r.Language),
 	}
 	info.Variants, info.BestAudio = buildVariants(r.Formats)
+	info.Storyboards = buildStoryboards(r.Formats)
 	sel := r.Requested
 	if len(sel) == 0 && r.FormatID != "" {
 		sel = []rawFormat{r.rawFormat}

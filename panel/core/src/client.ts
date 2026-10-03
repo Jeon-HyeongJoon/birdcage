@@ -123,6 +123,15 @@ export class HelperClient {
     return (env.data as JobList).jobs;
   }
 
+  /** Starts the staged preview of a probe; states arrive as preview.state events. */
+  openPreview(probeId: string): void {
+    this.send("preview.open", undefined, { probeId });
+  }
+
+  closePreview(probeId: string): void {
+    if (this.connected) this.send("preview.close", undefined, { probeId });
+  }
+
   /** Starts tool installation; progress arrives as tools.status events. */
   ensureTools(channel?: "stable" | "nightly"): void {
     this.send("tools.ensure", undefined, channel ? { channel } : undefined);

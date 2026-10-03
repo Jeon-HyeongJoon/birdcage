@@ -31,7 +31,7 @@ const nested: Record<string, Shape> = {
   "job.options": { maxHeight: "number", profile: "string", probeId: "string?", formatId: "string?", range: "object?", audioOnly: "boolean?", subtitles: "object?" },
   "job.clip": { inSec: "number", outSec: "number" },
   "job.download": { status: "string", downloadedBytes: "number", fraction: "number", totalBytes: "number?", speedBps: "number?" },
-  "job.info": { id: "string", title: "string", extractor: "string", webpageUrl: "string", selected: "array?", thumbnail: "string?", variants: "array?", subtitles: "array?" },
+  "job.info": { id: "string", title: "string", extractor: "string", webpageUrl: "string", selected: "array?", thumbnail: "string?", variants: "array?", subtitles: "array?", storyboards: "array?" },
   "job.media": { container: "string", durationSec: "number", sizeBytes: "number", video: "object?", audio: "object?" },
   "job.plan": { profile: "string", video: "string", audio: "string", passthrough: "boolean", reasons: "array" },
   "job.failure": { kind: "string", message: "string", policy: "string", detail: "string?" },
@@ -40,6 +40,9 @@ const nested: Record<string, Shape> = {
 const variant: Shape = { formatId: "string", res: "number", vcodec: "string", transcode: "boolean", sizeBytes: "number?", fps: "number?", hdr: "boolean?" };
 const subtitle: Shape = { lang: "string", name: "string?", auto: "boolean?" };
 const range: Shape = { startSec: "number", endSec: "number" };
+const storyboard: Shape = { width: "number", height: "number", cols: "number", rows: "number", intervalSec: "number", sprites: "array" };
+const sprite: Shape = { url: "string", startSec: "number", durationSec: "number" };
+const peaks: Shape = { bucketSec: "number", count: "number", durationSec: "number", data: "string" };
 
 const payloads: Record<string, Shape> = {
   hello: { client: "string", clientVersion: "string", host: "object" },
@@ -47,6 +50,9 @@ const payloads: Record<string, Shape> = {
   "job.create": { url: "string", maxHeight: "number?", probeId: "string?", formatId: "string?", range: "object?", audioOnly: "boolean?", subtitles: "object?" },
   "media.probe": { url: "string", maxHeight: "number?" },
   "media.info": { url: "string", probeId: "string?", info: "object?", failure: "object?" },
+  "preview.open": { probeId: "string" },
+  "preview.close": { probeId: "string" },
+  "preview.state": { probeId: "string", stage: "string", progress: "number", peaks: "object?", video: "object?", storyboard: "object?", cached: "boolean?", error: "string?" },
   "job.accepted": { jobId: "string" },
   "job.cancel": { jobId: "string" },
   "job.update": { job: "object" },
@@ -89,9 +95,16 @@ function checkFailure(f: unknown, where: string, errs: string[]): void {
   }
 }
 
+function checkStoryboard(sb: unknown, where: string, errs: string[]): void {
+  check(sb, storyboard, where, errs);
+  const o = (sb ?? {}) as Record<string, unknown>;
+  if (Array.isArray(o.sprites)) o.sprites.forEach((x, i) => check(x, sprite, `${where}.sprites[${i}]`, errs));
+}
+
 function checkInfo(info: unknown, where: string, errs: string[]): void {
   check(info, nested["job.info"], where, errs);
   const o = (info ?? {}) as Record<string, unknown>;
+  if (Array.isArray(o.storyboards)) o.storyboards.forEach((v, i) => checkStoryboard(v, `${where}.storyboards[${i}]`, errs));
   if (Array.isArray(o.variants)) o.variants.forEach((v, i) => check(v, variant, `${where}.variants[${i}]`, errs));
   if (Array.isArray(o.subtitles)) o.subtitles.forEach((v, i) => check(v, subtitle, `${where}.subtitles[${i}]`, errs));
 }
@@ -116,6 +129,11 @@ export function validatePayload(type: string, data: unknown): string[] {
   if (type === "job.update" || type === "job.done" || type === "job.failed") checkJob(d.job, `${type}.job`, errs);
   if (type === "job.create" && d.range !== undefined) check(d.range, range, `${type}.range`, errs);
   if (type === "job.create" && d.subtitles !== undefined) check(d.subtitles, subtitle, `${type}.subtitles`, errs);
+  if (type === "preview.state") {
+    if (d.peaks !== undefined) check(d.peaks, peaks, `${type}.peaks`, errs);
+    if (d.storyboard !== undefined) checkStoryboard(d.storyboard, `${type}.storyboard`, errs);
+    if (!["audio", "video", "ready", "failed"].includes(String(d.stage))) errs.push(`${type}.stage: unknown ${d.stage}`);
+  }
   if (type === "media.info") {
     if (d.info !== undefined) checkInfo(d.info, `${type}.info`, errs);
     if (d.failure !== undefined) checkFailure(d.failure, `${type}.failure`, errs);

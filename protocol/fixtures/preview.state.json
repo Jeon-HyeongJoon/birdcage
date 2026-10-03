@@ -1,0 +1,36 @@
+{
+  "v": 0,
+  "type": "preview.state",
+  "data": {
+    "probeId": "p0a1b2c3d4e5f",
+    "stage": "ready",
+    "progress": 1,
+    "peaks": {
+      "bucketSec": 0.01,
+      "count": 4,
+      "durationSec": 0.04,
+      "data": "AAo/fw=="
+    },
+    "video": {
+      "path": "/Users/me/Library/Application Support/Birdcage/preview/Youtube-BaW_jenozKc/preview.mp4",
+      "width": 640,
+      "height": 360,
+      "fps": 30,
+      "durationSec": 10
+    },
+    "storyboard": {
+      "width": 160,
+      "height": 90,
+      "cols": 10,
+      "rows": 10,
+      "intervalSec": 0.5,
+      "sprites": [
+        {
+          "url": "/Users/me/Library/Application Support/Birdcage/preview/Youtube-BaW_jenozKc/sb_000.jpg",
+          "startSec": 0,
+          "durationSec": 10
+        }
+      ]
+    }
+  }
+}

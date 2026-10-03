@@ -55,6 +55,8 @@ type Info struct {
 	BestAudio *Format `json:"bestAudio,omitempty"`
 	// Subtitles lists available subtitle tracks (manual first; automatic only in the original language).
 	Subtitles []Subtitle `json:"subtitles,omitempty"`
+	// Storyboards are the platform's thumbnail sprite sheets (YouTube), smallest tiles first.
+	Storyboards []Storyboard `json:"storyboards,omitempty"`
 	// InfoPath is the engine's cached info file reused by Download (yt-dlp --load-info-json).
 	InfoPath string `json:"-"`
 }
@@ -77,6 +79,24 @@ type Variant struct {
 	Transcode bool `json:"transcode"`
 	// Parts are the formats downloaded for this variant (progress aggregation).
 	Parts []Format `json:"-"`
+}
+
+// Storyboard is a set of sprite sheets: each sprite holds Cols×Rows tiles, one every IntervalSec.
+// 타임라인 필름스트립과 스크럽 미리보기에 쓴다(영상을 받지 않고 0.6s, docs/decisions/0011).
+type Storyboard struct {
+	Width       int      `json:"width"`  // tile size in pixels
+	Height      int      `json:"height"` //
+	Cols        int      `json:"cols"`
+	Rows        int      `json:"rows"`
+	IntervalSec float64  `json:"intervalSec"`
+	Sprites     []Sprite `json:"sprites"`
+}
+
+// Sprite is one sheet image (a URL, or a local file path for generated storyboards).
+type Sprite struct {
+	URL         string  `json:"url"`
+	StartSec    float64 `json:"startSec"`
+	DurationSec float64 `json:"durationSec"`
 }
 
 // Subtitle is one available subtitle track.

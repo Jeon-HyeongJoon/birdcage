@@ -524,7 +524,7 @@
     },
     {
       "id": "T-023",
-      "title": "Premiere 실기: 구간 In/Out(setInPoint 단위)·배치 4종·소스 모니터·캡션 트랙·시퀀스 정보(15.2와 26)",
+      "title": "Premiere 실기: 구간 In/Out(setInPoint 단위)·배치 4종·소스 모니터·캡션 트랙·시퀀스 정보·미리보기 \u003cvideo\u003e 재생·단축키(registerKeyEventsInterest) (15.2와 26)",
       "mode": "human",
       "status": "open",
       "passes": false,
@@ -538,6 +538,85 @@
           "kind": "human",
           "maxLevel": "L5",
           "what": "Premiere 15.2·26에서 각 기능 확인"
+        }
+      ]
+    },
+    {
+      "id": "T-024",
+      "title": "미리보기 세션(Helper): 스토리보드 해석 → 오디오 먼저(파형 피크) → 360p H.264 미리보기(로컬 결합, faststart), 스토리보드 없으면 서버에서 프레임 추출, 디스크 캐시(LRU 2GB, 재사용)",
+      "mode": "compile",
+      "status": "done",
+      "passes": true,
+      "priority": 1,
+      "acceptance": [
+        {
+          "kind": "test",
+          "maxLevel": "L1",
+          "what": "Helper: 스토리보드 파싱(실제 -J)·피크·캐시 LRU·단계 이벤트(G-helper)"
+        },
+        {
+          "kind": "test",
+          "maxLevel": "L1",
+          "what": "패널 코어: preview 상태 반영·취소(G-core)"
+        },
+        {
+          "kind": "test",
+          "maxLevel": "L3",
+          "what": "온라인: 실제 YouTube 미리보기 단계별 시간 기록(G-e2e)"
+        }
+      ],
+      "evidence": [
+        "E-20261003-084319-006"
+      ]
+    },
+    {
+      "id": "T-025",
+      "title": "미리보기·타임라인 UI: 큰 16:9 플레이어, 필름스트립, 선 파형(미니멀), In/Out 핸들 드래그, 확대/축소, 단축키(Space·I·O·←→), 시간 입력 동기화, 골든 갱신",
+      "mode": "compile",
+      "status": "open",
+      "passes": false,
+      "priority": 1,
+      "dependsOn": [
+        "T-024"
+      ],
+      "acceptance": [
+        {
+          "kind": "test",
+          "maxLevel": "L1",
+          "what": "패널 코어: 타임라인 좌표·핸들·확대 계산(G-core)"
+        },
+        {
+          "kind": "test",
+          "maxLevel": "L1",
+          "what": "UI 골든(G-ui)"
+        },
+        {
+          "kind": "human",
+          "maxLevel": "L5",
+          "what": "미리보기·타임라인 골든 사람 검토"
+        }
+      ]
+    },
+    {
+      "id": "T-026",
+      "title": "검색·찾아보기: ytsearch 결과 목록(제목·길이·썸네일·조회수) → 선택하면 미리보기. 추천은 이후",
+      "mode": "compile",
+      "status": "open",
+      "passes": false,
+      "priority": 2,
+      "dependsOn": [
+        "T-025"
+      ],
+      "acceptance": [
+        {
+          "kind": "test",
+          "maxLevel": "L1",
+          "what": "Helper·코어 검색 테스트"
+        },
+        {
+          "kind": "test",
+          "maxLevel": "L3",
+          "what": "온라인 검색 E2E"
         }
       ]
     }

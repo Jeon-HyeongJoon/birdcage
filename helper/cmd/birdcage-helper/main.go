@@ -35,6 +35,7 @@ import (
 	"birdcage/helper/internal/jobs"
 	"birdcage/helper/internal/media"
 	"birdcage/helper/internal/perf"
+	"birdcage/helper/internal/preview"
 	"birdcage/helper/internal/protocol"
 	"birdcage/helper/internal/server"
 	"birdcage/helper/internal/tools"
@@ -49,7 +50,7 @@ type options struct {
 	exitOnStdin, perfOn, keepWork, showVersion, ensureTools                   bool
 	channel                                                                   string
 	perfEvery                                                                 time.Duration
-	maxConcurrent, maxHeight, fragments                                       int
+	maxConcurrent, maxHeight, fragments, previewCacheMB                       int
 }
 
 func parseFlags(args []string) (options, error) {
@@ -66,6 +67,7 @@ func parseFlags(args []string) (options, error) {
 	fs.StringVar(&o.perfLog, "perf-log", "", "performance log path (default <data>/logs/perf-YYYYMMDD.jsonl)")
 	fs.DurationVar(&o.perfEvery, "perf-sample", 10*time.Second, "runtime sample interval in the perf log (0 = off)")
 	fs.StringVar(&o.logLevel, "log-level", "info", "debug | info | warn | error")
+	fs.IntVar(&o.previewCacheMB, "preview-cache-mb", 2048, "preview cache size cap on disk (MB)")
 	fs.StringVar(&o.ytdlp, "yt-dlp", os.Getenv("BIRDCAGE_YTDLP"), "yt-dlp path override")
 	fs.StringVar(&o.ffmpeg, "ffmpeg", os.Getenv("BIRDCAGE_FFMPEG"), "ffmpeg path override")
 	fs.StringVar(&o.ffprobe, "ffprobe", os.Getenv("BIRDCAGE_FFPROBE"), "ffprobe path override")
@@ -176,8 +178,9 @@ func run(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
 		log.Error("listen", "err", err)
 		return 1
 	}
+	pv := &preview.Service{Cache: preview.Cache{Root: filepath.Join(o.dataDir, "preview"), CapBytes: int64(o.previewCacheMB) << 20}, Rec: rec}
 	srv := &server.Server{Token: token, Version: version, LibraryDir: o.libraryDir, DefaultHeight: o.maxHeight,
-		Jobs: mgr, Tools: tm, Rec: rec, Log: log}
+		Jobs: mgr, Preview: pv, Tools: tm, Rec: rec, Log: log}
 	hs := &http.Server{Handler: srv.Handler(), ReadHeaderTimeout: 5 * time.Second}
 	go func() {
 		if err := hs.Serve(ln); err != nil && !errors.Is(err, http.ErrServerClosed) {

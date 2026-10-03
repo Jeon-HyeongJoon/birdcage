@@ -133,3 +133,42 @@ func TestVariantNeedsTranscode(t *testing.T) {
 		}
 	}
 }
+
+// testdata/aqz-KE-bpKQ.info.json: 실제 -J(2026-10-03), 10분 35초. 스토리보드 sb3·sb2·sb1·sb0.
+func TestStoryboardsFromRealProbe(t *testing.T) {
+	b, err := os.ReadFile("testdata/aqz-KE-bpKQ.info.json")
+	if err != nil {
+		t.Fatal(err)
+	}
+	info, err := ParseInfo(b)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(info.Storyboards) != 4 {
+		t.Fatalf("storyboards %d", len(info.Storyboards))
+	}
+	sb2 := info.Storyboards[1] // 80×45, 10×10 타일, 약 5s 간격, 2장
+	if sb2.Width != 80 || sb2.Height != 45 || sb2.Cols != 10 || sb2.Rows != 10 || len(sb2.Sprites) != 2 {
+		t.Fatalf("sb2 %+v", sb2)
+	}
+	if sb2.IntervalSec < 4.9 || sb2.IntervalSec > 5.0 {
+		t.Fatalf("interval %.3f", sb2.IntervalSec)
+	}
+	last := sb2.Sprites[len(sb2.Sprites)-1]
+	if end := last.StartSec + last.DurationSec; end < 634 || end > 636 {
+		t.Fatalf("sprites cover %.1fs, want the 635s duration", end)
+	}
+	if info.Storyboards[3].Width != 320 {
+		t.Fatalf("largest last: %+v", info.Storyboards[3])
+	}
+	for _, v := range info.Variants {
+		if v.Res == 0 || v.VCodec == "" || v.FormatID == "sb0" {
+			t.Fatalf("storyboard leaked into variants: %+v", v)
+		}
+	}
+	// 짧은 영상(19s)에는 스토리보드가 없다.
+	zoo, _ := os.ReadFile("testdata/jNQXAC9IVRw.info.json")
+	if zi, _ := ParseInfo(zoo); len(zi.Storyboards) != 0 {
+		t.Fatalf("zoo storyboards %+v", zi.Storyboards)
+	}
+}

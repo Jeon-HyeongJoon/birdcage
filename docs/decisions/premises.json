@@ -354,6 +354,54 @@
         "verifiedAt": "2026-10-03",
         "ttlDays": 90
       }
+    },
+    {
+      "id": "P-0011-a",
+      "adr": "0011",
+      "level": "L1",
+      "claim": "실제 yt-dlp -J의 YouTube 스토리보드(sb0–sb3)를 시트·타일·간격으로 해석한다",
+      "check": {
+        "type": "command",
+        "dir": "helper",
+        "argv": [
+          "go",
+          "test",
+          "-count=1",
+          "-run",
+          "TestStoryboardsFromRealProbe",
+          "./internal/engine/ytdlp/"
+        ],
+        "timeoutSec": 120
+      }
+    },
+    {
+      "id": "P-0011-b",
+      "adr": "0011",
+      "level": "L3",
+      "claim": "yt-dlp가 YouTube 스토리보드를 format_note=storyboard(mhtml, rows·columns·fragments)로 내보내고, 시트 이미지는 쿠키 없이 받는다(실측 HTTP 200)",
+      "sources": [
+        "https://github.com/yt-dlp/yt-dlp/blob/master/yt_dlp/extractor/youtube/_video.py",
+        "session:2026-10-03 aqz-KE-bpKQ sb2 2장 82KB 0.6s"
+      ],
+      "check": {
+        "type": "expires",
+        "verifiedAt": "2026-10-03",
+        "ttlDays": 90
+      }
+    },
+    {
+      "id": "P-0011-c",
+      "adr": "0011",
+      "level": "L3",
+      "claim": "CEP 5.0+ 패널은 <video>로 MP4(H.264+AAC)를 재생한다(Adobe 문서). Premiere 15.2 실기 확인은 T-023",
+      "sources": [
+        "https://github.com/Adobe-CEP/CEP-Resources/blob/master/CEP_10.x/Documentation/CEP%2010.0%20HTML%20Extension%20Cookbook.md"
+      ],
+      "check": {
+        "type": "expires",
+        "verifiedAt": "2026-10-03",
+        "ttlDays": 180
+      }
     }
   ]
 }

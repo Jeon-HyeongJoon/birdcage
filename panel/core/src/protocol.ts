@@ -151,6 +151,39 @@ export interface Subtitle {
   auto?: boolean;
 }
 
+/** Thumbnail sprite sheets: each sprite holds cols×rows tiles, one every intervalSec. */
+export interface Storyboard {
+  width: number;
+  height: number;
+  cols: number;
+  rows: number;
+  intervalSec: number;
+  sprites: { url: string; startSec: number; durationSec: number }[];
+}
+
+/** Waveform: one linear peak per bucket, 0–255, base64 bytes. */
+export interface Peaks {
+  bucketSec: number;
+  count: number;
+  durationSec: number;
+  data: string;
+}
+
+export type PreviewStage = "audio" | "video" | "ready" | "failed";
+
+/** preview.state: staged preview of a probed link (storyboard → waveform → playable video). */
+export interface PreviewState {
+  probeId: string;
+  stage: PreviewStage;
+  progress: number; // current download 0..1, -1 unknown
+  peaks?: Peaks;
+  video?: { path: string; width: number; height: number; fps: number; durationSec: number };
+  /** Generated locally when the platform has no storyboard (local file paths). */
+  storyboard?: Storyboard;
+  cached?: boolean;
+  error?: string;
+}
+
 /** Source metadata from the engine (yt-dlp). */
 export interface SourceInfo {
   id: string;
@@ -166,6 +199,8 @@ export interface SourceInfo {
   variants?: Variant[];
   bestAudio?: MediaFormat;
   subtitles?: Subtitle[];
+  /** Platform storyboards (YouTube), smallest tiles first. */
+  storyboards?: Storyboard[];
 }
 
 /** ffprobe summary of the final file. */
@@ -290,6 +325,8 @@ export interface ClientMessages {
   "job.list": undefined;
   "tools.ensure": ToolsEnsure | undefined;
   "media.probe": MediaProbe;
+  "preview.open": { probeId: string };
+  "preview.close": { probeId: string };
 }
 
 /** Messages the helper sends. */
@@ -302,6 +339,7 @@ export interface ServerMessages {
   "job.list.ok": JobList;
   "tools.status": ToolsStatus;
   "media.info": MediaInfoMsg;
+  "preview.state": PreviewState;
   error: ProtocolError;
 }
 

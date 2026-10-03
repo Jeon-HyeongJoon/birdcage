@@ -13,6 +13,7 @@ import (
 	"birdcage/helper/internal/jobs"
 	"birdcage/helper/internal/media"
 	"birdcage/helper/internal/perf/perftest"
+	"birdcage/helper/internal/preview"
 	"birdcage/helper/internal/tools"
 )
 
@@ -57,6 +58,8 @@ func sampleMediaInfo() MediaInfo {
 	}
 	info.BestAudio = &engine.Format{ID: "140", Ext: "m4a", ACodec: "mp4a.40.2", SizeBytes: 160000}
 	info.Subtitles = []engine.Subtitle{{Lang: "en", Name: "English"}, {Lang: "en-orig", Name: "English (Original)", Auto: true}}
+	info.Storyboards = []engine.Storyboard{{Width: 80, Height: 45, Cols: 10, Rows: 10, IntervalSec: 4.96,
+		Sprites: []engine.Sprite{{URL: "https://i.ytimg.com/sb/BaW_jenozKc/storyboard3_L1/M0.jpg?sqp=x", StartSec: 0, DurationSec: 10}}}}
 	return MediaInfo{URL: "https://youtu.be/BaW_jenozKc", ProbeID: "p0a1b2c3d4e5f", Info: info}
 }
 
@@ -79,8 +82,15 @@ func fixtures() map[string]struct {
 			Jobs: []jobs.Snapshot{}}},
 		"job.create": {TypeJobCreate, "2", JobCreate{URL: "https://youtu.be/BaW_jenozKc", MaxHeight: 1080, ProbeID: "p0a1b2c3d4e5f", FormatID: "137+140",
 			Range: &engine.Section{Start: 2.5, End: 7.25}, Subtitles: &jobs.SubtitleRequest{Lang: "en-orig", Auto: true}}},
-		"media.probe":  {TypeMediaProbe, "6", MediaProbe{URL: "https://youtu.be/BaW_jenozKc", MaxHeight: 1080}},
-		"media.info":   {TypeMediaInfo, "6", sampleMediaInfo()},
+		"media.probe":   {TypeMediaProbe, "6", MediaProbe{URL: "https://youtu.be/BaW_jenozKc", MaxHeight: 1080}},
+		"media.info":    {TypeMediaInfo, "6", sampleMediaInfo()},
+		"preview.open":  {TypePreviewOpen, "7", PreviewOpen{ProbeID: "p0a1b2c3d4e5f"}},
+		"preview.close": {TypePreviewClose, "8", PreviewClose{ProbeID: "p0a1b2c3d4e5f"}},
+		"preview.state": {TypePreviewState, "", preview.State{ProbeID: "p0a1b2c3d4e5f", Stage: preview.StageReady, Progress: 1,
+			Peaks: &preview.Peaks{BucketSec: 0.01, Count: 4, DurationSec: 0.04, Data: "AAo/fw=="},
+			Video: &preview.Video{Path: "/Users/me/Library/Application Support/Birdcage/preview/Youtube-BaW_jenozKc/preview.mp4", Width: 640, Height: 360, FPS: 30, DurationSec: 10},
+			Storyboard: &engine.Storyboard{Width: 160, Height: 90, Cols: 10, Rows: 10, IntervalSec: 0.5,
+				Sprites: []engine.Sprite{{URL: "/Users/me/Library/Application Support/Birdcage/preview/Youtube-BaW_jenozKc/sb_000.jpg", StartSec: 0, DurationSec: 10}}}}},
 		"job.accepted": {TypeJobAccepted, "2", JobAccepted{JobID: "j0a1b2c3d4e5f"}},
 		"job.cancel":   {TypeJobCancel, "3", JobCancel{JobID: "j0a1b2c3d4e5f"}},
 		"job.done":     {TypeJobDone, "", JobEvent{Job: sampleJob()}},

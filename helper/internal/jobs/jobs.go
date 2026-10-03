@@ -263,6 +263,21 @@ func (m *Manager) Probe(ctx context.Context, rawURL string, maxHeight int, profi
 	return id, info, nil
 }
 
+// ProbeInfo returns a copy of a cached probe's info (nil when unknown or expired).
+func (m *Manager) ProbeInfo(id string) *engine.Info {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	p := m.probes[id]
+	if p == nil || time.Since(p.at) > m.cfg.ProbeTTL {
+		return nil
+	}
+	info := *p.info
+	return &info
+}
+
+// Toolset resolves the tools like a job does (미리보기도 같은 엔진·ffmpeg를 쓴다).
+func (m *Manager) Toolset(ctx context.Context) (Toolset, error) { return m.deps.Tools(ctx) }
+
 // evictProbesLocked drops expired probes and the oldest beyond MaxProbes; it returns their dirs.
 func (m *Manager) evictProbesLocked(now time.Time) []string {
 	var dirs []string
@@ -676,7 +691,7 @@ func (m *Manager) pipeline(ctx context.Context, j *job) (string, error) {
 		}
 	}
 	slim := *info // 작업 스냅샷은 진행률마다 전송되므로 선택지 목록은 빼고 보낸다
-	slim.Variants, slim.Subtitles, slim.BestAudio = nil, nil, nil
+	slim.Variants, slim.Subtitles, slim.BestAudio, slim.Storyboards = nil, nil, nil, nil
 	m.update(j, true, func(s *Snapshot) { s.Info = &slim })
 
 	// 구간: 핸들을 붙여 받는다. HLS(조각 TS)는 시작 시각이 원본 기준이 아니라 전체를 받고 In/Out만 건다.

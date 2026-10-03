@@ -1,0 +1,70 @@
+{
+  "$schema": "../schema/iteration.schema.json",
+  "id": "20261003-084319-T-024",
+  "task": "T-024",
+  "session": {
+    "kind": "worker",
+    "id": "2df3dff7-1152-4794-b7b9-d1f8c6d6a92c",
+    "model": "claude-opus-5-5"
+  },
+  "startedAt": "2026-10-03T08:43:19Z",
+  "endedAt": "2026-10-03T08:52:39Z",
+  "base": {
+    "branch": "feat/editing-options",
+    "commit": "77add1a70ea4",
+    "dirty": true
+  },
+  "head": {
+    "branch": "feat/editing-options",
+    "commit": "77add1a70ea4",
+    "dirty": true
+  },
+  "state": "success",
+  "hypothesis": "조회 결과(info.json)로 미리보기 세션을 단계적으로 열면(스토리보드 즉시 → 오디오 먼저 받아 파형 → 360p H.264 비디오 전용을 받아 로컬 결합) 받기 전에 보고 들을 수 있고, 디스크 캐시(LRU 2GB)로 같은 영상을 다시 볼 때는 즉시 열린다. 검증: 스토리보드 파싱(실제 -J), 피크 계산, 캐시 LRU, 단계 이벤트, 온라인 단계별 시간.",
+  "summary": "미리보기 세션: preview.open/close/state. 조회 결과의 YouTube 스토리보드(sb0–sb3) 해석, 오디오 먼저 받아 파형 피크(8kHz 디코드, 최대 2만 버킷, 0–255) → 360p H.264 비디오 전용 받아 오디오와 로컬 결합(faststart, H.264 아니면 변환) → 플랫폼 스토리보드 없으면 로컬 생성(160×90 10×10). 오디오 전용 포맷이 없으면 한 번만 받음. 디스크 캐시(데이터 폴더 preview/, LRU 2GB, --preview-cache-mb), 다시 열면 즉시. 패널 코어: 조회 완료 시 열고 같은 조회 상태만 반영, 링크 바꾸면 닫음, 타일·파형(dB 선)·file URL 순수 함수. 실제 YouTube: 19s 영상 파형 0.79s·재생 1.71s, 10분 35초 파형 2.55s·재생 5.60s, 재열기 0ms.",
+  "metrics": {
+    "durationMin": 9.3,
+    "evidence": 40,
+    "evidenceByLevel": {
+      "L1": 23,
+      "L2": 7,
+      "L3": 10
+    },
+    "pass": 40,
+    "fail": 0,
+    "skip": 0
+  },
+  "retro": {
+    "newChecks": [
+      "TestStoryboardsFromRealProbe(P-0011-a): 실제 -J 스토리보드 해석",
+      "preview: 피크 계산·LRU 축출·단계 순서(오디오→비디오→준비, 파형이 먼저)·캐시 재사용·단일 파일 출처·취소는 실패로 알리지 않음",
+      "TestPreviewMessages: 만료 조회 실패, 첫 상태 요청 id, 다운로드 실패 분류 메시지",
+      "TestEndToEndOnlinePreview(G-e2e): 실제 YouTube 단계별 시간 기록·캐시"
+    ],
+    "specChanges": [
+      "protocol: preview.open/close/state, media.info.storyboards",
+      "ADR 0011 + P-0011-a..c"
+    ],
+    "lessons": [
+      "같은 오디오를 두 번 받지 않게 비디오 전용만 받아 로컬에서 결합하면 단계가 자연스럽게 나뉜다(파형 먼저, 재생은 나중).",
+      "AAC 디코드 길이는 인코더 패딩만큼 길다(6s → 6.016s): 길이·개수 검사는 허용 오차로 쓴다."
+    ]
+  },
+  "next": [
+    "T-025: 미리보기·타임라인 UI(큰 16:9 플레이어, 필름스트립, 선 파형, In/Out 핸들, 확대/축소, 단축키, 골든)."
+  ],
+  "approvals": [
+    {
+      "action": "session.multitask",
+      "by": "전형준",
+      "at": "2026-10-03T08:43:19Z",
+      "note": "2026-10-03 미리보기 제안(T-024~T-026) 뒤 사용자가 파형 디자인을 지시하며 진행. 기본값(360p·2GB·검색은 다음) 적용"
+    },
+    {
+      "action": "verifier.change",
+      "by": "전형준",
+      "at": "2026-10-03T08:43:20Z",
+      "note": "같은 지시 — 승인된 제안의 미리보기 프로토콜(preview.*) 픽스처·전제 추가. 기존 검사는 추가만 한다."
+    }
+  ]
+}

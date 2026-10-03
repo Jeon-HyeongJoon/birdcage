@@ -4,7 +4,7 @@ import { HelperClient, HelperEndpoint, WebSocketFactory } from "./client";
 import { recommendVariant, SequenceInfo, targetRes } from "./choice";
 import { startFromURL } from "./time";
 import type { HostAdapter, ImportOptions, Placement } from "./host";
-import type { Failure, HelloOK, JobSnapshot, SourceInfo, TimeRange, ToolStatus } from "./protocol";
+import type { Failure, HelloOK, JobSnapshot, PreviewState, SourceInfo, TimeRange, ToolStatus } from "./protocol";
 import { TERMINAL_STATES } from "./protocol";
 
 export type ConnectionState = "idle" | "starting" | "connected" | "reconnecting" | "failed";
@@ -63,6 +63,8 @@ export interface Draft {
   audioOnly?: boolean;
   /** Subtitle track to fetch ("lang" or "lang:auto"); undefined = none. */
   subtitle?: string;
+  /** Staged preview (waveform, playable video, generated storyboard) for this probe. */
+  preview?: PreviewState;
 }
 
 export interface DraftRange {
@@ -211,6 +213,7 @@ export class Controller {
       this.set({ draft: { ...this._state.draft, url } });
       return;
     }
+    this.closePreview();
     this.set({ draft: { ...EMPTY_DRAFT, url } });
     if (!isLink(trimmed) || this._state.connection !== "connected") return;
     const timer = this.opts.setTimer ?? ((fn, ms) => setTimeout(fn, ms));
@@ -240,6 +243,8 @@ export class Controller {
       this.set({
         draft: { ...this._state.draft, status: "ready", probeId: res.probeId, info: res.info, formatId: rec?.formatId, recommendedId: rec?.formatId, range },
       });
+      // 미리보기: 스토리보드는 이미 info에 있고, 파형 → 재생 가능한 비디오가 preview.state로 이어진다.
+      if (res.probeId) this.client?.openPreview(res.probeId);
     } catch (e) {
       if (seq !== this.draftSeq) return;
       this.set({ draft: { ...this._state.draft, status: "failed", failure: { kind: "request", message: (e as Error).message } } });
@@ -281,7 +286,13 @@ export class Controller {
     this.placements.set(jobId, placement);
     if (this._state.jobs.some((j) => j.snap.jobId === jobId)) this.patchJob(jobId, { placement });
     this.draftSeq++;
+    this.closePreview();
     this.set({ draft: EMPTY_DRAFT });
+  }
+
+  private closePreview(): void {
+    const id = this._state.draft.probeId;
+    if (id) this.client?.closePreview(id);
   }
 
   /** Reads the active sequence (for recommendations and fps warnings). */
@@ -358,6 +369,9 @@ export class Controller {
       }
     });
     client.on("tools.status", (d) => this.set({ tools: d.tools, toolsInstalling: d.installing, toolsError: d.error }));
+    client.on("preview.state", (d) => {
+      if (d.probeId && d.probeId === this._state.draft.probeId) this.set({ draft: { ...this._state.draft, preview: d } });
+    });
   }
 
   private onClose(client: HelperClient, reason: string): void {

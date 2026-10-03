@@ -20,23 +20,26 @@ const Version = 0
 // Message types.
 const (
 	// panel → helper
-	TypeHello       = "hello"
-	TypeJobCreate   = "job.create"
-	TypeJobCancel   = "job.cancel"
-	TypeJobList     = "job.list"
-	TypeToolsEnsure = "tools.ensure"
-	TypeMediaProbe  = "media.probe"
+	TypeHello        = "hello"
+	TypeJobCreate    = "job.create"
+	TypeJobCancel    = "job.cancel"
+	TypeJobList      = "job.list"
+	TypeToolsEnsure  = "tools.ensure"
+	TypeMediaProbe   = "media.probe"
+	TypePreviewOpen  = "preview.open"
+	TypePreviewClose = "preview.close"
 
 	// helper → panel
-	TypeHelloOK     = "hello.ok"
-	TypeJobAccepted = "job.accepted"
-	TypeJobUpdate   = "job.update"
-	TypeJobDone     = "job.done"
-	TypeJobFailed   = "job.failed"
-	TypeJobListOK   = "job.list.ok"
-	TypeToolsStatus = "tools.status"
-	TypeMediaInfo   = "media.info"
-	TypeError       = "error"
+	TypeHelloOK      = "hello.ok"
+	TypeJobAccepted  = "job.accepted"
+	TypeJobUpdate    = "job.update"
+	TypeJobDone      = "job.done"
+	TypeJobFailed    = "job.failed"
+	TypeJobListOK    = "job.list.ok"
+	TypeToolsStatus  = "tools.status"
+	TypeMediaInfo    = "media.info"
+	TypePreviewState = "preview.state"
+	TypeError        = "error"
 )
 
 // Envelope wraps every message.
@@ -90,6 +93,17 @@ type JobCreate struct {
 type MediaProbe struct {
 	URL       string `json:"url"`
 	MaxHeight int    `json:"maxHeight,omitempty"`
+}
+
+// PreviewOpen starts the staged preview of a probed link (answered by preview.state events).
+// 패널당 미리보기는 하나: 새로 열면 이전 것은 취소된다.
+type PreviewOpen struct {
+	ProbeID string `json:"probeId"`
+}
+
+// PreviewClose stops the preview of a probe.
+type PreviewClose struct {
+	ProbeID string `json:"probeId"`
 }
 
 // MediaInfo answers MediaProbe with either the info or the classified failure.

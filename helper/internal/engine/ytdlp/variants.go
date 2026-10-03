@@ -18,7 +18,16 @@ type fullFormat struct {
 	ABR          float64 `json:"abr"`
 	DynamicRange string  `json:"dynamic_range"`
 	LangPref     float64 `json:"language_preference"`
+	FormatNote   string  `json:"format_note"`
+	Rows         int     `json:"rows"`
+	Columns      int     `json:"columns"`
+	Fragments    []struct {
+		URL      string  `json:"url"`
+		Duration float64 `json:"duration"`
+	} `json:"fragments"`
 }
+
+func (f fullFormat) storyboard() bool { return f.FormatNote == "storyboard" || f.Ext == "mhtml" }
 
 func (f fullFormat) hasVideo() bool { return f.VCodec != "" && f.VCodec != "none" }
 func (f fullFormat) hasAudio() bool { return f.ACodec != "" && f.ACodec != "none" }
@@ -88,6 +97,8 @@ func buildVariants(formats []fullFormat) (variants []engine.Variant, bestAudio *
 	for i := range formats {
 		f := &formats[i]
 		switch {
+		case f.storyboard():
+			continue // 썸네일 시트는 받을 영상이 아니다
 		case f.hasVideo():
 			r := f.res()
 			if r <= 0 {
@@ -200,4 +211,28 @@ func sortedKeys[V any](m map[string]V) []string {
 	}
 	sort.Strings(keys)
 	return keys
+}
+
+// buildStoryboards turns yt-dlp storyboard formats (sb0–sb3) into sprite sheets, smallest tiles first.
+func buildStoryboards(formats []fullFormat) []engine.Storyboard {
+	var out []engine.Storyboard
+	for _, f := range formats {
+		if !f.storyboard() || f.Rows <= 0 || f.Columns <= 0 || f.FPS <= 0 || len(f.Fragments) == 0 {
+			continue
+		}
+		sb := engine.Storyboard{Width: f.Width, Height: f.Height, Cols: f.Columns, Rows: f.Rows, IntervalSec: 1 / f.FPS}
+		start := 0.0
+		for _, fr := range f.Fragments {
+			if fr.URL == "" {
+				continue
+			}
+			sb.Sprites = append(sb.Sprites, engine.Sprite{URL: fr.URL, StartSec: start, DurationSec: fr.Duration})
+			start += fr.Duration
+		}
+		if len(sb.Sprites) > 0 {
+			out = append(out, sb)
+		}
+	}
+	sort.Slice(out, func(i, j int) bool { return out[i].Width < out[j].Width })
+	return out
 }

@@ -24,6 +24,7 @@ import (
 	"birdcage/helper/internal/jobs"
 	"birdcage/helper/internal/media"
 	"birdcage/helper/internal/perf"
+	"birdcage/helper/internal/preview"
 	"birdcage/helper/internal/protocol"
 	"birdcage/helper/internal/tools"
 )
@@ -42,6 +43,7 @@ type Server struct {
 	DefaultHeight  int
 	AllowedOrigins []string // extra exact origins (e.g. UXP later)
 	Jobs           *jobs.Manager
+	Preview        *preview.Service // nil = previews off
 	Tools          ToolManager
 	Rec            *perf.Recorder
 	Log            *slog.Logger
@@ -114,6 +116,10 @@ type session struct {
 	log     *slog.Logger
 	writeMu sync.Mutex
 	profile media.Profile
+
+	previewMu     sync.Mutex
+	previewID     string
+	previewCancel context.CancelFunc
 }
 
 func (ss *session) run(parent context.Context) {
@@ -232,6 +238,22 @@ func (ss *session) handle(ctx context.Context, data []byte) {
 		}
 		go ss.probe(ctx, env.ID, mp)
 
+	case protocol.TypePreviewOpen:
+		var po protocol.PreviewOpen
+		if err := protocol.DecodeData(env, &po); err != nil {
+			ss.fail(ctx, env.ID, "bad_request", err.Error())
+			return
+		}
+		ss.openPreview(ctx, env.ID, po.ProbeID)
+
+	case protocol.TypePreviewClose:
+		var pc protocol.PreviewClose
+		if err := protocol.DecodeData(env, &pc); err != nil {
+			ss.fail(ctx, env.ID, "bad_request", err.Error())
+			return
+		}
+		ss.stopPreview(pc.ProbeID)
+
 	case protocol.TypeJobCancel:
 		var jc protocol.JobCancel
 		if err := protocol.DecodeData(env, &jc); err != nil {
@@ -283,6 +305,56 @@ func (ss *session) probe(ctx context.Context, id string, mp protocol.MediaProbe)
 		msg.ProbeID, msg.Info = pid, info
 	}
 	_ = ss.send(ctx, protocol.TypeMediaInfo, id, msg)
+}
+
+// openPreview cancels the session's previous preview and starts this one in the background.
+func (ss *session) openPreview(ctx context.Context, id, probeID string) {
+	failed := func(msg string) {
+		_ = ss.send(ctx, protocol.TypePreviewState, id, preview.State{ProbeID: probeID, Stage: preview.StageFailed, Progress: -1, Error: msg})
+	}
+	if ss.srv.Preview == nil {
+		failed("미리보기를 쓸 수 없습니다")
+		return
+	}
+	info := ss.srv.Jobs.ProbeInfo(probeID)
+	if info == nil {
+		failed("링크 정보가 만료되었습니다. 다시 확인하세요.")
+		return
+	}
+	ts, err := ss.srv.Jobs.Toolset(ctx)
+	if err != nil {
+		failed(err.Error())
+		return
+	}
+	pctx, cancel := context.WithCancel(ctx)
+	ss.previewMu.Lock()
+	if ss.previewCancel != nil {
+		ss.previewCancel()
+	}
+	ss.previewID, ss.previewCancel = probeID, cancel
+	ss.previewMu.Unlock()
+	first := true
+	go func() {
+		defer cancel()
+		ss.srv.Preview.Run(pctx, probeID, info, preview.Tools{Engine: ts.Engine, FFmpeg: ts.Normalizer.FFmpeg, Prober: ts.Prober}, func(st preview.State) {
+			rid := ""
+			if first {
+				rid, first = id, false // 첫 상태가 요청의 답이다
+			}
+			if pctx.Err() == nil {
+				_ = ss.send(ctx, protocol.TypePreviewState, rid, st)
+			}
+		})
+	}()
+}
+
+func (ss *session) stopPreview(probeID string) {
+	ss.previewMu.Lock()
+	defer ss.previewMu.Unlock()
+	if ss.previewCancel != nil && (probeID == "" || probeID == ss.previewID) {
+		ss.previewCancel()
+		ss.previewCancel, ss.previewID = nil, ""
+	}
 }
 
 func (ss *session) ensureTools(ctx context.Context, id string, ch tools.Channel) {

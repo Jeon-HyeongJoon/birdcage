@@ -63,6 +63,22 @@
           "name": "English (Original)",
           "auto": true
         }
+      ],
+      "storyboards": [
+        {
+          "width": 80,
+          "height": 45,
+          "cols": 10,
+          "rows": 10,
+          "intervalSec": 4.96,
+          "sprites": [
+            {
+              "url": "https://i.ytimg.com/sb/BaW_jenozKc/storyboard3_L1/M0.jpg?sqp=x",
+              "startSec": 0,
+              "durationSec": 10
+            }
+          ]
+        }
       ]
     }
   }

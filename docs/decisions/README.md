@@ -15,3 +15,4 @@
 | [0008](0008-failure-taxonomy-ssot.md) | 실패 분류표 SSOT | 초안 |
 | [0009](0009-principles-ssot.md) | 원칙 SSOT와 생성된 AGENTS.md | 초안 |
 | [0010](0010-editing-options.md) | 편집용 가져오기 옵션(넣을 기능·뺄 기능, 구간 추출 방식, UI 토큰) | 초안 |
+| [0011](0011-preview.md) | 미리보기: 단계적(스토리보드 → 파형 → 360p), 디스크 캐시, 선 파형, 타임라인 | 초안 |
