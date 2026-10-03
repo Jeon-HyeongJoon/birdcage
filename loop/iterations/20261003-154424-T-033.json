@@ -1,0 +1,55 @@
+{
+  "$schema": "../schema/iteration.schema.json",
+  "id": "20261003-154424-T-033",
+  "task": "T-033",
+  "session": {
+    "kind": "worker"
+  },
+  "startedAt": "2026-10-03T15:44:24Z",
+  "endedAt": "2026-10-03T15:54:49Z",
+  "base": {
+    "branch": "feat/editing-options",
+    "commit": "c2dc09d16771",
+    "dirty": true
+  },
+  "head": {
+    "branch": "feat/editing-options",
+    "commit": "c2dc09d16771",
+    "dirty": true
+  },
+  "state": "success",
+  "hypothesis": "YouTube 403에서 메타데이터를 갱신해 재시도하고 다운로드 UI를 활성 작업과 기록으로 분리하면 엔진 오인과 정보 과밀을 함께 해소할 수 있다",
+  "summary": "실제 로그에서 도구가 설치된 상태의 YouTube 미디어 HTTP 403을 확인했다. 미디어 URL 403은 네트워크 실패로 분류하고 메타데이터를 새로 조회한 뒤 한 번 재시도하도록 수정했다. 메인 패널은 완료 기록과 과거 작업 요약을 제거하고 현재 링크의 인라인 진행만 표시한다. 다운로드 창은 현재·최근 상태·완료 기록을 구획으로 나누고 완료 메타데이터를 시각·해상도·용량으로 축약했다. 승인된 verifier.change로 jobs DOM·픽셀 골든과 UI 검증을 갱신했고 전체 게이트 및 실제 YouTube 온라인 E2E 8개가 통과했으며 배포 빌드를 완료했다.",
+  "metrics": {
+    "durationMin": 10.4,
+    "evidence": 25,
+    "evidenceByLevel": {
+      "L1": 12,
+      "L2": 11,
+      "L3": 2
+    },
+    "pass": 24,
+    "fail": 0,
+    "skip": 0
+  },
+  "retro": {
+    "newChecks": [
+      "refresh_test.go 추가: 미디어 403 발생 시 download→probe→download 순서, 부분 파일 정리, network 분류를 검증",
+      "downloads/history UI 검증과 jobs DOM·픽셀 골든 갱신: 메인 기록 미노출, 섹션 구분, 간결한 완료 메타데이터를 검증"
+    ],
+    "lessons": [
+      "조회 직후에도 플랫폼의 서명된 미디어 URL은 만료되거나 거부될 수 있으므로, 도구 고장으로 단정하기 전에 원본 링크를 다시 조회해 URL을 갱신해야 한다."
+    ]
+  },
+  "next": [
+    "Premiere의 Birdcage 패널을 닫았다 다시 열어 새 Helper가 기동된 뒤 문제가 발생했던 링크의 다운로드가 정상 완료되는지 사람 확인한다."
+  ],
+  "approvals": [
+    {
+      "action": "verifier.change",
+      "by": "전형준",
+      "at": "2026-10-03T15:54:03Z",
+      "note": "사용자 승인: 다운로드 창 정보 계층, 메인 완료 기록 제거, jobs UI 골든과 관련 검증을 새 기준으로 갱신"
+    }
+  ]
+}

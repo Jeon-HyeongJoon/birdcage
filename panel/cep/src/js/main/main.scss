@@ -27,40 +27,6 @@
   white-space: nowrap;
 }
 
-button.download-summary {
-  display: block;
-  width: 100%;
-  margin: 0 0 $space-2;
-  padding: $space-2;
-  text-align: left;
-  background: $field;
-  .summary-head,
-  .summary-meta {
-    display: flex;
-  }
-  .summary-title {
-    flex: 1;
-    min-width: 0;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    color: $fg;
-  }
-  .summary-head > :last-child,
-  .summary-meta > span + span {
-    margin-left: $space-2;
-  }
-  .bar {
-    display: block;
-    margin: $space-1 0;
-    span {
-      display: block;
-      height: 100%;
-      background: $accent;
-    }
-  }
-}
-
 .badge {
   padding: 1px 6px;
   border-radius: $radius;
@@ -765,13 +731,28 @@ button.icon {
   .download-list {
     flex: 1;
   }
+  .download-section {
+    margin-bottom: $space-3;
+    border: 1px solid $line;
+    background: $surface;
+  }
   .download-section-title {
-    margin: $space-3 0 $space-1;
+    display: flex;
+    align-items: center;
+    margin: 0;
+    padding: $space-2;
+    border-bottom: 1px solid $line;
+    background: $field;
     font-weight: 600;
     text-transform: none;
+    .section-count {
+      margin-left: auto;
+      color: $muted;
+      font-weight: 400;
+    }
   }
-  .download-section:first-child .download-section-title {
-    margin-top: $space-1;
+  .jobs {
+    padding: 0 $space-2;
   }
   .downloads-empty {
     flex: 1;
@@ -779,6 +760,13 @@ button.icon {
   }
   .download-job {
     padding: $space-3 0;
+    border-top: 1px solid $line;
+    &:first-child {
+      border-top: 0;
+    }
+    .job-head {
+      margin-bottom: $space-1;
+    }
     .state {
       max-width: 48%;
       overflow: hidden;
@@ -793,6 +781,9 @@ button.icon {
     }
     .job-detail:empty {
       display: none;
+    }
+    .actions {
+      padding-top: $space-1;
     }
   }
 }

@@ -143,6 +143,27 @@ func (e *Engine) Download(ctx context.Context, req engine.DownloadRequest, onPro
 	if req.Info == nil || req.Info.InfoPath == "" {
 		return nil, engine.Fail(engine.KindInternal, "download without probe")
 	}
+	result, err := e.downloadOnce(ctx, req, onProgress)
+	if err == nil || !expiredMediaURL(err) || req.Info.WebpageURL == "" {
+		return result, err
+	}
+	if e.Log != nil {
+		e.Log.Info("media URL rejected, refreshing metadata before retry", "extractor", req.Info.Extractor, "id", req.Info.ID)
+	}
+	fresh, _, probeErr := e.Probe(ctx, req.Info.WebpageURL, req.WorkDir, req.MaxHeight)
+	if probeErr != nil {
+		return nil, probeErr
+	}
+	req.Info = fresh
+	refreshSelection(&req)
+	if cleanupErr := cleanupDownloadArtifacts(req.WorkDir); cleanupErr != nil {
+		return nil, engine.Fail(engine.KindInternal, cleanupErr.Error())
+	}
+	return e.downloadOnce(ctx, req, onProgress)
+}
+
+// downloadOnce performs one attempt using the URLs currently stored in req.Info.InfoPath.
+func (e *Engine) downloadOnce(ctx context.Context, req engine.DownloadRequest, onProgress func(engine.Progress)) (*engine.DownloadResult, error) {
 	if req.Section != nil {
 		res, err := e.rangeSection(ctx, req, onProgress)
 		if err == nil || !errors.Is(err, errSkipRange) {
@@ -194,6 +215,46 @@ func (e *Engine) Download(ctx context.Context, req engine.DownloadRequest, onPro
 		return nil, engine.Fail(engine.KindInternal, err.Error())
 	}
 	return &engine.DownloadResult{Path: path, Bytes: st.Size(), Proc: res.Stats}, nil
+}
+
+func expiredMediaURL(err error) bool {
+	var failure *engine.Failure
+	if !errors.As(err, &failure) {
+		return false
+	}
+	detail := strings.ToLower(failure.Detail)
+	return strings.Contains(detail, "unable to download video data") && strings.Contains(detail, "http error 403")
+}
+
+// refreshSelection keeps the user's option while replacing cached format metadata and signed URLs.
+func refreshSelection(req *engine.DownloadRequest) {
+	if req.AudioOnly {
+		if req.Info.BestAudio != nil {
+			req.FormatID = req.Info.BestAudio.ID
+			req.Info.Selected = []engine.Format{*req.Info.BestAudio}
+		}
+		return
+	}
+	if req.FormatID == "" {
+		return
+	}
+	if variant, ok := req.Info.Variant(req.FormatID); ok {
+		req.Info.Selected = append([]engine.Format(nil), variant.Parts...)
+	}
+}
+
+func cleanupDownloadArtifacts(workDir string) error {
+	paths, err := filepath.Glob(filepath.Join(workDir, "media.*"))
+	if err != nil {
+		return err
+	}
+	paths = append(paths, filepath.Join(workDir, "filepath.txt"))
+	for _, path := range paths {
+		if err := os.Remove(path); err != nil && !errors.Is(err, os.ErrNotExist) {
+			return err
+		}
+	}
+	return nil
 }
 
 // SubtitleArgs builds the subtitle-only invocation (no media download).

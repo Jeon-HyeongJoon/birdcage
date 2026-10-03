@@ -26,6 +26,8 @@ var rules = []rule{
 	{engine.KindLive, regexp.MustCompile(`(?i)is a live (?:event|stream)|premieres in|live event will begin|this live event`)},
 	{engine.KindUnsupportedURL, regexp.MustCompile(`(?i)unsupported url|is not a valid url|no video formats found|no video could be found`)},
 	{engine.KindFormat, regexp.MustCompile(`(?i)requested format is not available|requested format not available`)},
+	// Probe는 성공했지만 CDN의 서명 URL이 만료된 경우다. 추출기 고장이 아니라 새 URL로 복구 가능한 네트워크 실패다.
+	{engine.KindNetwork, regexp.MustCompile(`(?i)unable to download (?:video )?data: HTTP Error 403`)},
 	{engine.KindNetwork, regexp.MustCompile(`(?i)timed out|connection (?:reset|refused|aborted)|network is unreachable|name or service not known|nodename nor servname|temporary failure in name resolution|getaddrinfo failed|urlopen error|ssl:|remote end closed connection|incomplete ?read`)},
 	{engine.KindExtractorBroken, regexp.MustCompile(`(?i)unable to extract|failed to extract|signature extraction failed|n challenge|nsig|please report this issue|unable to decode|HTTP Error 403`)},
 }

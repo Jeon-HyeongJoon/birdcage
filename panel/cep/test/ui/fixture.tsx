@@ -2,6 +2,8 @@ import React from "react";
 import ReactDOM from "react-dom/client";
 import { Controller, type HostAdapter } from "@birdcage/core";
 import "../../src/js/index.scss";
+import { DownloadsApp } from "../../src/js/downloads/downloads";
+import type { JobsAction } from "../../src/js/jobs-channel";
 import { App, type PanelHost } from "../../src/js/main/main";
 import { FakeHelper } from "./fake-helper";
 import { hello, scenarios } from "./scenarios";
@@ -30,9 +32,24 @@ async function main() {
   const started = ctl.start();
   if (!scenario.startHelper || name === "connection-failed") await started;
   await scenario.run?.(ctl, helper);
+  const panel = name === "jobs"
+    ? <DownloadsApp
+        snapshot={{ jobs: ctl.state.jobs, liveJobIds: ctl.state.jobs.map((view) => view.snap.jobId), libraryDir: ctl.state.helper?.libraryDir }}
+        action={(action: JobsAction) => {
+          if (action.type === "cancel") ctl.cancel(action.jobId);
+          else if (action.type === "import") void ctl.importJob(action.jobId);
+          else if (action.type === "clearFinished") ctl.clearFinished();
+          else if (action.type === "reveal") {
+            const file = ctl.state.jobs.find((view) => view.snap.jobId === action.jobId)?.snap.file;
+            if (file) panelHost.revealFile?.(file);
+          }
+        }}
+        openMain={() => undefined}
+      />
+    : <App controller={ctl} host={panelHost} />;
   ReactDOM.createRoot(document.getElementById("app") as HTMLElement).render(
     <React.StrictMode>
-      <App controller={ctl} host={panelHost} />
+      {panel}
     </React.StrictMode>,
   );
   // 렌더와 effect(ctl.start 재호출 등)가 가라앉은 뒤 준비 표시.
