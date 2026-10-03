@@ -14,13 +14,22 @@ export interface ImportResult {
   inout?: "set" | "unverified" | "unsupported";
   /** Non-fatal problems to show (e.g. In/Out not verified). */
   warnings?: string[];
+  /** Timeline placement outcome (when requested). */
+  placed?: "ok" | "unverified" | "no_sequence" | "no_free_track" | "failed";
 }
+
+/** What happens after import: stay in the project, open in the Source Monitor, or go to the timeline at the playhead. */
+export type Placement = "project" | "source" | "track" | "insert" | "overwrite";
 
 export interface ImportOptions {
   /** Requested range inside the file → In/Out on the imported item. */
   clip?: Clip;
   /** Open the item in the Source Monitor after import. */
   openSource?: boolean;
+  /** Put the item on the active sequence at the playhead. */
+  place?: "track" | "insert" | "overwrite";
+  /** The file has video (audio-only items only need a free audio track). */
+  hasVideo?: boolean;
 }
 
 export interface HostAdapter {

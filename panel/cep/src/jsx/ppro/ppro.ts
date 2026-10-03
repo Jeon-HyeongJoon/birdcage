@@ -1,10 +1,13 @@
 // ExtendScript (ES3) side of the CEP panel. bolt-cep transpiles this file to ES3.
+import { firstFreeTrack, firstTargeted, Span } from "./placement";
 // Keep logic minimal here (ES3, hard to debug); decisions live in the TS panel/core.
 // ASCII ONLY (strings and comments): ExtendScript may read BOM-less files in the system code page
 // (e.g. Windows CP949), garbling non-ASCII text. The panel builds user-facing (Korean) messages from `code`.
 
 export type ImportCode = "no_project" | "file_missing" | "import_failed";
 export type InOutState = "set" | "unverified" | "unsupported";
+export type PlaceMode = "track" | "insert" | "overwrite";
+export type PlaceState = "ok" | "unverified" | "no_sequence" | "no_free_track" | "failed";
 type ImportResult = {
   ok: boolean;
   code?: ImportCode;
@@ -13,9 +16,11 @@ type ImportResult = {
   added?: number;
   inout?: InOutState;
   source?: boolean;
+  placed?: PlaceState;
+  track?: number;
 };
-/** Options from the panel: In/Out (seconds inside the file) and Source Monitor. */
-export type ImportOptions = { inSec?: number; outSec?: number; openSource?: boolean };
+/** Options from the panel: In/Out (seconds inside the file), Source Monitor, timeline placement. */
+export type ImportOptions = { inSec?: number; outSec?: number; openSource?: boolean; place?: PlaceMode; hasVideo?: boolean };
 
 const BIN = 2; // ProjectItemType.BIN
 /** Ticks per second in Premiere time values. */
@@ -80,6 +85,97 @@ const setInOut = (item: ProjectItem, inSec: number, outSec: number): InOutState 
   return "unverified";
 };
 
+const spans = (tracks: TrackCollection): Span[][] => {
+  const out: Span[][] = [];
+  for (let i = 0; i < tracks.numTracks; i++) {
+    const clips = tracks[i].clips;
+    const list: Span[] = [];
+    for (let j = 0; j < clips.numItems; j++) {
+      list.push([Number(clips[j].start.seconds), Number(clips[j].end.seconds)]);
+    }
+    out.push(list);
+  }
+  return out;
+};
+
+const targeted = (tracks: TrackCollection): boolean[] => {
+  const out: boolean[] = [];
+  for (let i = 0; i < tracks.numTracks; i++) {
+    let t = false;
+    try {
+      t = typeof tracks[i].isTargeted === "function" && tracks[i].isTargeted();
+    } catch (e) {
+      t = false;
+    }
+    out.push(t);
+  }
+  return out;
+};
+
+/** Seconds between the item's In and Out (its whole length when none are set). */
+const itemSeconds = (item: ProjectItem): number => {
+  try {
+    const d = pointSeconds(item.getOutPoint()) - pointSeconds(item.getInPoint());
+    return d > 0 ? d : 0;
+  } catch (e) {
+    return 0;
+  }
+};
+
+/** True when a clip of this item now starts at t on the video (or audio) track. */
+const placedAt = (tracks: TrackCollection, index: number, item: ProjectItem, t: number): boolean => {
+  if (index < 0 || index >= tracks.numTracks) return false;
+  const clips = tracks[index].clips;
+  for (let j = 0; j < clips.numItems; j++) {
+    const c = clips[j];
+    try {
+      if (near(Number(c.start.seconds), t) && c.projectItem && c.projectItem.nodeId === item.nodeId) return true;
+    } catch (e) {
+      // ignore unreadable clips
+    }
+  }
+  return false;
+};
+
+/**
+ * Places the item at the playhead. "track": the lowest video/audio tracks that are empty over the
+ * clip's length (overwrite there touches nothing). "insert"/"overwrite": the first targeted tracks.
+ */
+const place = (item: ProjectItem, mode: PlaceMode, hasVideo: boolean): { placed: PlaceState; track?: number } => {
+  const seq = app.project.activeSequence;
+  if (!seq) return { placed: "no_sequence" };
+  const pos = seq.getPlayerPosition();
+  const t = Number(pos.seconds);
+  let v = 0;
+  let a = 0;
+  if (mode === "track") {
+    const len = itemSeconds(item);
+    v = hasVideo ? firstFreeTrack(spans(seq.videoTracks), t, t + len) : 0;
+    a = firstFreeTrack(spans(seq.audioTracks), t, t + len);
+    if (v < 0 || a < 0) return { placed: "no_free_track" };
+  } else {
+    v = firstTargeted(targeted(seq.videoTracks));
+    a = firstTargeted(targeted(seq.audioTracks));
+  }
+  // Sequence.insertClip/overwriteClip(item, time, vIndex, aIndex); older builds only have Track methods.
+  type Place4 = (item: ProjectItem, time: Time, vIndex: number, aIndex: number) => unknown;
+  const s = seq as unknown as { insertClip?: Place4; overwriteClip?: Place4 };
+  try {
+    if (mode === "insert") {
+      if (typeof s.insertClip === "function") s.insertClip(item, pos, v, a);
+      else seq.videoTracks[v].insertClip(item, t);
+    } else if (typeof s.overwriteClip === "function") {
+      s.overwriteClip(item, pos, v, a);
+    } else {
+      seq.videoTracks[v].overwriteClip(item, pos);
+    }
+  } catch (e) {
+    return { placed: "failed", track: v };
+  }
+  const ok = hasVideo ? placedAt(seq.videoTracks, v, item, t) : placedAt(seq.audioTracks, a, item, t);
+  return { placed: ok ? "ok" : "unverified", track: hasVideo ? v : a };
+};
+
 /** Imports one file into the bin path (created as needed), e.g. ["Birdcage", "Youtube"]. */
 export const birdcageImport = (path: string, binPath: string[], opts?: ImportOptions): ImportResult => {
   if (!app.project || !app.project.rootItem) {
@@ -105,6 +201,15 @@ export const birdcageImport = (path: string, binPath: string[], opts?: ImportOpt
   const item = findItem(bin, f.fsName);
   if (opts.inSec !== undefined && opts.outSec !== undefined) {
     res.inout = item ? setInOut(item, opts.inSec, opts.outSec) : "unverified";
+  }
+  if (opts.place) {
+    if (!item) {
+      res.placed = "failed";
+    } else {
+      const p = place(item, opts.place, opts.hasVideo !== false);
+      res.placed = p.placed;
+      res.track = p.track;
+    }
   }
   if (opts.openSource && item) {
     try {

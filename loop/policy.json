@@ -269,6 +269,24 @@
       ]
     },
     {
+      "id": "G-jsx",
+      "level": "L2",
+      "kind": "build",
+      "cost": "free",
+      "estSec": 3,
+      "what": "ExtendScript 타입 검사(Premiere DOM 타입, noLib)",
+      "dir": "panel/cep",
+      "argv": [
+        "npm",
+        "run",
+        "-s",
+        "typecheck:jsx"
+      ],
+      "requires": [
+        "panel/cep/node_modules"
+      ]
+    },
+    {
       "id": "G-core",
       "level": "L1",
       "kind": "test",

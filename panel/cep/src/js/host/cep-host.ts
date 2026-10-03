@@ -15,6 +15,14 @@ const IMPORT_ERRORS = {
   import_failed: "Premiere가 파일을 가져오지 못했습니다",
 } as const;
 
+// 배치 결과 중 사용자에게 알릴 것(가져오기 자체는 성공). ok는 알리지 않는다.
+const PLACE_WARNINGS: Partial<Record<NonNullable<ImportResult["placed"]>, string>> = {
+  unverified: "타임라인에 놓았지만 위치를 확인하지 못했습니다.",
+  no_sequence: "열린 시퀀스가 없어 프로젝트에만 가져왔습니다.",
+  no_free_track: "재생 헤드 위치에 빈 트랙이 없어 프로젝트에만 가져왔습니다. 트랙을 추가하거나 삽입·덮어쓰기를 쓰세요.",
+  failed: "타임라인에 놓지 못했습니다(프로젝트에는 가져옴).",
+};
+
 export class CepHost implements HostAdapter {
   private child: ChildProcess | null = null;
   private endpoint: HelperEndpoint | null = null;
@@ -128,9 +136,19 @@ export class CepHost implements HostAdapter {
   }
 
   async importFile(file: string, bin: string[], opts?: ImportOptions): Promise<ImportResult> {
-    const es = opts ? { inSec: opts.clip?.inSec, outSec: opts.clip?.outSec, openSource: opts.openSource } : undefined;
+    const es = opts
+      ? { inSec: opts.clip?.inSec, outSec: opts.clip?.outSec, openSource: opts.openSource, place: opts.place, hasVideo: opts.hasVideo }
+      : undefined;
     const res = (await evalTS("birdcageImport", file, bin, es)) as
-      | { ok: boolean; code?: keyof typeof IMPORT_ERRORS; detail?: string; bin: string[]; inout?: ImportResult["inout"]; source?: boolean }
+      | {
+          ok: boolean;
+          code?: keyof typeof IMPORT_ERRORS;
+          detail?: string;
+          bin: string[];
+          inout?: ImportResult["inout"];
+          source?: boolean;
+          placed?: ImportResult["placed"];
+        }
       | undefined;
     if (!res) return { ok: false, error: "ExtendScript 응답이 없습니다.", bin };
     if (res.ok) {
@@ -138,7 +156,9 @@ export class CepHost implements HostAdapter {
       if (res.inout === "unverified") warnings.push("In/Out을 설정했지만 확인하지 못했습니다. 소스 모니터에서 확인하세요.");
       if (res.inout === "unsupported") warnings.push("이 Premiere 버전은 스크립트로 In/Out을 설정할 수 없습니다.");
       if (opts?.openSource && res.source === false) warnings.push("소스 모니터에서 열지 못했습니다.");
-      return { ok: true, bin: res.bin, inout: res.inout, warnings: warnings.length ? warnings : undefined };
+      const placeMsg = res.placed ? PLACE_WARNINGS[res.placed] : undefined;
+      if (placeMsg) warnings.push(placeMsg);
+      return { ok: true, bin: res.bin, inout: res.inout, placed: res.placed, warnings: warnings.length ? warnings : undefined };
     }
     const msg = (res.code && IMPORT_ERRORS[res.code]) || "알 수 없는 오류";
     return { ok: false, error: res.detail ? `${msg} (${res.detail})` : msg, bin: res.bin };

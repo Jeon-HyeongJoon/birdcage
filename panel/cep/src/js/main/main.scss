@@ -355,3 +355,37 @@ button.primary {
     background: $accent;
   }
 }
+
+// --- 가져오기 설정: 세그먼트(카드 아님) ---
+.seg {
+  display: flex;
+  border: 1px solid $line;
+  border-radius: $radius;
+  button {
+    flex: 1;
+    min-width: 0;
+    padding: 4px 2px;
+    border: 0;
+    border-radius: $radius-none;
+    background: transparent;
+    color: $muted;
+    white-space: nowrap;
+    &.on {
+      background: $surface;
+      color: $fg;
+      box-shadow: inset 0 -2px 0 $accent;
+    }
+  }
+  button + button {
+    border-left: 1px solid $line;
+  }
+}
+
+.import-settings {
+  .hint {
+    margin: $space-1 0 $space-2;
+  }
+  .options {
+    margin-bottom: 0;
+  }
+}

@@ -1,0 +1,69 @@
+{
+  "$schema": "../schema/iteration.schema.json",
+  "id": "20261002-191408-T-020",
+  "task": "T-020",
+  "session": {
+    "kind": "worker",
+    "id": "2df3dff7-1152-4794-b7b9-d1f8c6d6a92c",
+    "model": "claude-opus-5-5"
+  },
+  "startedAt": "2026-10-02T19:14:08Z",
+  "endedAt": "2026-10-03T07:51:06Z",
+  "base": {
+    "branch": "feat/editing-options",
+    "commit": "cde46bf515ed"
+  },
+  "head": {
+    "branch": "feat/editing-options",
+    "commit": "cde46bf515ed",
+    "dirty": true
+  },
+  "state": "success",
+  "hypothesis": "가져오기 뒤 배치를 프로젝트/소스 모니터/빈 트랙/삽입/덮어쓰기 중 하나로 고르게 하고, 받기 시점의 선택을 작업에 묶어 자동 가져오기에 쓰면 사용자가 받는 동안 설정을 바꿔도 결과가 예측 가능하다. 빈 트랙 탐색은 순수 함수(트랙별 [시작,끝] 목록)로 분리해 Premiere 없이 검증한다. 검증: G-core(배치 캡처·옵션 전달·빈 트랙 탐색), G-cep, 전제(ExtendScript ASCII).",
+  "summary": "가져온 뒤 배치: 프로젝트/소스 모니터/빈 트랙/삽입/덮어쓰기 세그먼트(설정), 받기 시작 시점의 선택을 작업에 묶어 자동·수동 가져오기에 사용. ExtendScript: 재생 헤드 위치(getPlayerPosition)에 빈 트랙은 트랙별 클립 [시작,끝]으로 가장 낮은 빈 트랙을 찾아 overwrite(아무것도 덮지 않음), 삽입·덮어쓰기는 첫 타겟 트랙, Sequence.insertClip/overwriteClip이 없으면 Track 메서드로 대체, 놓은 뒤 같은 항목 클립이 그 위치에 있는지 확인. 빈 트랙 탐색은 순수 함수(placement.ts)로 분리해 코어 테스트에서 검증. ExtendScript 타입 검사 게이트 G-jsx 추가(기존에 어떤 게이트도 jsx를 타입 검사하지 않았음).",
+  "failureSignatures": [
+    "sig:51f4642cce76"
+  ],
+  "metrics": {
+    "durationMin": 756.9,
+    "evidence": 67,
+    "evidenceByLevel": {
+      "L1": 40,
+      "L2": 14,
+      "L3": 13
+    },
+    "pass": 65,
+    "fail": 2,
+    "skip": 0
+  },
+  "retro": {
+    "newChecks": [
+      "G-jsx: ExtendScript(ppro) noLib 타입 검사, 주입 오류 검출 확인",
+      "placement.test.ts: 빈 트랙 탐색(맞닿음·겹침·전부 사용 중), 타겟 트랙, 배치 옵션 매핑, 받기 시점 캡처"
+    ],
+    "specChanges": [
+      "loop/policy.json: gateLadder += G-jsx"
+    ],
+    "lessons": [
+      "src/jsx는 메인 tsconfig에서 제외되고 jsx tsconfig는 TS 5.8에서 ES3가 제거되어 깨져 있었다: 타입 검사가 없는 코드는 게이트로 먼저 덮는다.",
+      "테스트 기대값을 손으로 셀 때 반열린 구간 [시작,끝)의 맞닿음을 두 번 틀렸다: 경계 사례는 표로 계산해서 쓴다."
+    ]
+  },
+  "next": [
+    "T-021: 오디오만(WAV) · 자막 사이드카(별도 호출로 격리, 구간 시프트) · 캡션 트랙 기능 검사."
+  ],
+  "approvals": [
+    {
+      "action": "session.multitask",
+      "by": "전형준",
+      "at": "2026-10-02T19:14:08Z",
+      "note": "2026-10-03 지시: T-017~T-022 연속 진행"
+    },
+    {
+      "action": "verifier.change",
+      "by": "전형준",
+      "at": "2026-10-02T19:15:47Z",
+      "note": "2026-10-03 지시(제안 승인) 범위의 검증 강화: ExtendScript 타입 검사 게이트 G-jsx 추가(기존 게이트는 바꾸지 않음)"
+    }
+  ]
+}

@@ -90,7 +90,7 @@ const connected = (jobs: State["jobs"], availableTools = tools): State => ({
   tools: availableTools,
   toolsInstalling: false,
   jobs,
-  settings: { autoImport: false, maxHeight: 1080 },
+  settings: { autoImport: false, maxHeight: 1080, placement: "track" },
   draft: { url: "", status: "idle", range: { on: false } },
 });
 
@@ -110,7 +110,7 @@ export const scenarios: Record<string, Scenario> = {
       tools: [],
       toolsInstalling: false,
       jobs: [],
-      settings: { autoImport: true, maxHeight: 1080 },
+      settings: { autoImport: true, maxHeight: 1080, placement: "project" },
       draft: { url: "", status: "idle", range: { on: false } },
     },
     missingTools: [],

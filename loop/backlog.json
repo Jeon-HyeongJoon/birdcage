@@ -449,8 +449,8 @@
       "id": "T-020",
       "title": "타임라인 배치: 빈에만 / 빈 트랙에 안전 배치 / 삽입 / 덮어쓰기(플레이헤드 위치, 트랙 타겟팅 따름)",
       "mode": "compile",
-      "status": "open",
-      "passes": false,
+      "status": "done",
+      "passes": true,
       "priority": 2,
       "dependsOn": [
         "T-019"
@@ -466,6 +466,10 @@
           "maxLevel": "L2",
           "what": "CEP 타입 검사(G-cep)"
         }
+      ],
+      "evidence": [
+        "E-20261002-191408-037",
+        "E-20261002-191408-002"
       ]
     },
     {

@@ -3,7 +3,7 @@
 import { HelperClient, HelperEndpoint, WebSocketFactory } from "./client";
 import { recommendVariant, SequenceInfo, targetRes } from "./choice";
 import { startFromURL } from "./time";
-import type { HostAdapter } from "./host";
+import type { HostAdapter, ImportOptions, Placement } from "./host";
 import type { Failure, HelloOK, JobSnapshot, SourceInfo, TimeRange, ToolStatus } from "./protocol";
 import { TERMINAL_STATES } from "./protocol";
 
@@ -14,17 +14,33 @@ export interface ImportState {
   error?: string;
   bin?: string[];
   inout?: "set" | "unverified" | "unsupported";
+  placed?: "ok" | "unverified" | "no_sequence" | "no_free_track" | "failed";
   warnings?: string[];
 }
 
 export interface JobView {
   snap: JobSnapshot;
   import?: ImportState;
+  /** Placement chosen when the download was started (applied on import). */
+  placement?: Placement;
 }
 
 export interface Settings {
   autoImport: boolean;
   maxHeight: number;
+  placement: Placement;
+}
+
+/** Import options for a finished job and its placement. */
+export function importOptions(snap: JobSnapshot, placement: Placement): ImportOptions | undefined {
+  const o: ImportOptions = {};
+  if (snap.clip) o.clip = snap.clip;
+  if (placement === "source") o.openSource = true;
+  if (placement === "track" || placement === "insert" || placement === "overwrite") {
+    o.place = placement;
+    o.hasVideo = !!snap.media?.video;
+  }
+  return Object.keys(o).length ? o : undefined;
 }
 
 export type ProbeStatus = "idle" | "probing" | "ready" | "failed";
@@ -106,6 +122,8 @@ export class Controller {
   private disposed = false;
   private starting = false;
   private draftSeq = 0;
+  /** Placement captured at submit, by job id (the job may arrive before or after the reply). */
+  private placements = new Map<string, Placement>();
 
   constructor(private opts: ControllerOptions) {
     this._state = {
@@ -113,7 +131,7 @@ export class Controller {
       tools: [],
       toolsInstalling: false,
       jobs: [],
-      settings: { autoImport: true, maxHeight: 1080, ...opts.settings },
+      settings: { autoImport: true, maxHeight: 1080, placement: "project", ...opts.settings },
       draft: EMPTY_DRAFT,
     };
   }
@@ -237,7 +255,10 @@ export class Controller {
     if (error) throw new Error(error);
     const extra = d.status === "ready" ? { probeId: d.probeId, formatId: d.formatId, range } : { range };
     const variant = d.info?.variants?.find((v) => v.formatId === d.formatId);
-    await c.createJob(url, variant?.res ?? this._state.settings.maxHeight, JSON.parse(JSON.stringify(extra)));
+    const placement = this._state.settings.placement;
+    const jobId = await c.createJob(url, variant?.res ?? this._state.settings.maxHeight, JSON.parse(JSON.stringify(extra)));
+    this.placements.set(jobId, placement);
+    if (this._state.jobs.some((j) => j.snap.jobId === jobId)) this.patchJob(jobId, { placement });
     this.draftSeq++;
     this.set({ draft: EMPTY_DRAFT });
   }
@@ -268,11 +289,14 @@ export class Controller {
     if (!view || view.snap.state !== "done" || !view.snap.file) return;
     if (view.import?.state === "importing") return;
     const bin = ["Birdcage", view.snap.info?.extractor || "Other"];
+    const placement = view.placement ?? this.placements.get(jobId) ?? this._state.settings.placement;
     this.patchJob(jobId, { import: { state: "importing", bin } });
     try {
-      const res = await this.opts.host.importFile(view.snap.file, bin, view.snap.clip ? { clip: view.snap.clip } : undefined);
+      const res = await this.opts.host.importFile(view.snap.file, bin, importOptions(view.snap, placement));
       this.patchJob(jobId, {
-        import: res.ok ? { state: "done", bin: res.bin, inout: res.inout, warnings: res.warnings } : { state: "failed", error: res.error, bin },
+        import: res.ok
+          ? { state: "done", bin: res.bin, inout: res.inout, placed: res.placed, warnings: res.warnings }
+          : { state: "failed", error: res.error, bin },
       });
     } catch (e) {
       this.patchJob(jobId, { import: { state: "failed", error: (e as Error).message, bin } });
@@ -343,7 +367,7 @@ export class Controller {
     const jobs = this._state.jobs.slice();
     const i = jobs.findIndex((j) => j.snap.jobId === job.jobId);
     if (i >= 0) jobs[i] = { ...jobs[i], snap: job };
-    else jobs.unshift({ snap: job });
+    else jobs.unshift({ snap: job, placement: this.placements.get(job.jobId) });
     this.set({ jobs });
   }
 

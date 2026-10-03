@@ -14,6 +14,7 @@ import {
 } from "@birdcage/core";
 import { subscribeBackgroundColor } from "../lib/utils/bolt";
 import { Composer } from "./composer";
+import { ImportSettings } from "./import-settings";
 import "./main.scss";
 
 export type PanelController = Pick<
@@ -36,8 +37,6 @@ export type PanelController = Pick<
 >;
 
 export type PanelHost = Pick<HostAdapter, "revealFile">;
-
-const HEIGHTS = [360, 480, 720, 1080, 1440, 2160];
 
 const CONNECTION_LABEL = {
   idle: "대기",
@@ -89,29 +88,7 @@ export const App = ({ controller: ctl, host }: { controller: PanelController; ho
 
       <Composer s={s} ctl={ctl} />
 
-      <div className="row options muted small">
-        <label>
-          기본 화질
-          <select
-            value={s.settings.maxHeight}
-            onChange={(e) => ctl.updateSettings({ maxHeight: Number(e.target.value) })}
-          >
-            {HEIGHTS.map((h) => (
-              <option key={h} value={h}>
-                {h}p
-              </option>
-            ))}
-          </select>
-        </label>
-        <label>
-          <input
-            type="checkbox"
-            checked={s.settings.autoImport}
-            onChange={(e) => ctl.updateSettings({ autoImport: e.target.checked })}
-          />
-          완료 시 프로젝트로 가져오기
-        </label>
-      </div>
+      <ImportSettings s={s} ctl={ctl} />
 
       <ul className="jobs">
         {s.jobs.map((j) => (
@@ -181,10 +158,15 @@ const JobItem = ({ view, controller: ctl, host }: { view: JobView; controller: P
         {active && <button onClick={() => ctl.cancel(j.jobId)}>취소</button>}
         {j.state === "done" && view.import?.state !== "done" && (
           <button disabled={view.import?.state === "importing"} onClick={() => void ctl.importJob(j.jobId)}>
-            {view.import?.state === "importing" ? "가져오는 중…" : "프로젝트로 가져오기"}
+            {view.import?.state === "importing" ? "가져오는 중…" : "가져오기"}
           </button>
         )}
-        {view.import?.state === "done" && <span className="ok small">✓ {view.import.bin?.join(" / ")}</span>}
+        {view.import?.state === "done" && (
+          <span className="ok small">
+            ✓ {view.import.bin?.join(" / ")}
+            {view.import.placed === "ok" ? " · 타임라인에 놓음" : ""}
+          </span>
+        )}
         {j.file && host.revealFile && <button onClick={() => host.revealFile!(j.file!)}>폴더에서 보기</button>}
       </div>
     </li>
