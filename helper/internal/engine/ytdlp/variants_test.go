@@ -172,3 +172,14 @@ func TestStoryboardsFromRealProbe(t *testing.T) {
 		t.Fatalf("zoo storyboards %+v", zi.Storyboards)
 	}
 }
+
+func TestParseFFmpegProgress(t *testing.T) {
+	line := "frame= 1029 fps= 64 q=-1.0 size=    5888KiB time=00:00:16.00 bitrate=1627.9kbits/s speed=1.84x elapsed=0:00:15.62"
+	p, ok := parseFFmpegProgress(line, 32)
+	if !ok || p.Fraction != 0.5 || p.ETASec < 8.6 || p.ETASec > 8.8 {
+		t.Fatalf("progress %+v ok=%v", p, ok)
+	}
+	if _, ok := parseFFmpegProgress("[download] Destination: x", 32); ok {
+		t.Fatal("non-progress line parsed")
+	}
+}

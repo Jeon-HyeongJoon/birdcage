@@ -23,8 +23,14 @@
 | 편집용 코덱(ProRes) | **뺌** | 1080p 1분 6.5s(Mac HW, ×22) / 21.3s(prores_ks, Windows에 HW 인코더 없음, ×73), 용량 ×3.1–7 | 1080p 탐색 최악 −73ms(GOP 2s 디코드 생략) |
 | 시퀀스 fps 변환 | **뺌**(불일치 경고만) | 전체 재인코딩 | 프레임 보간 품질 문제, Premiere가 시퀀스에서 처리 |
 
-### 구간 추출 방식(검증됨)
-- `--download-sections "*S-E" --downloader-args "ffmpeg_o:-copyts" --merge-output-format mp4`.
+### 구간 추출 방식(검증됨, 2026-10-03 갱신)
+- **먼저 범위 요청**: DASH mp4(YouTube·Instagram, 스트림별 단일 트랙 조각 파일)는 앞쪽 sidx(시간→바이트 색인)로 필요한 조각만
+  8MB 이하 범위 요청 4개 병렬로 받아 초기화 부분(ftyp+moov) 뒤에 붙인다(`internal/rangefetch`). 조각의 tfdt가 원래 시각을 담는다.
+  사용자 QA 영상(34분 52초 1080p, 1000–1030s): 첫 진행률 0.3s, 받기 0.89s, 전체 2.1s, In 프레임이 서버 원본과 md5 일치, 오디오 −0.04ms.
+  이전 방식(ffmpeg 구간)은 연속 스트림이라 재생 속도 약 1.8배로 제한되고(32s 구간 19.1s) 진행률이 없어 멈춘 것처럼 보였다.
+- 여러 트랙이 섞인 조각 파일은 조각 시각과 처음부터 읽은 시각이 어긋나(실측 21ms) 이 경로에서 뺀다. 색인 없음·URL 만료·webm은
+  아래 ffmpeg 구간 받기로 넘어가며, 이때 ffmpeg의 time=으로 진행률을 낸다.
+- 대체 경로: `--download-sections "*S-E" --downloader-args "ffmpeg_o:-copyts" --merge-output-format mp4`.
   DASH는 비디오·오디오가 따로 탐색된다: 비디오는 직전 키프레임(5.400s), 오디오는 요청 지점(7.244s) 또는 처음(Opus/webm, 0.014s)부터.
   `-copyts` + mp4만 원래 타임라인을 보존한다(mkv는 0.011/0으로 잃음).
 - 정규화: `-copyts -itsoffset -<비디오 시작> -i … -af atrim=start=0,aresample=async=1:first_pts=0` → 두 스트림 시작 0, 오디오는 앞을 자르거나 무음으로 채움(오디오만 재인코딩, 비용 미미).

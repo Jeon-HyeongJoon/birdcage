@@ -143,6 +143,15 @@ func (e *Engine) Download(ctx context.Context, req engine.DownloadRequest, onPro
 	if req.Info == nil || req.Info.InfoPath == "" {
 		return nil, engine.Fail(engine.KindInternal, "download without probe")
 	}
+	if req.Section != nil {
+		res, err := e.rangeSection(ctx, req, onProgress)
+		if err == nil || !errors.Is(err, errSkipRange) {
+			return res, err
+		}
+		if e.Log != nil {
+			e.Log.Info("byte-range section skipped, using yt-dlp sections", "reason", err.Error())
+		}
+	}
 	agg := newAggregator(req.Info)
 	lw := proc.NewLineWriter(func(line string) {
 		if p, ok := ParseProgress(line); ok {
@@ -155,13 +164,24 @@ func (e *Engine) Download(ctx context.Context, req engine.DownloadRequest, onPro
 			onProgress(engine.Progress{Status: "merging", Fraction: 1})
 		}
 	})
-	res, err := proc.Run(ctx, proc.Spec{
-		Path:       e.YtDlp,
-		Args:       e.RequestArgs(req),
-		Stdout:     lw,
-		StderrTail: 40,
-	})
+	// 구간 받기(ffmpeg)는 yt-dlp 진행률이 없다: ffmpeg의 time=을 구간 길이에 대어 진행률로 쓴다.
+	var errLines *proc.LineWriter
+	if sec := req.Section; sec != nil && onProgress != nil {
+		errLines = proc.NewLineWriter(func(line string) {
+			if p, ok := parseFFmpegProgress(line, sec.End-sec.Start); ok {
+				onProgress(p)
+			}
+		})
+	}
+	spec := proc.Spec{Path: e.YtDlp, Args: e.RequestArgs(req), Stdout: lw, StderrTail: 40}
+	if errLines != nil {
+		spec.Stderr = errLines
+	}
+	res, err := proc.Run(ctx, spec)
 	lw.Flush()
+	if errLines != nil {
+		errLines.Flush()
+	}
 	if err != nil {
 		return nil, e.failure(ctx, err, res)
 	}

@@ -181,8 +181,10 @@ type Prober struct{ FFprobe string }
 // Probe returns stream/format info for path.
 func (p *Prober) Probe(ctx context.Context, path string) (*Info, perf.ProcStats, error) {
 	out, res, err := proc.Output(ctx, proc.Spec{
-		Path:       p.FFprobe,
-		Args:       []string{"-v", "error", "-show_streams", "-show_format", "-of", "json", path},
+		Path: p.FFprobe,
+		// 분석 범위를 넓힌다: 구간 파일은 오디오가 비디오보다 수 초 앞서 시작할 수 있어(조각 단위가 다름)
+		// 기본 5초 안에 비디오 패킷이 없으면 pix_fmt를 못 찾고(unknown) 변환 대상으로 오판한다(실측 2026-10-03).
+		Args:       []string{"-v", "error", "-analyzeduration", "100M", "-probesize", "100M", "-show_streams", "-show_format", "-of", "json", path},
 		StderrTail: 10,
 	})
 	if err != nil {

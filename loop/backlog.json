@@ -619,6 +619,52 @@
           "what": "온라인 검색 E2E"
         }
       ]
+    },
+    {
+      "id": "T-027",
+      "title": "구간 다운로드 수정: ffmpeg 연속 스트림은 YouTube가 재생 속도(약 1.8배)로 제한 → DASH mp4의 sidx로 필요한 조각만 바이트 범위로 분할 수신(9MB/s), 정확한 진행률, 그 밖의 형식은 ffmpeg 진행률(time=) 표시",
+      "mode": "compile",
+      "status": "done",
+      "passes": true,
+      "priority": 1,
+      "acceptance": [
+        {
+          "kind": "test",
+          "maxLevel": "L1",
+          "what": "sidx 해석·조각 선택·분할 수신(로컬 Range 서버)·정렬 정확도(G-helper)"
+        },
+        {
+          "kind": "test",
+          "maxLevel": "L3",
+          "what": "실제 YouTube 긴 영상 구간: 시간·진행률·프레임 일치(G-e2e)"
+        }
+      ],
+      "evidence": [
+        "E-20261003-093138-006"
+      ]
+    },
+    {
+      "id": "T-028",
+      "title": "QA 반영: 상태는 초록/빨강 점만(버전·호환 표시 제거), 프로그레스 바형 스크러버(손잡이 드래그), Space 재생/정지(패널 어디서나), In/Out 손잡이 항상 표시, '가져온 뒤' 제거 → 새 빈 트랙(QE addTracks)에 재생헤드 위치로 자동 삽입(시퀀스 없으면 소스 모니터), 받는 중 진행 표시를 크게",
+      "mode": "compile",
+      "status": "open",
+      "passes": false,
+      "priority": 1,
+      "dependsOn": [
+        "T-027"
+      ],
+      "acceptance": [
+        {
+          "kind": "test",
+          "maxLevel": "L1",
+          "what": "패널 코어·상호작용 테스트(G-core·G-ui)"
+        },
+        {
+          "kind": "human",
+          "maxLevel": "L5",
+          "what": "Premiere 실기 QA(전형준)"
+        }
+      ]
     }
   ]
 }

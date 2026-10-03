@@ -2,9 +2,15 @@ package main
 
 import (
 	"context"
+	"crypto/md5"
+	"encoding/binary"
+	"encoding/hex"
+	"encoding/json"
 	"math"
 	"os"
+	"os/exec"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"testing"
 	"time"
@@ -137,7 +143,8 @@ func TestEndToEndOnlineRange(t *testing.T) {
 		t.Fatal(err)
 	}
 	if got != want {
-		t.Fatalf("frame at In (%.3fs) differs from the full download at %.2fs", j.Clip.InSec, a)
+		t.Fatalf("frame at In (%.3fs) differs from the full download at %.2fs (range plan %+v, full plan %+v, range selected %+v, full selected %+v)",
+			j.Clip.InSec, a, j.Plan, full.Plan, j.Info.Selected, full.Info.Selected)
 	}
 	for _, off := range []float64{0.5, 3.0} {
 		ref, _ := mediatest.PCM(ctx, tp[tools.FFmpeg], full.File, a+off, 0.3)
@@ -191,4 +198,142 @@ func TestEndToEndOnlineAudioAndSubtitles(t *testing.T) {
 		t.Fatalf("subtitle file %q: %v", b, err)
 	}
 	t.Logf("wav %.2fs clip %+v subtitle %s (%d bytes) timings %+v", j.Media.DurationSec, j.Clip, filepath.Base(j.SubtitleFile), len(b), j.Timings)
+}
+
+// TestEndToEndOnlineLongSection: 사용자 QA에서 멈춘 경우(34분 1080p 영상의 구간). 범위 요청 경로로 빨리 끝나고,
+// In 프레임·오디오가 서버의 원본(정확 탐색)과 같아야 한다. BIRDCAGE_E2E_LONG=1일 때만(네트워크 부담).
+func TestEndToEndOnlineLongSection(t *testing.T) {
+	if os.Getenv("BIRDCAGE_E2E") != "1" || os.Getenv("BIRDCAGE_E2E_LONG") != "1" {
+		t.Skip("set BIRDCAGE_E2E=1 BIRDCAGE_E2E_LONG=1")
+	}
+	perftest.Track(t)
+	tp := toolPaths(t)
+	args := []string{"--yt-dlp", tp[tools.YtDlp], "--ffmpeg", tp[tools.FFmpeg], "--ffprobe", tp[tools.FFprobe]}
+	if d := tp[tools.Deno]; d != "" {
+		args = append(args, "--deno", d)
+	}
+	h := startInProcess(t, args...)
+	c := connect(t, h.ready)
+	c.send(protocol.TypeHello, "h", protocol.Hello{Client: "e2e", Host: protocol.Host{App: "PPRO", Version: "15.2.0", API: "cep", OS: "mac"}})
+	c.until(30*time.Second, func(e protocol.Envelope) bool { return e.Type == protocol.TypeHelloOK })
+	const url = "https://www.youtube.com/watch?v=ASF56zUwB7Y"
+	c.send(protocol.TypeMediaProbe, "p", protocol.MediaProbe{URL: url})
+	var mi protocol.MediaInfo
+	_ = protocol.DecodeData(c.until(2*time.Minute, func(e protocol.Envelope) bool { return e.Type == protocol.TypeMediaInfo }), &mi)
+	if mi.Info == nil || len(mi.Info.Variants) == 0 {
+		t.Fatalf("probe %+v", mi.Failure)
+	}
+	v := mi.Info.Variants[0]
+	for _, x := range mi.Info.Variants {
+		if x.Res == 1080 && !x.Transcode {
+			v = x
+		}
+	}
+	const a, b = 1000.0, 1030.0
+	t0 := time.Now()
+	c.send(protocol.TypeJobCreate, "c", protocol.JobCreate{URL: url, ProbeID: mi.ProbeID, FormatID: v.FormatID, MaxHeight: v.Res, Range: &engine.Section{Start: a, End: b}})
+	c.until(10*time.Second, func(e protocol.Envelope) bool { return e.Type == protocol.TypeJobAccepted })
+	firstProgress := time.Duration(0)
+	env := c.until(5*time.Minute, func(e protocol.Envelope) bool {
+		if e.Type == protocol.TypeJobUpdate && firstProgress == 0 {
+			var ev protocol.JobEvent
+			_ = protocol.DecodeData(e, &ev)
+			if d := ev.Job.Download; d != nil && d.Fraction > 0 {
+				firstProgress = time.Since(t0)
+			}
+		}
+		return e.Type == protocol.TypeJobDone || e.Type == protocol.TypeJobFailed
+	})
+	total := time.Since(t0)
+	var ev protocol.JobEvent
+	_ = protocol.DecodeData(env, &ev)
+	j := ev.Job
+	if env.Type == protocol.TypeJobFailed || j.Clip == nil {
+		t.Fatalf("job %+v clip %+v", j.Failure, j.Clip)
+	}
+	// 원본 기준: 서버 파일을 처음부터 읽는 것과 같은 정확 탐색(ffmpeg -ss, 헤더 포함).
+	vURL, aURL, hdr := formatURLs(t, tp, url, v.FormatID)
+	ctx := context.Background()
+	fps := j.Media.Video.FPS
+	ref := remoteFrameMD5(t, tp[tools.FFmpeg], hdr, vURL, a)
+	got, _ := mediatest.FrameMD5(ctx, tp[tools.FFmpeg], j.File, int(math.Ceil(j.Clip.InSec*fps-1e-6)))
+	if got != ref {
+		t.Fatalf("frame at In differs from the source frame at %.1fs (clip %+v)", a, j.Clip)
+	}
+	refPCM := remotePCM(t, tp[tools.FFmpeg], hdr, aURL, a+0.5)
+	cmp, _ := mediatest.PCM(ctx, tp[tools.FFmpeg], j.File, j.Clip.InSec+0.5, 0.3)
+	lag := mediatest.AudioLag(refPCM, cmp, 2400)
+	t.Logf("section %s %.0f–%.0fs: first progress %v, done %v, file %.1fs %d bytes, audio lag %.2f ms, timings %+v",
+		v.FormatID, a, b, firstProgress, total, j.Media.DurationSec, j.Media.SizeBytes, float64(lag)/48, j.Timings)
+	if lag < -48 || lag > 48 {
+		t.Fatalf("audio off by %.2f ms", float64(lag)/48)
+	}
+	if total > 30*time.Second {
+		t.Fatalf("30s section took %v (throttled path?)", total)
+	}
+}
+
+// formatURLs asks yt-dlp for the direct URLs (video, audio) of a "v+a" format id and the HTTP headers.
+func formatURLs(t *testing.T, tp map[tools.Name]string, url, formatID string) (string, string, string) {
+	t.Helper()
+	args := []string{"--ignore-config", "-J", url}
+	if d := tp[tools.Deno]; d != "" {
+		args = append([]string{"--js-runtimes", "deno:" + d}, args...)
+	}
+	out, err := exec.Command(tp[tools.YtDlp], args...).Output()
+	if err != nil {
+		t.Fatal(err)
+	}
+	var d struct {
+		Formats []struct {
+			ID      string            `json:"format_id"`
+			URL     string            `json:"url"`
+			Headers map[string]string `json:"http_headers"`
+		} `json:"formats"`
+	}
+	_ = json.Unmarshal(out, &d)
+	ids := strings.Split(formatID, "+")
+	var urls []string
+	hdr := ""
+	for _, id := range ids {
+		for _, f := range d.Formats {
+			if f.ID == id {
+				urls = append(urls, f.URL)
+				hdr = ""
+				for k, v := range f.Headers {
+					hdr += k + ": " + v + "\r\n"
+				}
+			}
+		}
+	}
+	if len(urls) != 2 {
+		t.Fatalf("format urls for %s: %d", formatID, len(urls))
+	}
+	return urls[0], urls[1], hdr
+}
+
+// remoteFrameMD5 decodes the frame shown at sec in the remote file (accurate seek from its start).
+func remoteFrameMD5(t *testing.T, ffmpeg, hdr, url string, sec float64) string {
+	t.Helper()
+	out, err := exec.Command(ffmpeg, "-v", "error", "-headers", hdr, "-ss", strconv.FormatFloat(sec, 'f', 3, 64), "-i", url,
+		"-frames:v", "1", "-f", "rawvideo", "-pix_fmt", "yuv420p", "-").Output()
+	if err != nil || len(out) == 0 {
+		t.Fatalf("remote frame: %v", err)
+	}
+	sum := md5.Sum(out)
+	return hex.EncodeToString(sum[:])
+}
+
+func remotePCM(t *testing.T, ffmpeg, hdr, url string, sec float64) []int16 {
+	t.Helper()
+	out, err := exec.Command(ffmpeg, "-v", "error", "-headers", hdr, "-ss", strconv.FormatFloat(sec, 'f', 3, 64), "-i", url,
+		"-t", "0.3", "-ac", "1", "-ar", "48000", "-f", "s16le", "-").Output()
+	if err != nil || len(out) == 0 {
+		t.Fatalf("remote audio: %v", err)
+	}
+	pcm := make([]int16, len(out)/2)
+	for i := range pcm {
+		pcm[i] = int16(binary.LittleEndian.Uint16(out[2*i:]))
+	}
+	return pcm
 }

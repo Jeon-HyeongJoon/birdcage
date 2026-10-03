@@ -402,6 +402,21 @@
         "verifiedAt": "2026-10-03",
         "ttlDays": 180
       }
+    },
+    {
+      "id": "P-0010-e",
+      "adr": "0010",
+      "level": "L3",
+      "claim": "YouTube DASH 포맷(예: 137, 140)은 스트림별 단일 트랙 조각 mp4이고 앞쪽 64KB 안에 ftyp·moov·sidx가 있으며, 8MB 이하 범위 요청은 제한되지 않는다(실측 9.1MB/s)",
+      "sources": [
+        "session:2026-10-03 ASF56zUwB7Y 137 sidx 412조각, 10MB 범위 1.1s; TestEndToEndOnlineLongSection 2.1s",
+        "https://www.iso.org/standard/83102.html"
+      ],
+      "check": {
+        "type": "expires",
+        "verifiedAt": "2026-10-03",
+        "ttlDays": 60
+      }
     }
   ]
 }
