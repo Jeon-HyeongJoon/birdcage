@@ -118,8 +118,8 @@
       "id": "T-005",
       "title": "Premiere 15.2에서 CEP 패널 로드·다운로드·Birdcage/\u003c플랫폼\u003e 빈 임포트 확인",
       "mode": "human",
-      "status": "open",
-      "passes": false,
+      "status": "done",
+      "passes": true,
       "priority": 1,
       "acceptance": [
         {
@@ -127,6 +127,9 @@
           "maxLevel": "L5",
           "what": "패널이 뜨고 링크 1건이 빈에 임포트됨"
         }
+      ],
+      "evidence": [
+        "E-20261002-173821-002"
       ]
     },
     {
