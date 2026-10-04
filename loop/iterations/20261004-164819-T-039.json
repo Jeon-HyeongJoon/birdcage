@@ -6,13 +6,43 @@
     "kind": "worker"
   },
   "startedAt": "2026-10-04T16:48:19Z",
+  "endedAt": "2026-10-04T16:55:02Z",
   "base": {
     "branch": "chore/release-cleanup",
     "commit": "9634b32e92a7",
     "dirty": true
   },
-  "state": "running",
+  "head": {
+    "branch": "main",
+    "commit": "eea8d7f06492",
+    "dirty": true
+  },
+  "state": "success",
   "hypothesis": "골든 화면 카탈로그와 명시적 로컬 산출물 제외 규칙을 추가하고 검증된 0.2.0 설치 ZIP을 Release로 게시하면 저장소 탐색성과 배포 재현성을 함께 개선할 수 있다",
+  "summary": "UI 골든 24개·DOM 22개 카탈로그와 정리된 gitignore·0.2.0 릴리스 문서를 추가하고, 전체 게이트 통과 후 Windows/macOS ZIP을 GitHub Release에 게시해 인증 다운로드 SHA-256까지 확인했다",
+  "failureSignatures": [
+    "sig:4b93ba209cb0"
+  ],
+  "metrics": {
+    "durationMin": 6.7,
+    "evidence": 16,
+    "evidenceByLevel": {
+      "L1": 7,
+      "L2": 8,
+      "L3": 1
+    },
+    "pass": 15,
+    "fail": 1,
+    "skip": 0
+  },
+  "retro": {
+    "lessons": [
+      "비공개 저장소의 Release 직접 URL은 익명 HEAD에서 404이므로 게시 검증은 gh 인증 다운로드 후 파일 digest를 비교해야 한다"
+    ]
+  },
+  "next": [
+    "T-038의 남은 실제 Windows·macOS 설치 확인을 사용자 환경에서 수행한다"
+  ],
   "approvals": [
     {
       "action": "git.merge.main",

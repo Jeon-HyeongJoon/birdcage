@@ -979,8 +979,8 @@
       "id": "T-039",
       "title": "프로젝트 정리: UI 골든 화면 카탈로그·로컬 산출물 ignore 규칙·0.2.0 GitHub Release를 정리하고 main에 반영",
       "mode": "compile",
-      "status": "doing",
-      "passes": false,
+      "status": "done",
+      "passes": true,
       "priority": 1,
       "acceptance": [
         {
@@ -998,6 +998,11 @@
           "maxLevel": "L2",
           "what": "GitHub Release v0.2.0에서 Windows x64·macOS 설치 ZIP을 다운로드할 수 있고 게시 자산 크기·SHA-256이 로컬 검증값과 일치함"
         }
+      ],
+      "evidence": [
+        "E-20261004-164819-004",
+        "E-20261004-164819-006",
+        "E-20261004-164819-001"
       ]
     }
   ]
