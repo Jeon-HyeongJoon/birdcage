@@ -534,6 +534,25 @@
         "verifiedAt": "2026-10-04",
         "ttlDays": 60
       }
+    },
+    {
+      "id": "P-0010-f",
+      "adr": "0010",
+      "level": "L1",
+      "claim": "패널 스타일은 시스템 글꼴 경로(system-ui·BlinkMacSystemFont·-apple-system)를 쓰지 않는다: CEP 10에서 새 글자·단어 배치가 수백 배 느리다(실측 2026-10-04)",
+      "sources": [
+        "session:2026-10-04 Premiere 15.2 패널 트레이스·글꼴 실험(loop/.runs/20261004-144241-T-037)"
+      ],
+      "check": {
+        "type": "command",
+        "dir": "tools",
+        "argv": [
+          "sh",
+          "-c",
+          "go test -count=1 -run '^TestLintSystemFont$' ./cmd/uilint/ && go run ./cmd/uilint"
+        ],
+        "timeoutSec": 120
+      }
     }
   ]
 }

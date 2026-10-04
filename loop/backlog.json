@@ -116,7 +116,7 @@
     },
     {
       "id": "T-005",
-      "title": "Premiere 15.2에서 CEP 패널 로드·다운로드·Birdcage/<플랫폼> 빈 임포트 확인",
+      "title": "Premiere 15.2에서 CEP 패널 로드·다운로드·Birdcage/\u003c플랫폼\u003e 빈 임포트 확인",
       "mode": "human",
       "status": "done",
       "passes": true,
@@ -531,7 +531,7 @@
     },
     {
       "id": "T-023",
-      "title": "Premiere 실기(15.2·26): 구간 In/Out(setInPoint 단위 자기 검증), 새 빈 트랙 배치(QE addTracks·대체 경로), 시퀀스 없을 때 소스 모니터, 캡션 트랙, 시퀀스 정보, 미리보기 <video> 재생, Space·I·O 단축키가 패널로 오는지(registerKeyEventsInterest)",
+      "title": "Premiere 실기(15.2·26): 구간 In/Out(setInPoint 단위 자기 검증), 새 빈 트랙 배치(QE addTracks·대체 경로), 시퀀스 없을 때 소스 모니터, 캡션 트랙, 시퀀스 정보, 미리보기 \u003cvideo\u003e 재생, Space·I·O 단축키가 패널로 오는지(registerKeyEventsInterest)",
       "mode": "human",
       "status": "open",
       "passes": false,
@@ -907,6 +907,35 @@
         }
       ],
       "blockedBy": "blocked: T-036 탐색 목록 실험 구현(feat/recommendations): Helper related 패키지(시청 페이지 ytInitialData lockupViewModel+구 compactVideoRenderer → 같은 채널 → 제목 검색 대체, 30분 캐시), related.fetch/list 프로토콜, 패널 사이드바(≥960px)·아래 목록, 항목 열기·[←] 복원(구간·화질·목록), 적합성 기록(related.open/download)과 scripts/related-report.mjs. 게이트 12개+G-e2e 통과, 온라인 9/10 시드·중앙값 0.89s, 미리보기 동시 받기 영향 파형 +2%·준비 0%(회귀 아님). 기존 골든 6개 갱신(verifier.change 승인)."
+    },
+    {
+      "id": "T-037",
+      "title": "패널 한글 배치 지연: 글꼴 목록의 system-ui·BlinkMacSystemFont(버튼은 브라우저 기본 system-ui) 때문에 CEP 10(macOS)이 한글 글자마다 시스템 대체 글꼴을 찾아 검색 결과 표시 뒤 2.5–3.5s 멈춤. 한글 글꼴을 이름으로 지정하고 입력·버튼이 본문 글꼴을 물려받게, uilint로 재발 방지. 실험과 무관하므로 main에 따로 가져갈 수 있게 별도 커밋",
+      "mode": "compile",
+      "status": "done",
+      "passes": true,
+      "priority": 1,
+      "acceptance": [
+        {
+          "kind": "test",
+          "maxLevel": "L1",
+          "what": "uilint no-system-ui-font 규칙 테스트, 전체 패널 스타일 통과(G-uilint·G-tools)"
+        },
+        {
+          "kind": "test",
+          "maxLevel": "L1",
+          "what": "UI 골든 통과(G-ui): 글꼴 목록 변경이 헤드리스 화면을 바꾸면 사람 승인 뒤 갱신"
+        },
+        {
+          "kind": "perf",
+          "maxLevel": "L3",
+          "what": "실제 Premiere 15.2 패널에서 검색 결과 표시 뒤 긴 작업(\u003e50ms)이 사라지고 썸네일까지 표시가 1.5s 이하(수정 전 3.5s 멈춤·4.5s)"
+        }
+      ],
+      "evidence": [
+        "E-20261004-144241-009",
+        "E-20261004-144241-003"
+      ]
     }
   ]
 }
