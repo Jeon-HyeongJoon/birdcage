@@ -11,6 +11,13 @@ $space-2: 6px;
 $space-3: 8px;
 $space-4: 12px;
 
+// 글꼴: 이름으로 지정한다(라틴 Helvetica Neue / Segoe UI, 한글 Apple SD Gothic Neo / Malgun Gothic).
+// system-ui·BlinkMacSystemFont·-apple-system(SF)는 쓰지 않는다: CEP 10(Chromium 74, macOS·Rosetta)에서 시스템 글꼴 경로는
+// 처음 보는 단어마다 느리다 — 새 한글 800자 배치 6.1–7.2s, 새 영문 단어 160개 1.4s(이름 지정: 2–51ms). 검색 결과 표시 뒤
+// 패널이 0.8–3.5s 멈춘 원인(Premiere 15.2 실측 2026-10-04). SF는 이름으로 불러올 수 없어(local() 실패) Helvetica Neue를 쓴다.
+// uilint(no-system-font)가 막는다.
+$font-family: "Helvetica Neue", "Apple SD Gothic Neo", "Segoe UI", "Malgun Gothic", "Apple Color Emoji", "Segoe UI Emoji", sans-serif;
+
 // 글자: Premiere 패널 본문 11–12px.
 $font-xs: 11px;
 $font-sm: 12px;

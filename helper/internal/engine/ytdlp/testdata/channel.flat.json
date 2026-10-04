@@ -1,0 +1,36 @@
+{
+ "_type": "playlist",
+ "id": "UC4QobU6STFB0P71PMvOGN5A",
+ "title": "jawed - 동영상",
+ "extractor": "youtube:tab",
+ "extractor_key": "YoutubeTab",
+ "webpage_url": "https://www.youtube.com/channel/UC4QobU6STFB0P71PMvOGN5A/videos",
+ "channel": "jawed",
+ "channel_id": "UC4QobU6STFB0P71PMvOGN5A",
+ "channel_url": "https://www.youtube.com/channel/UC4QobU6STFB0P71PMvOGN5A",
+ "uploader_url": "https://www.youtube.com/@jawed",
+ "entries": [
+  {
+   "title": "Me at the zoo",
+   "thumbnails": [
+    {
+     "url": "https://i.ytimg.com/vi/jNQXAC9IVRw/hqdefault.jpg?sqp=-oaymwE2COADEI4CSFXyq4qpAygIARUAAIhCGAFwAcABBvABAfgBvgKAAvABigIMCAAQARhVIFkoZTAP&rs=AOn4CLDkGJrAGBspJ5G6u9b7tutsHbloEg",
+     "height": 270,
+     "width": 480
+    }
+   ],
+   "duration": 19,
+   "view_count": null,
+   "timestamp": null,
+   "live_status": null,
+   "availability": null,
+   "channel_url": null,
+   "uploader_url": null,
+   "creators": null,
+   "ie_key": "Youtube",
+   "id": "jNQXAC9IVRw",
+   "_type": "url",
+   "url": "https://www.youtube.com/watch?v=jNQXAC9IVRw"
+  }
+ ]
+}

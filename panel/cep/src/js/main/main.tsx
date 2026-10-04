@@ -1,10 +1,11 @@
-import { useEffect, useState, useSyncExternalStore } from "react";
+import { useEffect, useMemo, useState, useSyncExternalStore } from "react";
 import {
   Controller,
   HostAdapter,
   JobView,
   STATE_LABEL,
   TERMINAL_STATES,
+  downloadedIds,
   eta,
   mediaSummary,
   formatTime,
@@ -15,6 +16,7 @@ import {
 } from "@birdcage/core";
 import { subscribeBackgroundColor } from "../lib/utils/bolt";
 import { Composer } from "./composer";
+import { RelatedPanel, SearchBox } from "./related";
 import { SettingsRow, StatusDot } from "./status";
 import "./main.scss";
 
@@ -31,6 +33,12 @@ export type PanelController = Pick<
   | "setExtras"
   | "submitDraft"
   | "clearDraft"
+  | "loadRelated"
+  | "openRelated"
+  | "back"
+  | "search"
+  | "searchMore"
+  | "showList"
   | "retryConnection"
   | "installTools"
   | "updateSettings"
@@ -41,7 +49,7 @@ export type PanelController = Pick<
 
 export type PanelHost = Pick<HostAdapter, "revealFile" | "captureKeys"> & { openDownloads?: () => void };
 
-export const App = ({ controller: ctl, host }: { controller: PanelController; host: PanelHost; downloadHistory?: () => JobView[] }) => {
+export const App = ({ controller: ctl, host, downloadHistory }: { controller: PanelController; host: PanelHost; downloadHistory?: () => JobView[] }) => {
   const s = useSyncExternalStore(
     (cb) => ctl.subscribe(cb),
     () => ctl.state,
@@ -57,12 +65,14 @@ export const App = ({ controller: ctl, host }: { controller: PanelController; ho
   }, [ctl, host]);
 
   const missing = s.connection === "connected" ? ctl.missingTools() : [];
+  const downloaded = useMemo(() => downloadedIds([...s.jobs, ...(downloadHistory?.() ?? [])]), [s.jobs, downloadHistory]);
 
   return (
     <div className="app" style={{ backgroundColor: bg }}>
       <header className="row header">
         <strong>Birdcage</strong>
         <StatusDot s={s} missing={missing} retry={() => ctl.retryConnection()} />
+        {s.connection === "connected" && <SearchBox s={s} ctl={ctl} />}
         {focusMode && (
           <>
             <span className="spacer" />
@@ -90,6 +100,8 @@ export const App = ({ controller: ctl, host }: { controller: PanelController; ho
       )}
 
       <Composer s={s} ctl={ctl} focusMode={focusMode} settings={focusMode ? <SettingsRow s={s} ctl={ctl} /> : undefined} />
+      {/* 탐색 목록: 좁은 패널은 받기 아래, 넓은 패널은 오른쪽 사이드바(main.scss @media) */}
+      <RelatedPanel s={s} ctl={ctl} downloaded={downloaded} />
 
       {!focusMode && <SettingsRow s={s} ctl={ctl} />}
 

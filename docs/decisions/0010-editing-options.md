@@ -68,3 +68,7 @@
 - 2026-10-03 (T-027): 구간 받기를 ffmpeg 구간에서 **범위 요청 우선**으로 바꿈. 사용자 QA에서 34분 1080p 영상 구간이 13분간 진행 없이 멈춘 것이 계기(YouTube가 연속 스트림을 재생 속도로 제한).
 - 2026-10-03 (T-028): 배치 선택 UI 제거 → 항상 새 빈 트랙. 근거: 사용자 지시(위 표). QE DOM은 Adobe 비공식이라 실패하면 대체 경로로 간다(Premiere 실기 확인 T-023).
 - 2026-10-04 (T-007): 공개 Instagram Reel이 로그인 쿠키를 요구하는 실패를 재현해 Instagram을 지원 기능 명시에서 제외. 기술적 범위 요청 설명은 검증된 YouTube 기준으로 정리.
+- 2026-10-04 (T-037): UI 토큰에 글꼴 목록(`$font-family`)을 추가하고 **이름으로만** 지정(라틴 Helvetica Neue / Segoe UI, 한글 Apple SD Gothic Neo / Malgun Gothic), 입력·버튼은 본문 글꼴을 물려받는다.
+  근거: 실제 Premiere 15.2 패널(Chromium 74, Rosetta)에서 검색 결과 표시 뒤 0.8–3.5s 멈춤 → 트레이스상 한 프레임 배치 2.1s+그리기 1.1s, 패널 안 실험에서
+  시스템 글꼴 경로(system-ui·BlinkMacSystemFont)가 처음 보는 한글 800자 6.1–7.2s·영문 단어 160개 1.4s, 이름 지정 글꼴 2–51ms. 수정 뒤 검색 4회 긴 작업 없음.
+  SF는 이름으로 불러올 수 없어(local() 실패) 영문 모양이 Helvetica Neue로 바뀐다(사용자 승인). uilint `no-system-font`가 재유입을 막는다(P-0010-f).

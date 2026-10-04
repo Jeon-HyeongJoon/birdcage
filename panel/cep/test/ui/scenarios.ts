@@ -9,6 +9,10 @@ import type {
   MediaInfoMsg,
   Peaks,
   PreviewState,
+  RelatedItem,
+  RelatedListMsg,
+  RelatedSource,
+  SearchListMsg,
   SequenceInfo,
   SourceInfo,
   Storyboard,
@@ -26,6 +30,10 @@ export interface Scenario {
   startHelper?: HostAdapter["startHelper"];
   sequence?: SequenceInfo | null;
   importFile?: (path: string) => ImportResult;
+  /** related.list answers (default: relatedDefault). */
+  related?: (probeId: string, source: RelatedSource) => Omit<RelatedListMsg, "probeId" | "requested"> | undefined;
+  /** search.list answers (default: searchDefault). */
+  search?: (query: string, page: number) => Omit<SearchListMsg, "query" | "page"> | undefined;
   /** Drives the controller after connecting (start() is awaited unless startHelper never resolves). */
   run?: (ctl: Controller, helper: FakeHelper) => Promise<void> | void;
 }
@@ -117,6 +125,46 @@ const vertical: SourceInfo = {
   ],
   subtitles: [],
 };
+
+// 탐색 목록(T-036): 실제 시청 페이지 형식의 문구(조회수·게시 시점), 긴 제목 두 줄 말줄임, 길이 배지.
+const rel = (id: string, title: string, channel: string, durationSec: number, meta: string, fill: string): RelatedItem => ({
+  id,
+  url: `https://www.youtube.com/watch?v=${id}`,
+  title,
+  channel,
+  durationSec,
+  meta,
+  thumbnail: thumb(fill),
+});
+
+export const relatedItems: RelatedItem[] = [
+  rel("rel1", "동물원 브이로그 — 코끼리 우리 앞에서 찍은 첫 영상의 뒷이야기와 촬영 장비 이야기까지 한 번에", "zoo diary", 754, "조회수 7.8만회 · 4시간 전", "#344e41"),
+  rel("rel2", "코끼리 코 클로즈업 B-roll", "stock clips", 31, "조회수 1.2천회 · 2주 전", "#588157"),
+  rel("rel3", "Me at the zoo 4K 복원", "restore lab", 19, "조회수 267만회 · 4일 전", "#3a5a40"),
+  rel("rel4", "샌디에이고 동물원 하루 투어", "travel kr", 3725, "조회수 85만회 · 1년 전", "#a3b18a"),
+  rel("rel5", "유튜브 첫 영상 분석", "media talk", 498, "조회수 12만회 · 3년 전", "#6b705c"),
+];
+
+/** Default related.list answers: YouTube "up next", the same channel, a title search. */
+export const relatedDefault = (_probeId: string, source: RelatedSource): Omit<RelatedListMsg, "probeId" | "requested"> => {
+  if (source === "channel") return { source, items: [rel("ch1", "jawed의 두 번째 영상", "jawed", 22, "조회수 5.1만회 · 19년 전", "#3d405b")] };
+  if (source === "search") return { source, items: relatedItems.slice(2, 4) };
+  return { source, items: relatedItems };
+};
+
+// 유튜브 검색(T-026): 첫 페이지 6개 + 더 보기 2개(실제 결과 페이지 형식의 문구).
+const searchItems: RelatedItem[] = [
+  rel("sr1", "인터뷰 B-roll 촬영 팁 — 조명 하나로 분위기 바꾸기", "빅제임스 [Big James]", 346, "조회수 6,938회 · 8년 전", "#2f3e46"),
+  rel("sr2", "도심 야경 드론 4K", "sky lab", 182, "조회수 120만회 · 1년 전", "#354f52"),
+  rel("sr3", "인터뷰 촬영 세팅 모음(카메라 2대, 마이크 배치, 조명 위치까지 한 번에 정리)", "film class", 1260, "조회수 3.4만회 · 2개월 전", "#52796f"),
+  rel("sr4", "b-roll 아이디어 30가지", "editor kim", 611, "조회수 9.1천회 · 3주 전", "#84a98c"),
+  rel("sr5", "카페 인터뷰 브이로그", "daily cut", 95, "조회수 210회 · 5일 전", "#cad2c5"),
+  rel("sr6", "Me at the zoo 4K 복원", "restore lab", 19, "조회수 267만회 · 4일 전", "#3a5a40"),
+];
+
+/** Default search.list answers: page 0 = 6 items with more, page 1 = 2 items, then none. */
+export const searchDefault = (_query: string, page: number): Omit<SearchListMsg, "query" | "page"> =>
+  page === 0 ? { items: searchItems, more: true } : page === 1 ? { items: [rel("sr7", "인터뷰 조명 비교", "light lab", 240, "조회수 1.1만회 · 1년 전", "#2d6a4f"), rel("sr8", "B-roll 편집 리듬", "cut school", 420, "조회수 8천회 · 6개월 전", "#40916c")], more: false } : { items: [] };
 
 const baseJob = (jobId: string, state: JobSnapshot["state"], extra: Partial<JobSnapshot> = {}): JobSnapshot => ({
   jobId,
@@ -266,6 +314,79 @@ export const scenarios: Record<string, Scenario> = {
       await waitFor(() => ctl.state.draft.status === "ready");
       ctl.setExtras({ audioOnly: true, subtitle: "en-orig:auto" });
       ctl.setRange({ on: true, start: 3, end: 12 });
+    },
+  },
+  "related-loaded": {
+    about: "탐색 목록(좁은 패널: 미리보기·받기 아래): 유튜브 추천 행(썸네일·길이·채널·조회수), 받은 영상은 ✓ 받음",
+    probe: (url) => ({ url, probeId: "p8", info: zoo }),
+    preview: () => [{ stage: "ready", progress: 1, cached: true, peaks: peaks(19), video: { path: "http://127.0.0.1:4173/assets/preview.mp4", width: 320, height: 180, fps: 10, durationSec: 19 } }],
+    run: async (ctl, helper) => {
+      helper.push("job.done", { job: baseJob("j9", "done", { info: info("rel3", "Me at the zoo 4K 복원"), file: "/Users/editor/Movies/Birdcage/Youtube/rel3.mp4" }) });
+      ctl.setUrl("https://www.youtube.com/watch?v=jNQXAC9IVRw");
+      await waitFor(() => ctl.state.draft.preview?.stage === "ready");
+      ctl.loadRelated();
+      await waitFor(() => ctl.state.draft.related?.lists.youtube?.status === "ready");
+    },
+  },
+  "related-fallback": {
+    about: "유튜브 추천을 못 가져와 같은 채널로 대체 → 출처를 그대로 알림",
+    probe: (url) => ({ url, probeId: "p9", info: zoo }),
+    related: (_id, source) => (source === "youtube" ? { source: "channel", items: relatedDefault("", "channel").items } : relatedDefault("", source)),
+    run: async (ctl) => {
+      ctl.setUrl("https://www.youtube.com/watch?v=jNQXAC9IVRw");
+      await waitFor(() => ctl.state.draft.status === "ready");
+      ctl.loadRelated();
+      await waitFor(() => ctl.state.draft.related?.lists.youtube?.status === "ready");
+    },
+  },
+  "related-failed": {
+    about: "목록을 가져오지 못함 → 다시 시도",
+    probe: (url) => ({ url, probeId: "p10", info: zoo }),
+    related: () => ({ items: [], error: "목록을 가져오지 못했습니다" }),
+    run: async (ctl) => {
+      ctl.setUrl("https://www.youtube.com/watch?v=jNQXAC9IVRw");
+      await waitFor(() => ctl.state.draft.status === "ready");
+      ctl.loadRelated();
+      await waitFor(() => ctl.state.draft.related?.lists.youtube?.status === "failed");
+    },
+  },
+  "related-opening": {
+    about: "목록에서 영상을 연 직후: 아는 썸네일·제목으로 조회 중 표시, [←] 이전 영상 버튼, 목록 자리는 유지",
+    probe: (url) => (url.includes("rel1") ? undefined : { url, probeId: "p11", info: zoo }),
+    run: async (ctl) => {
+      ctl.setUrl("https://www.youtube.com/watch?v=jNQXAC9IVRw");
+      await waitFor(() => ctl.state.draft.status === "ready");
+      ctl.loadRelated();
+      await waitFor(() => ctl.state.draft.related?.lists.youtube?.status === "ready");
+      ctl.openRelated(relatedItems[0]);
+      await waitFor(() => ctl.state.draft.status === "probing");
+    },
+  },
+  "search-results": {
+    about: "링크 없이 유튜브 검색: 결과가 본문 폭(넓으면 여러 열), 받은 영상은 ✓ 받음, 더 보기",
+    run: async (ctl, helper) => {
+      helper.push("job.done", { job: baseJob("j9", "done", { info: info("sr6", "Me at the zoo 4K 복원"), file: "/Users/editor/Movies/Birdcage/Youtube/sr6.mp4" }) });
+      ctl.search("인터뷰 b-roll");
+      await waitFor(() => ctl.state.search?.status === "ready");
+    },
+  },
+  "search-preview": {
+    about: "검색 결과에서 연 영상: 미리보기는 위, 검색 탭은 목록(좁으면 아래·넓으면 사이드바)에 남고 추천 탭으로 바꿀 수 있다",
+    probe: (url) => ({ url, probeId: "p12", info: zoo }),
+    preview: () => [{ stage: "ready", progress: 1, cached: true, peaks: peaks(19), video: { path: "http://127.0.0.1:4173/assets/preview.mp4", width: 320, height: 180, fps: 10, durationSec: 19 } }],
+    run: async (ctl) => {
+      ctl.search("인터뷰 b-roll");
+      await waitFor(() => ctl.state.search?.status === "ready");
+      ctl.openRelated(searchItems[5], "search:youtube");
+      await waitFor(() => ctl.state.draft.preview?.stage === "ready");
+    },
+  },
+  "search-failed": {
+    about: "검색 실패 → 다시 시도",
+    search: () => ({ items: [], error: "검색 결과를 가져오지 못했습니다" }),
+    run: async (ctl) => {
+      ctl.search("인터뷰 b-roll");
+      await waitFor(() => ctl.state.search?.status === "failed");
     },
   },
   jobs: {

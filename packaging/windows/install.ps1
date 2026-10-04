@@ -53,8 +53,12 @@ try {
     Get-ChildItem -LiteralPath $staging -Recurse -File | Unblock-File -ErrorAction SilentlyContinue
 
     if (Test-Path $target) {
+        # Keep backups outside the CEP extensions folder: two folders with the same extension ID
+        # leave it undefined which one CEP loads.
+        $backupRoot = Join-Path $env:LOCALAPPDATA "Birdcage\backups"
+        New-Item -ItemType Directory -Path $backupRoot -Force | Out-Null
         $stamp = Get-Date -Format "yyyyMMdd-HHmmss"
-        $backup = Join-Path $extensionRoot ("com.birdcage.panel.backup-" + $stamp)
+        $backup = Join-Path $backupRoot ("com.birdcage.panel-" + $stamp)
         Move-Item -LiteralPath $target -Destination $backup
     }
     Move-Item -LiteralPath $staging -Destination $target

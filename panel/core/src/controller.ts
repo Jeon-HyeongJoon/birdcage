@@ -4,7 +4,7 @@ import { HelperClient, HelperEndpoint, WebSocketFactory } from "./client";
 import { recommendVariant, SequenceInfo, targetRes } from "./choice";
 import { startFromURL } from "./time";
 import type { HostAdapter, ImportOptions } from "./host";
-import type { Failure, HelloOK, JobSnapshot, PreviewState, SourceInfo, TimeRange, ToolStatus } from "./protocol";
+import type { Failure, HelloOK, JobSnapshot, PreviewState, RelatedItem, RelatedSource, SourceInfo, TimeRange, ToolStatus } from "./protocol";
 import { TERMINAL_STATES } from "./protocol";
 
 export type ConnectionState = "idle" | "starting" | "connected" | "reconnecting" | "failed";
@@ -63,7 +63,67 @@ export interface Draft {
   submitted?: number;
   /** Jobs started from this draft, oldest first. */
   jobIds?: string[];
+  /** Browse list next to the preview (YouTube links only). */
+  related?: RelatedView;
+  /** The list item this link was opened from (shown while probing). */
+  hint?: RelatedItem;
+  /** Browse list the link came from ("related:youtube"), sent with probe and download for the fitness review. */
+  via?: string;
+  /** Restored from history: if the helper already dropped the probe, the preview fails and we probe again. */
+  restored?: boolean;
 }
+
+/** One browse list tab. */
+export interface RelatedListState {
+  status: "loading" | "ready" | "failed";
+  items: RelatedItem[];
+  /** Source that filled the list; differs from the tab when the helper fell back. */
+  source?: RelatedSource;
+  error?: string;
+}
+
+export interface RelatedView {
+  tab: RelatedSource;
+  lists: Partial<Record<RelatedSource, RelatedListState>>;
+}
+
+/** YouTube search results shown in the browse list's 검색 tab; they survive opening a result and back(). */
+export interface SearchState {
+  query: string;
+  status: "loading" | "ready" | "failed";
+  items: RelatedItem[];
+  /** Last fetched page (0-based). */
+  page: number;
+  more: boolean;
+  loadingMore?: boolean;
+  moreError?: string;
+  error?: string;
+}
+
+/** Which list the browse panel shows. */
+export type ListTab = "search" | "related";
+
+/** A link left for another one; back() restores it with its choices. */
+export interface HistoryEntry {
+  draft: Draft;
+  at: number;
+}
+
+/** Links with a browse list (YouTube: 시청 페이지 '다음 동영상', 같은 채널, 제목 검색). */
+export function supportsRelated(info?: SourceInfo): boolean {
+  return info?.extractor === "Youtube";
+}
+
+/** YouTube video ids already downloaded (탐색 목록의 "✓ 받음"). */
+export function downloadedIds(jobs: JobView[]): Set<string> {
+  const ids = new Set<string>();
+  for (const j of jobs) if (j.snap.state === "done" && j.snap.info?.extractor === "Youtube" && j.snap.info.id) ids.add(j.snap.info.id);
+  return ids;
+}
+
+const MAX_HISTORY = 20;
+/** Reuse a remembered probe for this long (helper keeps probes 20 min). */
+const PROBE_REUSE_MS = 15 * 60 * 1000;
 
 export interface DraftRange {
   on: boolean;
@@ -103,6 +163,10 @@ export interface State {
   draft: Draft;
   /** Active sequence (undefined = not asked yet, null = none open). */
   sequence?: SequenceInfo | null;
+  /** Links left for another one, oldest first ([← 이전 영상]). */
+  history: HistoryEntry[];
+  search?: SearchState;
+  listTab: ListTab;
 }
 
 export interface ControllerOptions {
@@ -116,6 +180,7 @@ export interface ControllerOptions {
   setTimer?: (fn: () => void, ms: number) => unknown;
   /** Delay between typing/pasting a link and probing it. */
   probeDebounceMs?: number;
+  now?: () => number;
 }
 
 const REQUIRED_TOOLS = ["yt-dlp", "ffmpeg", "ffprobe"];
@@ -136,6 +201,7 @@ export class Controller {
   private disposed = false;
   private starting = false;
   private draftSeq = 0;
+  private searchSeq = 0;
 
 
   constructor(private opts: ControllerOptions) {
@@ -146,6 +212,8 @@ export class Controller {
       jobs: [],
       settings: { autoImport: true, maxHeight: 1080, ...opts.settings },
       draft: EMPTY_DRAFT,
+      history: [],
+      listTab: "related",
     };
   }
 
@@ -210,6 +278,7 @@ export class Controller {
       this.set({ draft: { ...this._state.draft, url } });
       return;
     }
+    this.pushHistory();
     this.closePreview();
     this.set({ draft: { ...EMPTY_DRAFT, url } });
     if (!isLink(trimmed) || this._state.connection !== "connected") return;
@@ -219,20 +288,21 @@ export class Controller {
     }, this.opts.probeDebounceMs ?? 400);
   }
 
-  /** Probes the current link now (also used by "다시 조회"). */
-  async probeDraft(): Promise<void> {
-    const url = this._state.draft.url.trim();
+  /** Probes the current link now (also used by "다시 조회"); keep re-applies a remembered draft's choices. */
+  async probeDraft(keep?: Draft): Promise<void> {
+    const cur = this._state.draft;
+    const url = cur.url.trim();
     if (!isLink(url)) return;
     const seq = ++this.draftSeq;
-    const retrying = this._state.draft.status === "failed";
+    const retrying = cur.status === "failed";
     this.set({
       draft: retrying
-        ? { ...this._state.draft, checking: true }
-        : { ...EMPTY_DRAFT, url: this._state.draft.url, status: "probing" },
+        ? { ...cur, checking: true }
+        : { ...EMPTY_DRAFT, url: cur.url, hint: cur.hint, via: cur.via, status: "probing" },
     });
     try {
       // 시퀀스는 조회와 함께 읽는다(추천이 현재 시퀀스를 따른다).
-      const [res] = await Promise.all([this.requireClient().probe(url, this._state.settings.maxHeight), this.refreshSequence()]);
+      const [res] = await Promise.all([this.requireClient().probe(url, this._state.settings.maxHeight, cur.via), this.refreshSequence()]);
       if (seq !== this.draftSeq) return; // 사용자가 그새 링크를 바꿨다
       if (res.failure || !res.info) {
         this.set({ draft: { ...this._state.draft, status: "failed", checking: false, failure: res.failure } });
@@ -242,6 +312,7 @@ export class Controller {
       // 공유 링크의 시작 시각(t=)이 있으면 그 지점부터의 구간으로 채운다.
       const t = startFromURL(url);
       const range: DraftRange = t !== undefined && (!res.info.durationSec || t < res.info.durationSec) ? { on: true, start: t, end: res.info.durationSec } : { on: false };
+      const kept = keep && res.info.variants?.some((v) => v.formatId === keep.formatId) ? keep.formatId : undefined;
       this.set({
         draft: {
           ...this._state.draft,
@@ -250,9 +321,10 @@ export class Controller {
           failure: undefined,
           probeId: res.probeId,
           info: res.info,
-          formatId: rec?.formatId,
+          formatId: kept ?? rec?.formatId,
           recommendedId: rec?.formatId,
           range,
+          ...(keep && { range: keep.range, audioOnly: keep.audioOnly, subtitle: keep.subtitle, related: keep.related, jobIds: keep.jobIds, submitted: keep.submitted, via: keep.via }),
         },
       });
       // 미리보기: 스토리보드는 이미 info에 있고, 파형 → 재생 가능한 비디오가 preview.state로 이어진다.
@@ -290,7 +362,7 @@ export class Controller {
     const { range, error } = rangeToSend(d.range, d.info?.durationSec);
     if (error) throw new Error(error);
     const subtitles = d.subtitle ? { lang: d.subtitle.replace(/:auto$/, ""), auto: d.subtitle.endsWith(":auto") || undefined } : undefined;
-    const common = { range, audioOnly: d.audioOnly || undefined, subtitles };
+    const common = { range, audioOnly: d.audioOnly || undefined, subtitles, via: d.via };
     const extra = d.status === "ready" ? { probeId: d.probeId, formatId: d.audioOnly ? undefined : d.formatId, ...common } : common;
     const variant = d.info?.variants?.find((v) => v.formatId === d.formatId);
     const jobId = await c.createJob(url, variant?.res ?? this._state.settings.maxHeight, JSON.parse(JSON.stringify(extra)));
@@ -303,8 +375,124 @@ export class Controller {
   /** Clears the link field and closes the preview. */
   clearDraft(): void {
     this.draftSeq++;
+    this.pushHistory();
     this.closePreview();
     this.set({ draft: EMPTY_DRAFT });
+  }
+
+  /** Loads a browse list tab for the current link (once per tab; a failed tab is fetched again). */
+  loadRelated(tab?: RelatedSource): void {
+    const d = this._state.draft;
+    if (d.status !== "ready" || !d.probeId || !supportsRelated(d.info)) return;
+    const view: RelatedView = d.related ?? { tab: "youtube", lists: {} };
+    const t = tab ?? view.tab;
+    if (tab && this._state.listTab !== "related") this.set({ listTab: "related" }); // 사용자가 추천 탭을 눌렀다
+    const existing = view.lists[t];
+    if (t !== view.tab) this.set({ draft: { ...d, related: { ...view, tab: t } } });
+    if (existing && existing.status !== "failed") return;
+    const probeId = d.probeId;
+    const put = (list: RelatedListState) => {
+      const cur = this._state.draft;
+      if (cur.probeId !== probeId) return; // 그새 다른 링크로 옮겼다
+      const v = cur.related ?? { tab: t, lists: {} };
+      this.set({ draft: { ...cur, related: { ...v, lists: { ...v.lists, [t]: list } } } });
+    };
+    if (!this.client?.connected) {
+      put({ status: "failed", items: [], error: "Helper에 연결되지 않았습니다." });
+      return;
+    }
+    put({ status: "loading", items: [] });
+    this.client.related(probeId, t).then(
+      (res) => put(res.error ? { status: "failed", items: [], error: res.error } : { status: "ready", items: res.items, source: res.source }),
+      (e) => put({ status: "failed", items: [], error: (e as Error).message }),
+    );
+  }
+
+  /** Opens a browse-list or search item; the current link goes to history so back() can return to it. */
+  openRelated(item: RelatedItem, via?: string): void {
+    const from = this._state.draft.related?.tab ?? "youtube";
+    this.draftSeq++;
+    this.pushHistory();
+    this.closePreview();
+    this.set({ draft: { ...EMPTY_DRAFT, url: item.url, hint: item, via: via ?? `related:${from}` } });
+    if (this._state.connection === "connected") void this.probeDraft();
+  }
+
+  /** Returns to the previous link with its range, quality, extras and browse list. */
+  back(): void {
+    const h = this._state.history;
+    const prev = h[h.length - 1];
+    if (!prev) return;
+    this.draftSeq++;
+    this.closePreview();
+    this.set({ history: h.slice(0, -1) });
+    const p = prev.draft;
+    // 조회 결과가 Helper에 남아 있을 시간이면 그대로 되살린다(미리보기는 디스크 캐시라 바로 뜬다).
+    if (p.status === "ready" && p.probeId && this.now() - prev.at < PROBE_REUSE_MS) {
+      this.set({ draft: { ...p, preview: undefined, restored: true } });
+      this.client?.openPreview(p.probeId);
+      return;
+    }
+    const hint = p.info ? { id: p.info.id, url: p.url, title: p.info.title, thumbnail: p.info.thumbnail } : undefined;
+    this.set({ draft: { ...EMPTY_DRAFT, url: p.url, via: p.via, hint } });
+    if (this._state.connection === "connected") void this.probeDraft(p);
+  }
+
+  /** Searches YouTube; results show in the browse list's 검색 tab (the preview stays). */
+  search(query: string): void {
+    const q = query.trim().replace(/\s+/g, " ");
+    if (!q) return;
+    const seq = ++this.searchSeq;
+    this.set({ search: { query: q, status: "loading", items: [], page: 0, more: false }, listTab: "search" });
+    const done = (patch: Partial<SearchState>) => {
+      if (seq === this.searchSeq && this._state.search) this.set({ search: { ...this._state.search, ...patch } });
+    };
+    if (!this.client?.connected) {
+      done({ status: "failed", error: "Helper에 연결되지 않았습니다." });
+      return;
+    }
+    this.client.search(q, 0).then(
+      (res) => done(res.error ? { status: "failed", error: res.error } : { status: "ready", query: res.query || q, items: res.items, more: !!res.more }),
+      (e) => done({ status: "failed", error: (e as Error).message }),
+    );
+  }
+
+  /** Fetches the next page of the current search ("더 보기"). */
+  searchMore(): void {
+    const s = this._state.search;
+    if (!s || s.status !== "ready" || !s.more || s.loadingMore || !this.client?.connected) return;
+    const seq = this.searchSeq;
+    const page = s.page + 1;
+    this.set({ search: { ...s, loadingMore: true, moreError: undefined } });
+    const done = (patch: (cur: SearchState) => Partial<SearchState>) => {
+      const cur = this._state.search;
+      if (seq === this.searchSeq && cur) this.set({ search: { ...cur, loadingMore: false, ...patch(cur) } });
+    };
+    this.client.search(s.query, page).then(
+      (res) =>
+        done((cur) => {
+          if (res.error) return { moreError: res.error };
+          const seen = new Set(cur.items.map((i) => i.id));
+          return { items: cur.items.concat(res.items.filter((i) => !seen.has(i.id))), page, more: !!res.more };
+        }),
+      (e) => done(() => ({ moreError: (e as Error).message })),
+    );
+  }
+
+  /** Switches the browse panel between search results and the current link's lists. */
+  showList(tab: ListTab): void {
+    this.set({ listTab: tab });
+  }
+
+  private pushHistory(): void {
+    const d = this._state.draft;
+    if (d.status !== "ready") return;
+    const entry: HistoryEntry = { draft: { ...d, preview: undefined, hint: undefined, restored: undefined }, at: this.now() };
+    this.set({ history: [...this._state.history, entry].slice(-MAX_HISTORY) });
+  }
+
+  private now(): number {
+    return (this.opts.now ?? Date.now)();
   }
 
   private closePreview(): void {
@@ -386,7 +574,15 @@ export class Controller {
     });
     client.on("tools.status", (d) => this.set({ tools: d.tools, toolsInstalling: d.installing, toolsError: d.error }));
     client.on("preview.state", (d) => {
-      if (d.probeId && d.probeId === this._state.draft.probeId) this.set({ draft: { ...this._state.draft, preview: d } });
+      const cur = this._state.draft;
+      if (!d.probeId || d.probeId !== cur.probeId) return;
+      if (cur.restored && d.stage === "failed") {
+        // 되살린 조회를 Helper가 이미 버렸다(20분·16개 한도): 다시 조회하고 고른 값을 이어 쓴다.
+        this.set({ draft: { ...EMPTY_DRAFT, url: cur.url, via: cur.via } });
+        void this.probeDraft(cur);
+        return;
+      }
+      this.set({ draft: { ...cur, preview: d, restored: undefined } });
     });
   }
 

@@ -1,0 +1,800 @@
+{
+  "tag": "div",
+  "attributes": {},
+  "children": [
+    {
+      "tag": "div",
+      "attributes": {
+        "class": "app",
+        "style": "background-color: rgb(35, 35, 35);"
+      },
+      "children": [
+        {
+          "tag": "header",
+          "attributes": {
+            "class": "row header"
+          },
+          "children": [
+            {
+              "tag": "strong",
+              "attributes": {},
+              "children": [
+                "Birdcage"
+              ]
+            },
+            {
+              "tag": "span",
+              "attributes": {
+                "class": "dot ok",
+                "role": "status",
+                "aria-label": "사용 가능",
+                "title": "사용 가능\nHelper 0.1.0-fixture"
+              },
+              "children": []
+            },
+            {
+              "tag": "form",
+              "attributes": {
+                "class": "search-box",
+                "role": "search"
+              },
+              "children": [
+                {
+                  "tag": "input",
+                  "attributes": {
+                    "class": "search",
+                    "type": "text",
+                    "placeholder": "유튜브 검색",
+                    "disabled": false,
+                    "value": "인터뷰 b-roll"
+                  },
+                  "children": []
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "tag": "form",
+          "attributes": {
+            "class": "composer"
+          },
+          "children": [
+            {
+              "tag": "div",
+              "attributes": {
+                "class": "row"
+              },
+              "children": [
+                {
+                  "tag": "input",
+                  "attributes": {
+                    "class": "url",
+                    "type": "text",
+                    "placeholder": "YouTube · TikTok 링크",
+                    "disabled": false,
+                    "value": ""
+                  },
+                  "children": []
+                },
+                {
+                  "tag": "button",
+                  "attributes": {
+                    "class": "primary",
+                    "type": "submit",
+                    "disabled": true
+                  },
+                  "children": [
+                    "받기"
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "tag": "aside",
+          "attributes": {
+            "class": "related full",
+            "aria-label": "탐색 목록"
+          },
+          "children": [
+            {
+              "tag": "div",
+              "attributes": {
+                "class": "related-tabs",
+                "role": "tablist"
+              },
+              "children": [
+                {
+                  "tag": "button",
+                  "attributes": {
+                    "class": "tab on",
+                    "type": "button",
+                    "role": "tab",
+                    "title": "\"인터뷰 b-roll\" 유튜브 검색 결과",
+                    "disabled": false
+                  },
+                  "children": [
+                    "검색"
+                  ]
+                }
+              ]
+            },
+            {
+              "tag": "ul",
+              "attributes": {
+                "class": "related-list"
+              },
+              "children": [
+                {
+                  "tag": "li",
+                  "attributes": {},
+                  "children": [
+                    {
+                      "tag": "button",
+                      "attributes": {
+                        "class": "related-item",
+                        "type": "button",
+                        "title": "인터뷰 B-roll 촬영 팁 — 조명 하나로 분위기 바꾸기",
+                        "disabled": false
+                      },
+                      "children": [
+                        {
+                          "tag": "span",
+                          "attributes": {
+                            "class": "thumb"
+                          },
+                          "children": [
+                            {
+                              "tag": "img",
+                              "attributes": {
+                                "src": "data:312"
+                              },
+                              "children": []
+                            },
+                            {
+                              "tag": "span",
+                              "attributes": {
+                                "class": "dur"
+                              },
+                              "children": [
+                                "5:46"
+                              ]
+                            }
+                          ]
+                        },
+                        {
+                          "tag": "span",
+                          "attributes": {
+                            "class": "text"
+                          },
+                          "children": [
+                            {
+                              "tag": "span",
+                              "attributes": {
+                                "class": "title"
+                              },
+                              "children": [
+                                "인터뷰 B-roll 촬영 팁 — 조명 하나로 분위기 바꾸기"
+                              ]
+                            },
+                            {
+                              "tag": "span",
+                              "attributes": {
+                                "class": "sub muted"
+                              },
+                              "children": [
+                                "빅제임스 [Big James]"
+                              ]
+                            },
+                            {
+                              "tag": "span",
+                              "attributes": {
+                                "class": "sub muted"
+                              },
+                              "children": [
+                                "조회수 6,938회 · 8년 전"
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "tag": "li",
+                  "attributes": {},
+                  "children": [
+                    {
+                      "tag": "button",
+                      "attributes": {
+                        "class": "related-item",
+                        "type": "button",
+                        "title": "도심 야경 드론 4K",
+                        "disabled": false
+                      },
+                      "children": [
+                        {
+                          "tag": "span",
+                          "attributes": {
+                            "class": "thumb"
+                          },
+                          "children": [
+                            {
+                              "tag": "img",
+                              "attributes": {
+                                "src": "data:312"
+                              },
+                              "children": []
+                            },
+                            {
+                              "tag": "span",
+                              "attributes": {
+                                "class": "dur"
+                              },
+                              "children": [
+                                "3:02"
+                              ]
+                            }
+                          ]
+                        },
+                        {
+                          "tag": "span",
+                          "attributes": {
+                            "class": "text"
+                          },
+                          "children": [
+                            {
+                              "tag": "span",
+                              "attributes": {
+                                "class": "title"
+                              },
+                              "children": [
+                                "도심 야경 드론 4K"
+                              ]
+                            },
+                            {
+                              "tag": "span",
+                              "attributes": {
+                                "class": "sub muted"
+                              },
+                              "children": [
+                                "sky lab"
+                              ]
+                            },
+                            {
+                              "tag": "span",
+                              "attributes": {
+                                "class": "sub muted"
+                              },
+                              "children": [
+                                "조회수 120만회 · 1년 전"
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "tag": "li",
+                  "attributes": {},
+                  "children": [
+                    {
+                      "tag": "button",
+                      "attributes": {
+                        "class": "related-item",
+                        "type": "button",
+                        "title": "인터뷰 촬영 세팅 모음(카메라 2대, 마이크 배치, 조명 위치까지 한 번에 정리)",
+                        "disabled": false
+                      },
+                      "children": [
+                        {
+                          "tag": "span",
+                          "attributes": {
+                            "class": "thumb"
+                          },
+                          "children": [
+                            {
+                              "tag": "img",
+                              "attributes": {
+                                "src": "data:312"
+                              },
+                              "children": []
+                            },
+                            {
+                              "tag": "span",
+                              "attributes": {
+                                "class": "dur"
+                              },
+                              "children": [
+                                "21:00"
+                              ]
+                            }
+                          ]
+                        },
+                        {
+                          "tag": "span",
+                          "attributes": {
+                            "class": "text"
+                          },
+                          "children": [
+                            {
+                              "tag": "span",
+                              "attributes": {
+                                "class": "title"
+                              },
+                              "children": [
+                                "인터뷰 촬영 세팅 모음(카메라 2대, 마이크 배치, 조명 위치까지 한 번에 정리)"
+                              ]
+                            },
+                            {
+                              "tag": "span",
+                              "attributes": {
+                                "class": "sub muted"
+                              },
+                              "children": [
+                                "film class"
+                              ]
+                            },
+                            {
+                              "tag": "span",
+                              "attributes": {
+                                "class": "sub muted"
+                              },
+                              "children": [
+                                "조회수 3.4만회 · 2개월 전"
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "tag": "li",
+                  "attributes": {},
+                  "children": [
+                    {
+                      "tag": "button",
+                      "attributes": {
+                        "class": "related-item",
+                        "type": "button",
+                        "title": "b-roll 아이디어 30가지",
+                        "disabled": false
+                      },
+                      "children": [
+                        {
+                          "tag": "span",
+                          "attributes": {
+                            "class": "thumb"
+                          },
+                          "children": [
+                            {
+                              "tag": "img",
+                              "attributes": {
+                                "src": "data:312"
+                              },
+                              "children": []
+                            },
+                            {
+                              "tag": "span",
+                              "attributes": {
+                                "class": "dur"
+                              },
+                              "children": [
+                                "10:11"
+                              ]
+                            }
+                          ]
+                        },
+                        {
+                          "tag": "span",
+                          "attributes": {
+                            "class": "text"
+                          },
+                          "children": [
+                            {
+                              "tag": "span",
+                              "attributes": {
+                                "class": "title"
+                              },
+                              "children": [
+                                "b-roll 아이디어 30가지"
+                              ]
+                            },
+                            {
+                              "tag": "span",
+                              "attributes": {
+                                "class": "sub muted"
+                              },
+                              "children": [
+                                "editor kim"
+                              ]
+                            },
+                            {
+                              "tag": "span",
+                              "attributes": {
+                                "class": "sub muted"
+                              },
+                              "children": [
+                                "조회수 9.1천회 · 3주 전"
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "tag": "li",
+                  "attributes": {},
+                  "children": [
+                    {
+                      "tag": "button",
+                      "attributes": {
+                        "class": "related-item",
+                        "type": "button",
+                        "title": "카페 인터뷰 브이로그",
+                        "disabled": false
+                      },
+                      "children": [
+                        {
+                          "tag": "span",
+                          "attributes": {
+                            "class": "thumb"
+                          },
+                          "children": [
+                            {
+                              "tag": "img",
+                              "attributes": {
+                                "src": "data:312"
+                              },
+                              "children": []
+                            },
+                            {
+                              "tag": "span",
+                              "attributes": {
+                                "class": "dur"
+                              },
+                              "children": [
+                                "1:35"
+                              ]
+                            }
+                          ]
+                        },
+                        {
+                          "tag": "span",
+                          "attributes": {
+                            "class": "text"
+                          },
+                          "children": [
+                            {
+                              "tag": "span",
+                              "attributes": {
+                                "class": "title"
+                              },
+                              "children": [
+                                "카페 인터뷰 브이로그"
+                              ]
+                            },
+                            {
+                              "tag": "span",
+                              "attributes": {
+                                "class": "sub muted"
+                              },
+                              "children": [
+                                "daily cut"
+                              ]
+                            },
+                            {
+                              "tag": "span",
+                              "attributes": {
+                                "class": "sub muted"
+                              },
+                              "children": [
+                                "조회수 210회 · 5일 전"
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "tag": "li",
+                  "attributes": {},
+                  "children": [
+                    {
+                      "tag": "button",
+                      "attributes": {
+                        "class": "related-item",
+                        "type": "button",
+                        "title": "Me at the zoo 4K 복원",
+                        "disabled": false
+                      },
+                      "children": [
+                        {
+                          "tag": "span",
+                          "attributes": {
+                            "class": "thumb"
+                          },
+                          "children": [
+                            {
+                              "tag": "img",
+                              "attributes": {
+                                "src": "data:312"
+                              },
+                              "children": []
+                            },
+                            {
+                              "tag": "span",
+                              "attributes": {
+                                "class": "dur"
+                              },
+                              "children": [
+                                "0:19"
+                              ]
+                            }
+                          ]
+                        },
+                        {
+                          "tag": "span",
+                          "attributes": {
+                            "class": "text"
+                          },
+                          "children": [
+                            {
+                              "tag": "span",
+                              "attributes": {
+                                "class": "title"
+                              },
+                              "children": [
+                                "Me at the zoo 4K 복원"
+                              ]
+                            },
+                            {
+                              "tag": "span",
+                              "attributes": {
+                                "class": "sub muted"
+                              },
+                              "children": [
+                                "restore lab"
+                              ]
+                            },
+                            {
+                              "tag": "span",
+                              "attributes": {
+                                "class": "sub muted"
+                              },
+                              "children": [
+                                {
+                                  "tag": "span",
+                                  "attributes": {
+                                    "class": "ok"
+                                  },
+                                  "children": [
+                                    "✓ 받음 ·"
+                                  ]
+                                },
+                                "조회수 267만회 · 4일 전"
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "tag": "button",
+              "attributes": {
+                "class": "related-more",
+                "type": "button",
+                "disabled": false
+              },
+              "children": [
+                "더 보기"
+              ]
+            }
+          ]
+        },
+        {
+          "tag": "div",
+          "attributes": {
+            "class": "row options muted small"
+          },
+          "children": [
+            {
+              "tag": "label",
+              "attributes": {
+                "title": "받기가 끝나면 열린 시퀀스의 재생헤드 위치, 새 빈 트랙에 넣습니다(기존 클립은 그대로). 시퀀스가 없으면 소스 모니터로 엽니다."
+              },
+              "children": [
+                {
+                  "tag": "input",
+                  "attributes": {
+                    "type": "checkbox",
+                    "disabled": false,
+                    "checked": true
+                  },
+                  "children": []
+                },
+                "완료되면 새 트랙에 바로 넣기"
+              ]
+            },
+            {
+              "tag": "label",
+              "attributes": {},
+              "children": [
+                "기본 화질",
+                {
+                  "tag": "select",
+                  "attributes": {
+                    "disabled": false,
+                    "value": "1080"
+                  },
+                  "children": [
+                    {
+                      "tag": "option",
+                      "attributes": {},
+                      "children": [
+                        "360",
+                        "p"
+                      ]
+                    },
+                    {
+                      "tag": "option",
+                      "attributes": {},
+                      "children": [
+                        "480",
+                        "p"
+                      ]
+                    },
+                    {
+                      "tag": "option",
+                      "attributes": {},
+                      "children": [
+                        "720",
+                        "p"
+                      ]
+                    },
+                    {
+                      "tag": "option",
+                      "attributes": {},
+                      "children": [
+                        "1080",
+                        "p"
+                      ]
+                    },
+                    {
+                      "tag": "option",
+                      "attributes": {},
+                      "children": [
+                        "1440",
+                        "p"
+                      ]
+                    },
+                    {
+                      "tag": "option",
+                      "attributes": {},
+                      "children": [
+                        "2160",
+                        "p"
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "tag": "ul",
+          "attributes": {
+            "class": "jobs"
+          },
+          "children": [
+            {
+              "tag": "li",
+              "attributes": {
+                "class": "job done"
+              },
+              "children": [
+                {
+                  "tag": "div",
+                  "attributes": {
+                    "class": "row"
+                  },
+                  "children": [
+                    {
+                      "tag": "span",
+                      "attributes": {
+                        "class": "title",
+                        "title": "https://www.youtube.com/watch?v=j9"
+                      },
+                      "children": [
+                        "Me at the zoo 4K 복원"
+                      ]
+                    },
+                    {
+                      "tag": "span",
+                      "attributes": {
+                        "class": "state"
+                      },
+                      "children": [
+                        "완료"
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "tag": "div",
+                  "attributes": {
+                    "class": "row actions"
+                  },
+                  "children": [
+                    {
+                      "tag": "span",
+                      "attributes": {
+                        "class": "ok small"
+                      },
+                      "children": [
+                        "✓",
+                        "Birdcage / Youtube"
+                      ]
+                    },
+                    {
+                      "tag": "button",
+                      "attributes": {
+                        "disabled": false
+                      },
+                      "children": [
+                        "폴더에서 보기"
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "tag": "footer",
+          "attributes": {
+            "class": "row footer muted small"
+          },
+          "children": [
+            {
+              "tag": "span",
+              "attributes": {
+                "title": "/Users/editor/Movies/Birdcage"
+              },
+              "children": [
+                "저장 위치:",
+                "/Users/editor/Movies/Birdcage"
+              ]
+            },
+            {
+              "tag": "button",
+              "attributes": {
+                "disabled": false
+              },
+              "children": [
+                "완료 항목 지우기"
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

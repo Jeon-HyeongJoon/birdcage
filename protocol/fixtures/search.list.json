@@ -1,0 +1,21 @@
+{
+  "v": 0,
+  "type": "search.list",
+  "id": "11",
+  "data": {
+    "query": "인터뷰 b-roll",
+    "page": 1,
+    "items": [
+      {
+        "id": "I0-g22cY3WY",
+        "url": "https://www.youtube.com/watch?v=I0-g22cY3WY",
+        "title": "인터뷰 B-roll 촬영 팁",
+        "channel": "빅제임스 [Big James]",
+        "durationSec": 346,
+        "thumbnail": "https://i.ytimg.com/vi/I0-g22cY3WY/hqdefault.jpg",
+        "meta": "조회수 6,938회 · 8년 전"
+      }
+    ],
+    "more": true
+  }
+}

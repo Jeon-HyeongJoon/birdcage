@@ -60,12 +60,25 @@ export const Composer = ({ s, ctl, focusMode = false, settings }: { s: State; ct
   return (
     <form className="composer" onSubmit={submit}>
       <div className={focusMode ? "row link-row focus" : "row"}>
+        {s.history.length > 0 && (
+          <button type="button" className="icon back" onClick={() => ctl.back()} title={`이전 영상: ${s.history[s.history.length - 1].draft.info?.title ?? s.history[s.history.length - 1].draft.url}`}>
+            ←
+          </button>
+        )}
         <input
           className="url"
           type="text"
           placeholder="YouTube · TikTok 링크"
           value={d.url}
           onChange={(e) => ctl.setUrl(e.target.value)}
+          onKeyDown={(e) => {
+            // 링크가 아닌 글자 + Enter는 유튜브 검색으로 넘긴다(상단 검색창과 같다).
+            if (e.key === "Enter" && !isLink(d.url) && d.url.trim()) {
+              e.preventDefault();
+              ctl.search(d.url);
+              ctl.clearDraft();
+            }
+          }}
           disabled={!connected}
         />
         {d.url && (
@@ -82,9 +95,11 @@ export const Composer = ({ s, ctl, focusMode = false, settings }: { s: State; ct
       {d.status === "probing" && (
         <div className="player">
           <div className="frame">
-            <div className="still empty" />
+            {/* 목록에서 연 영상은 아는 썸네일·제목을 먼저 보여 준다 */}
+            {d.hint?.thumbnail ? <img className="still" src={d.hint.thumbnail} alt="" /> : <div className="still empty" />}
             <div className="overlay chip">링크 확인 중…</div>
           </div>
+          {d.hint && <div className="hint-title">{d.hint.title}</div>}
         </div>
       )}
       {d.status === "failed" && (

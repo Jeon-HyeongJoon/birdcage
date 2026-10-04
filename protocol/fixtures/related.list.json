@@ -1,0 +1,30 @@
+{
+  "v": 0,
+  "type": "related.list",
+  "id": "9",
+  "data": {
+    "probeId": "p0a1b2c3d4e5f",
+    "requested": "youtube",
+    "source": "youtube",
+    "items": [
+      {
+        "id": "eoisNyKSBic",
+        "url": "https://www.youtube.com/watch?v=eoisNyKSBic",
+        "title": "'우사기' 는 사실 모든 것을 알고 있었습니다",
+        "channel": "김채호의 필름찢기",
+        "durationSec": 871,
+        "thumbnail": "https://i.ytimg.com/vi/eoisNyKSBic/hqdefault.jpg",
+        "meta": "조회수 7.8만회 · 4시간 전"
+      },
+      {
+        "id": "s1",
+        "url": "https://www.youtube.com/watch?v=s1",
+        "title": "검색 결과",
+        "channel": "B",
+        "durationSec": 10,
+        "thumbnail": "https://i.ytimg.com/vi/s1/mqdefault.jpg",
+        "views": 1200
+      }
+    ]
+  }
+}

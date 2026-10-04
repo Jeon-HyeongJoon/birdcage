@@ -1,5 +1,5 @@
 # Birdcage 개발 명령. Windows에서는 scripts/*.ps1 또는 각 명령을 직접 실행한다.
-.PHONY: test helper-test helper-bench helper-e2e helper-build panel-test panel-build package-windows perf-report cep-dev-install tools gen verify gates orient premises readiness
+.PHONY: test helper-test helper-bench helper-e2e helper-build panel-test panel-build package-windows package-macos perf-report cep-dev-install tools gen verify gates orient premises readiness
 
 test: helper-test panel-test
 
@@ -23,6 +23,9 @@ panel-build: helper-build   ## CEP 패널 빌드 → panel/cep/dist/cep
 
 package-windows:            ## ffmpeg/ffprobe 포함 Windows x64 개인용 설치 ZIP
 	scripts/package-windows.sh
+
+package-macos:              ## ffmpeg/ffprobe(Intel, Apple Silicon은 Rosetta) 포함 macOS 개인용 설치 ZIP
+	scripts/package-macos.sh
 
 perf-report:        ## 마지막 테스트 실행의 성능 요약
 	cd helper && go run ./cmd/perfreport

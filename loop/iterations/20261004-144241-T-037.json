@@ -1,0 +1,65 @@
+{
+  "$schema": "../schema/iteration.schema.json",
+  "id": "20261004-144241-T-037",
+  "task": "T-037",
+  "session": {
+    "kind": "worker",
+    "id": "2df3dff7-1152-4794-b7b9-d1f8c6d6a92c",
+    "model": "claude-opus-5-5"
+  },
+  "startedAt": "2026-10-04T14:42:41Z",
+  "endedAt": "2026-10-04T14:59:09Z",
+  "base": {
+    "branch": "feat/search",
+    "commit": "c311740a742f",
+    "dirty": true
+  },
+  "head": {
+    "branch": "feat/search",
+    "commit": "c311740a742f",
+    "dirty": true
+  },
+  "state": "success",
+  "hypothesis": "실제 패널 트레이스에서 검색 결과 표시 뒤 한 프레임이 배치 2.1s+그리기 1.1s였고, 패널 안 실험에서 system-ui가 들어간 글꼴 목록은 새 한글 800자에 6.1s, 한글 글꼴을 이름으로 둔 목록은 22–51ms였다. 글꼴 목록에서 system-ui·BlinkMacSystemFont를 빼고 버튼·입력이 본문 글꼴을 물려받게 하면 멈춤이 사라진다(주입 실험: 긴 작업 3.5s → 없음).",
+  "summary": "T-037 패널 멈춤 수정: 실제 Premiere 15.2 패널에서 검색 결과 표시 뒤 0.8–3.5s 멈춤을 트레이스(배치 2.1s+그리기 1.1s)와 패널 안 실험으로 시스템 글꼴 경로(system-ui·BlinkMacSystemFont: 새 한글 800자 6.1–7.2s, 새 영문 단어 160개 1.4s)로 특정. 글꼴을 이름 지정(Helvetica Neue·Apple SD Gothic Neo·Segoe UI·Malgun Gothic) + 입력·버튼 inherit으로 바꿔 실기 검색 4회 긴 작업 없음·썸네일까지 1.15–1.40s. unicode-range 한글 전용 글꼴(영문 SF 유지)은 영문 경로가 여전히 느려(0.8–2.0s) 버림. uilint no-system-font·P-0010-f 추가, 픽셀 골든 24개 갱신(승인).",
+  "metrics": {
+    "durationMin": 16.4,
+    "evidence": 15,
+    "evidenceByLevel": {
+      "L1": 6,
+      "L2": 5,
+      "L3": 4
+    },
+    "pass": 13,
+    "fail": 1,
+    "skip": 0
+  },
+  "retro": {
+    "newChecks": [
+      "uilint no-system-font + P-0010-f"
+    ],
+    "lessons": [
+      "헤드리스 골든은 CEP 실기의 글꼴 경로 비용을 못 잡는다: 성능 문제는 실제 호스트에서 트레이스·패널 안 실험으로 가른다",
+      "가설을 하나 고쳐도 다시 잰다: 한글만 고친 1차 수정은 3.5s→0.8–2.0s에 그쳤고 영문 경로가 남은 원인이었다"
+    ]
+  },
+  "next": [
+    "사용자 Premiere QA: 패널을 다시 열어 새 빌드(이름 지정 글꼴)에서 검색·추천 목록 체감 확인",
+    "Windows(T-006)에서 Segoe UI·Malgun Gothic 경로도 같은 방식으로 실측",
+    "이 커밋은 실험(추천·검색)과 무관하므로 main에 따로 가져갈 수 있다(사람 승인)"
+  ],
+  "approvals": [
+    {
+      "action": "session.multitask",
+      "by": "전형준",
+      "at": "2026-10-04T14:42:42Z",
+      "note": "2026-10-04 사용자 질문 '검색 딜레이 최적화 가능한가'와 지적 'UI 출력하면서 딜레이' → 원인 수정 작업"
+    },
+    {
+      "action": "verifier.change",
+      "by": "전형준",
+      "at": "2026-10-04T14:56:33Z",
+      "note": "2026-10-04 승인: 패널 글꼴을 이름 지정(Helvetica Neue·Apple SD Gothic Neo·Segoe UI·Malgun Gothic)으로 확정, 픽셀 골든 24개 갱신(DOM 골든 변화 없음). 원인: 시스템 글꼴 경로가 CEP 74에서 새 단어마다 느림"
+    }
+  ]
+}

@@ -1,0 +1,123 @@
+{
+ "_type": "playlist",
+ "id": "Me at the zoo",
+ "title": "Me at the zoo",
+ "extractor": "youtube:search",
+ "extractor_key": "YoutubeSearch",
+ "webpage_url": "ytsearch30:Me at the zoo",
+ "entries": [
+  {
+   "_type": "url",
+   "ie_key": "Youtube",
+   "id": "jNQXAC9IVRw",
+   "url": "https://www.youtube.com/watch?v=jNQXAC9IVRw",
+   "title": "Me at the zoo",
+   "duration": 19,
+   "channel_id": "UC4QobU6STFB0P71PMvOGN5A",
+   "channel": "jawed",
+   "channel_url": "https://www.youtube.com/channel/UC4QobU6STFB0P71PMvOGN5A",
+   "uploader": "jawed",
+   "uploader_id": "@jawed",
+   "uploader_url": "https://www.youtube.com/@jawed",
+   "thumbnails": [
+    {
+     "url": "https://i.ytimg.com/vi/jNQXAC9IVRw/hqdefault.jpg?sqp=-oaymwE2COADEI4CSFXyq4qpAygIARUAAIhCGAFwAcABBvABAfgBvgKAAvABigIMCAAQARhVIFkoZTAP&rs=AOn4CLDkGJrAGBspJ5G6u9b7tutsHbloEg",
+     "height": 270,
+     "width": 480
+    }
+   ],
+   "timestamp": null,
+   "release_timestamp": null,
+   "availability": null,
+   "view_count": null,
+   "live_status": null,
+   "channel_is_verified": true
+  },
+  {
+   "_type": "url",
+   "ie_key": "Youtube",
+   "id": "Bz-3SznlB_c",
+   "url": "https://www.youtube.com/watch?v=Bz-3SznlB_c",
+   "title": "YouTube Ka Sabse Pehla Video 😱 | Me At The Zoo | Original First YouTube Video",
+   "duration": 18,
+   "channel_id": "UC-dqoSLd20tVGi47WXHM2zA",
+   "channel": "Harshu brother ",
+   "channel_url": "https://www.youtube.com/channel/UC-dqoSLd20tVGi47WXHM2zA",
+   "uploader": "Harshu brother ",
+   "uploader_id": "@Harshu_brother",
+   "uploader_url": "https://www.youtube.com/@Harshu_brother",
+   "thumbnails": [
+    {
+     "url": "https://i.ytimg.com/vi/Bz-3SznlB_c/hq720.jpg?sqp=-oaymwEcCOgCEMoBSFXyq4qpAw4IARUAAIhCGAFwAcABBg==&rs=AOn4CLDiTa5Db2TLFzEdmw7XJAgMWSOBVg",
+     "height": 202,
+     "width": 360
+    },
+    {
+     "url": "https://i.ytimg.com/vi/Bz-3SznlB_c/hq720.jpg?sqp=-oaymwEcCNAFEJQDSFXyq4qpAw4IARUAAIhCGAFwAcABBg==&rs=AOn4CLAEmK8m3dv5a9sbmPRWUST8DeZYxA",
+     "height": 404,
+     "width": 720
+    }
+   ],
+   "timestamp": null,
+   "release_timestamp": null,
+   "availability": null,
+   "view_count": null,
+   "live_status": null,
+   "channel_is_verified": null
+  },
+  {
+   "_type": "url",
+   "ie_key": "Youtube",
+   "id": "4GBql7cWX1o",
+   "url": "https://www.youtube.com/watch?v=4GBql7cWX1o",
+   "title": "Me At The Zoo @jawed , Youtube's First Video ",
+   "duration": 19,
+   "channel_id": "UC5tlaD5ze0i3NTrCqPTLZpQ",
+   "channel": "Aslii Clips",
+   "channel_url": "https://www.youtube.com/channel/UC5tlaD5ze0i3NTrCqPTLZpQ",
+   "uploader": "Aslii Clips",
+   "uploader_id": "@AsliiClips",
+   "uploader_url": "https://www.youtube.com/@AsliiClips",
+   "thumbnails": [
+    {
+     "url": "https://i.ytimg.com/vi/4GBql7cWX1o/hqdefault.jpg?sqp=-oaymwE2COADEI4CSFXyq4qpAygIARUAAIhCGAFwAcABBvABAfgBvgKAAvABigIMCAAQARhUIFgoZTAP&rs=AOn4CLCqm-Hk9F4WhqKgFnwKbVw-VN8sPg",
+     "height": 270,
+     "width": 480
+    }
+   ],
+   "timestamp": null,
+   "release_timestamp": null,
+   "availability": null,
+   "view_count": null,
+   "live_status": null,
+   "channel_is_verified": null
+  },
+  {
+   "_type": "url",
+   "ie_key": "Youtube",
+   "id": "t17aRt-rJDQ",
+   "url": "https://www.youtube.com/watch?v=t17aRt-rJDQ",
+   "title": "Me at the zoo (The first Video in YouTube history ever)",
+   "duration": 19,
+   "channel_id": "UClF8dAfh8OsCJMKT65RalNA",
+   "channel": "Sean Inventory ",
+   "channel_url": "https://www.youtube.com/channel/UClF8dAfh8OsCJMKT65RalNA",
+   "uploader": "Sean Inventory ",
+   "uploader_id": "@Sean-Inventory",
+   "uploader_url": "https://www.youtube.com/@Sean-Inventory",
+   "thumbnails": [
+    {
+     "url": "https://i.ytimg.com/vi/t17aRt-rJDQ/hqdefault.jpg?sqp=-oaymwE2COADEI4CSFXyq4qpAygIARUAAIhCGAFwAcABBvABAfgBvgKAAvABigIMCAAQARhKIFQoZTAP&rs=AOn4CLDXPpz316wgPY9kZ5nmXMCpXc1_SQ",
+     "height": 270,
+     "width": 480
+    }
+   ],
+   "timestamp": null,
+   "release_timestamp": null,
+   "availability": null,
+   "view_count": null,
+   "live_status": null,
+   "channel_is_verified": null
+  }
+ ]
+}

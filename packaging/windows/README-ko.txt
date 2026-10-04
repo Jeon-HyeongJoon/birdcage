@@ -26,7 +26,8 @@ FFmpeg 별도 설치가 필요 없습니다. yt-dlp와 Deno는 첫 실행 시 �
 
 메인 패널을 닫아도 다운로드 목록 패널이 이 파일을 직접 읽습니다.
 
-기존 Birdcage가 있으면 설치기가 같은 CEP 폴더에 backup-날짜 이름으로 보존합니다.
+기존 Birdcage가 있으면 설치기가 %LOCALAPPDATA%\Birdcage\backups 에 날짜 이름으로 보존합니다.
+(확장 폴더 안에 같은 ID의 사본이 남으면 Premiere가 어느 쪽을 열지 보장되지 않기 때문입니다.)
 삭제하려면 uninstall.cmd를 실행합니다. 다운로드한 미디어와 설정은 제거하지 않습니다.
 
 무서명 실행 파일이므로 Windows Defender가 경고할 수 있습니다. 이 ZIP의

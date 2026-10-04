@@ -1,0 +1,559 @@
+{
+  "tag": "div",
+  "attributes": {},
+  "children": [
+    {
+      "tag": "div",
+      "attributes": {
+        "class": "app",
+        "style": "background-color: rgb(35, 35, 35);"
+      },
+      "children": [
+        {
+          "tag": "header",
+          "attributes": {
+            "class": "row header"
+          },
+          "children": [
+            {
+              "tag": "strong",
+              "attributes": {},
+              "children": [
+                "Birdcage"
+              ]
+            },
+            {
+              "tag": "span",
+              "attributes": {
+                "class": "dot ok",
+                "role": "status",
+                "aria-label": "사용 가능",
+                "title": "사용 가능\nHelper 0.1.0-fixture"
+              },
+              "children": []
+            },
+            {
+              "tag": "form",
+              "attributes": {
+                "class": "search-box",
+                "role": "search"
+              },
+              "children": [
+                {
+                  "tag": "input",
+                  "attributes": {
+                    "class": "search",
+                    "type": "text",
+                    "placeholder": "유튜브 검색",
+                    "disabled": false,
+                    "value": ""
+                  },
+                  "children": []
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "tag": "form",
+          "attributes": {
+            "class": "composer"
+          },
+          "children": [
+            {
+              "tag": "div",
+              "attributes": {
+                "class": "row"
+              },
+              "children": [
+                {
+                  "tag": "button",
+                  "attributes": {
+                    "class": "icon back",
+                    "type": "button",
+                    "title": "이전 영상: Me at the zoo",
+                    "disabled": false
+                  },
+                  "children": [
+                    "←"
+                  ]
+                },
+                {
+                  "tag": "input",
+                  "attributes": {
+                    "class": "url",
+                    "type": "text",
+                    "placeholder": "YouTube · TikTok 링크",
+                    "disabled": false,
+                    "value": "https://www.youtube.com/watch?v=rel1"
+                  },
+                  "children": []
+                },
+                {
+                  "tag": "button",
+                  "attributes": {
+                    "class": "icon",
+                    "type": "button",
+                    "title": "지우기",
+                    "disabled": false
+                  },
+                  "children": [
+                    "×"
+                  ]
+                },
+                {
+                  "tag": "button",
+                  "attributes": {
+                    "class": "primary",
+                    "type": "submit",
+                    "disabled": true
+                  },
+                  "children": [
+                    "받기"
+                  ]
+                }
+              ]
+            },
+            {
+              "tag": "div",
+              "attributes": {
+                "class": "player"
+              },
+              "children": [
+                {
+                  "tag": "div",
+                  "attributes": {
+                    "class": "frame"
+                  },
+                  "children": [
+                    {
+                      "tag": "img",
+                      "attributes": {
+                        "class": "still",
+                        "src": "data:312"
+                      },
+                      "children": []
+                    },
+                    {
+                      "tag": "div",
+                      "attributes": {
+                        "class": "overlay chip"
+                      },
+                      "children": [
+                        "링크 확인 중…"
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "tag": "div",
+                  "attributes": {
+                    "class": "hint-title"
+                  },
+                  "children": [
+                    "동물원 브이로그 — 코끼리 우리 앞에서 찍은 첫 영상의 뒷이야기와 촬영 장비 이야기까지 한 번에"
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "tag": "aside",
+          "attributes": {
+            "class": "related",
+            "aria-label": "탐색 목록"
+          },
+          "children": [
+            {
+              "tag": "div",
+              "attributes": {
+                "class": "related-tabs",
+                "role": "tablist"
+              },
+              "children": [
+                {
+                  "tag": "button",
+                  "attributes": {
+                    "class": "tab on",
+                    "type": "button",
+                    "role": "tab",
+                    "title": "유튜브가 이 영상 옆에 보여 주는 '다음 동영상'",
+                    "disabled": true
+                  },
+                  "children": [
+                    "추천"
+                  ]
+                },
+                {
+                  "tag": "button",
+                  "attributes": {
+                    "class": "tab",
+                    "type": "button",
+                    "role": "tab",
+                    "title": "이 채널의 최근 영상",
+                    "disabled": true
+                  },
+                  "children": [
+                    "같은 채널"
+                  ]
+                },
+                {
+                  "tag": "button",
+                  "attributes": {
+                    "class": "tab",
+                    "type": "button",
+                    "role": "tab",
+                    "title": "제목 핵심어로 검색한 영상",
+                    "disabled": true
+                  },
+                  "children": [
+                    "비슷한 제목"
+                  ]
+                }
+              ]
+            },
+            {
+              "tag": "ul",
+              "attributes": {
+                "class": "related-list skeleton"
+              },
+              "children": [
+                {
+                  "tag": "li",
+                  "attributes": {},
+                  "children": [
+                    {
+                      "tag": "span",
+                      "attributes": {
+                        "class": "related-item"
+                      },
+                      "children": [
+                        {
+                          "tag": "span",
+                          "attributes": {
+                            "class": "thumb"
+                          },
+                          "children": []
+                        },
+                        {
+                          "tag": "span",
+                          "attributes": {
+                            "class": "text"
+                          },
+                          "children": [
+                            {
+                              "tag": "span",
+                              "attributes": {
+                                "class": "line"
+                              },
+                              "children": []
+                            },
+                            {
+                              "tag": "span",
+                              "attributes": {
+                                "class": "line short"
+                              },
+                              "children": []
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "tag": "li",
+                  "attributes": {},
+                  "children": [
+                    {
+                      "tag": "span",
+                      "attributes": {
+                        "class": "related-item"
+                      },
+                      "children": [
+                        {
+                          "tag": "span",
+                          "attributes": {
+                            "class": "thumb"
+                          },
+                          "children": []
+                        },
+                        {
+                          "tag": "span",
+                          "attributes": {
+                            "class": "text"
+                          },
+                          "children": [
+                            {
+                              "tag": "span",
+                              "attributes": {
+                                "class": "line"
+                              },
+                              "children": []
+                            },
+                            {
+                              "tag": "span",
+                              "attributes": {
+                                "class": "line short"
+                              },
+                              "children": []
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "tag": "li",
+                  "attributes": {},
+                  "children": [
+                    {
+                      "tag": "span",
+                      "attributes": {
+                        "class": "related-item"
+                      },
+                      "children": [
+                        {
+                          "tag": "span",
+                          "attributes": {
+                            "class": "thumb"
+                          },
+                          "children": []
+                        },
+                        {
+                          "tag": "span",
+                          "attributes": {
+                            "class": "text"
+                          },
+                          "children": [
+                            {
+                              "tag": "span",
+                              "attributes": {
+                                "class": "line"
+                              },
+                              "children": []
+                            },
+                            {
+                              "tag": "span",
+                              "attributes": {
+                                "class": "line short"
+                              },
+                              "children": []
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "tag": "li",
+                  "attributes": {},
+                  "children": [
+                    {
+                      "tag": "span",
+                      "attributes": {
+                        "class": "related-item"
+                      },
+                      "children": [
+                        {
+                          "tag": "span",
+                          "attributes": {
+                            "class": "thumb"
+                          },
+                          "children": []
+                        },
+                        {
+                          "tag": "span",
+                          "attributes": {
+                            "class": "text"
+                          },
+                          "children": [
+                            {
+                              "tag": "span",
+                              "attributes": {
+                                "class": "line"
+                              },
+                              "children": []
+                            },
+                            {
+                              "tag": "span",
+                              "attributes": {
+                                "class": "line short"
+                              },
+                              "children": []
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "tag": "li",
+                  "attributes": {},
+                  "children": [
+                    {
+                      "tag": "span",
+                      "attributes": {
+                        "class": "related-item"
+                      },
+                      "children": [
+                        {
+                          "tag": "span",
+                          "attributes": {
+                            "class": "thumb"
+                          },
+                          "children": []
+                        },
+                        {
+                          "tag": "span",
+                          "attributes": {
+                            "class": "text"
+                          },
+                          "children": [
+                            {
+                              "tag": "span",
+                              "attributes": {
+                                "class": "line"
+                              },
+                              "children": []
+                            },
+                            {
+                              "tag": "span",
+                              "attributes": {
+                                "class": "line short"
+                              },
+                              "children": []
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "tag": "div",
+          "attributes": {
+            "class": "row options muted small"
+          },
+          "children": [
+            {
+              "tag": "label",
+              "attributes": {
+                "title": "받기가 끝나면 열린 시퀀스의 재생헤드 위치, 새 빈 트랙에 넣습니다(기존 클립은 그대로). 시퀀스가 없으면 소스 모니터로 엽니다."
+              },
+              "children": [
+                {
+                  "tag": "input",
+                  "attributes": {
+                    "type": "checkbox",
+                    "disabled": false,
+                    "checked": true
+                  },
+                  "children": []
+                },
+                "완료되면 새 트랙에 바로 넣기"
+              ]
+            },
+            {
+              "tag": "label",
+              "attributes": {},
+              "children": [
+                "기본 화질",
+                {
+                  "tag": "select",
+                  "attributes": {
+                    "disabled": false,
+                    "value": "1080"
+                  },
+                  "children": [
+                    {
+                      "tag": "option",
+                      "attributes": {},
+                      "children": [
+                        "360",
+                        "p"
+                      ]
+                    },
+                    {
+                      "tag": "option",
+                      "attributes": {},
+                      "children": [
+                        "480",
+                        "p"
+                      ]
+                    },
+                    {
+                      "tag": "option",
+                      "attributes": {},
+                      "children": [
+                        "720",
+                        "p"
+                      ]
+                    },
+                    {
+                      "tag": "option",
+                      "attributes": {},
+                      "children": [
+                        "1080",
+                        "p"
+                      ]
+                    },
+                    {
+                      "tag": "option",
+                      "attributes": {},
+                      "children": [
+                        "1440",
+                        "p"
+                      ]
+                    },
+                    {
+                      "tag": "option",
+                      "attributes": {},
+                      "children": [
+                        "2160",
+                        "p"
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "tag": "ul",
+          "attributes": {
+            "class": "jobs"
+          },
+          "children": []
+        },
+        {
+          "tag": "footer",
+          "attributes": {
+            "class": "row footer muted small"
+          },
+          "children": [
+            {
+              "tag": "span",
+              "attributes": {
+                "title": "/Users/editor/Movies/Birdcage"
+              },
+              "children": [
+                "저장 위치:",
+                "/Users/editor/Movies/Birdcage"
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

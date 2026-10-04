@@ -52,7 +52,16 @@ var tsxRules = []pattern{
 	{"no-grid", regexp.MustCompile(`display\s*:\s*["'](inline-)?grid`), "UXP에 CSS Grid가 없다"},
 	{"no-aspect-ratio", regexp.MustCompile(`\baspectRatio\s*:`), "aspect-ratio는 Chrome 88+"},
 	{"no-inset", regexp.MustCompile(`\binset\s*:`), "inset 속성은 Chrome 87+"},
+	{"no-system-font", systemFontTSX, systemFontMsg},
 }
+
+// systemFont: 시스템 글꼴 경로(system-ui·BlinkMacSystemFont·-apple-system)는 CEP 10(macOS)에서 처음 보는 단어마다 느리다.
+// 새 한글 800자 6.1–7.2s, 새 영문 단어 160개 1.4s(이름 지정 글꼴 2–51ms, Premiere 15.2 실측 2026-10-04).
+var (
+	systemFont    = regexp.MustCompile(`(?i)font-family\s*:[^;{}]*(system-ui|BlinkMacSystemFont|-apple-system)`)
+	systemFontTSX = regexp.MustCompile(`(?i)fontFamily\s*:[^,}]*(system-ui|BlinkMacSystemFont|-apple-system)`)
+	systemFontMsg = "글꼴 목록에 system-ui/BlinkMacSystemFont/-apple-system 금지: CEP 10에서 새 글자·단어 배치가 수백 배 느리다. $font-family 토큰을 쓴다"
+)
 
 var (
 	cssRadius = regexp.MustCompile(`border(-[a-z]+)*-radius\s*:\s*([^;}]+)`)
@@ -153,6 +162,9 @@ func Lint(path, src string) []Finding {
 			if r.re.MatchString(line) {
 				out = append(out, Finding{path, i + 1, r.rule, r.msg})
 			}
+		}
+		if isStyle && systemFont.MatchString(line) {
+			out = append(out, Finding{path, i + 1, "no-system-font", systemFontMsg})
 		}
 		for _, m := range radius.FindAllStringSubmatch(line, -1) {
 			v := m[len(m)-1]

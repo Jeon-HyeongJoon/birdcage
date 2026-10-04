@@ -26,6 +26,7 @@ import (
 	"birdcage/helper/internal/perf"
 	"birdcage/helper/internal/preview"
 	"birdcage/helper/internal/protocol"
+	"birdcage/helper/internal/related"
 	"birdcage/helper/internal/tools"
 )
 
@@ -44,6 +45,7 @@ type Server struct {
 	AllowedOrigins []string // extra exact origins (e.g. UXP later)
 	Jobs           *jobs.Manager
 	Preview        *preview.Service // nil = previews off
+	Related        *related.Service // nil = browse list off
 	Tools          ToolManager
 	Rec            *perf.Recorder
 	Log            *slog.Logger
@@ -223,6 +225,9 @@ func (ss *session) handle(ctx context.Context, data []byte) {
 		if prof == "" {
 			prof = media.ProfileCompat
 		}
+		if jc.Via != "" {
+			ss.srv.Rec.Start("related.download", "via", jc.Via, "range", jc.Range != nil).End(nil) // 적합성 검토용
+		}
 		id, err := ss.srv.Jobs.Submit(jc.URL, jobs.Options{MaxHeight: h, Profile: prof, ProbeID: jc.ProbeID, FormatID: jc.FormatID, Range: jc.Range, AudioOnly: jc.AudioOnly, Subtitles: jc.Subtitles})
 		if err != nil {
 			ss.fail(ctx, env.ID, "bad_request", err.Error())
@@ -236,7 +241,26 @@ func (ss *session) handle(ctx context.Context, data []byte) {
 			ss.fail(ctx, env.ID, "bad_request", err.Error())
 			return
 		}
+		if mp.Via != "" {
+			ss.srv.Rec.Start("related.open", "via", mp.Via).End(nil) // 탐색 목록에서 연 링크(적합성 검토용)
+		}
 		go ss.probe(ctx, env.ID, mp)
+
+	case protocol.TypeRelatedFetch:
+		var rf protocol.RelatedFetch
+		if err := protocol.DecodeData(env, &rf); err != nil {
+			ss.fail(ctx, env.ID, "bad_request", err.Error())
+			return
+		}
+		go ss.related(ctx, env.ID, rf)
+
+	case protocol.TypeSearchFetch:
+		var sf protocol.SearchFetch
+		if err := protocol.DecodeData(env, &sf); err != nil {
+			ss.fail(ctx, env.ID, "bad_request", err.Error())
+			return
+		}
+		go ss.search(ctx, env.ID, sf)
 
 	case protocol.TypePreviewOpen:
 		var po protocol.PreviewOpen
@@ -310,6 +334,62 @@ func (ss *session) probe(ctx context.Context, id string, mp protocol.MediaProbe)
 		msg.ProbeID, msg.Info = pid, info
 	}
 	_ = ss.send(ctx, protocol.TypeMediaInfo, id, msg)
+}
+
+// related answers related.fetch with the browse list (네트워크·yt-dlp를 쓰므로 읽기 루프 밖에서).
+func (ss *session) related(ctx context.Context, id string, rf protocol.RelatedFetch) {
+	want := rf.Source
+	if !want.Valid() {
+		want = related.SourceYouTube
+	}
+	msg := protocol.RelatedList{ProbeID: rf.ProbeID, Requested: want, Items: []related.Item{}}
+	info := ss.srv.Jobs.ProbeInfo(rf.ProbeID)
+	seed, ok := related.SeedOf(info)
+	switch {
+	case ss.srv.Related == nil:
+		msg.Error = "탐색 목록을 쓸 수 없습니다"
+	case info == nil:
+		msg.Error = "링크 정보가 만료되었습니다. 다시 확인하세요."
+	case !ok:
+		msg.Error = "이 링크는 탐색 목록을 지원하지 않습니다"
+	default:
+		var lister engine.Lister
+		if ts, err := ss.srv.Jobs.Toolset(ctx); err == nil {
+			lister, _ = ts.Engine.(engine.Lister)
+		}
+		res, err := ss.srv.Related.List(ctx, seed, want, lister)
+		if err != nil {
+			ss.log.Warn("related list failed", "source", want, "err", err)
+			msg.Error = "목록을 가져오지 못했습니다"
+		} else {
+			msg.Source, msg.Items = res.Source, res.Items
+		}
+	}
+	_ = ss.send(ctx, protocol.TypeRelatedList, id, msg)
+}
+
+// search answers search.fetch with one page of YouTube results.
+func (ss *session) search(ctx context.Context, id string, sf protocol.SearchFetch) {
+	msg := protocol.SearchList{Query: related.NormalizeQuery(sf.Query), Page: sf.Page, Items: []related.Item{}}
+	switch {
+	case ss.srv.Related == nil:
+		msg.Error = "검색을 쓸 수 없습니다"
+	case msg.Query == "":
+		msg.Error = "검색어를 입력하세요"
+	default:
+		var lister engine.Lister
+		if ts, err := ss.srv.Jobs.Toolset(ctx); err == nil {
+			lister, _ = ts.Engine.(engine.Lister)
+		}
+		res, err := ss.srv.Related.Search(ctx, msg.Query, sf.Page, lister)
+		if err != nil {
+			ss.log.Warn("search failed", "page", sf.Page, "err", err)
+			msg.Error = "검색 결과를 가져오지 못했습니다"
+		} else {
+			msg.Items, msg.More = res.Items, res.More
+		}
+	}
+	_ = ss.send(ctx, protocol.TypeSearchList, id, msg)
 }
 
 // openPreview cancels the session's previous preview and starts this one in the background.

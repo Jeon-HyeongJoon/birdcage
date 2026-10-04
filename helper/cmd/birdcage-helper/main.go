@@ -37,6 +37,7 @@ import (
 	"birdcage/helper/internal/perf"
 	"birdcage/helper/internal/preview"
 	"birdcage/helper/internal/protocol"
+	"birdcage/helper/internal/related"
 	"birdcage/helper/internal/server"
 	"birdcage/helper/internal/tools"
 )
@@ -180,7 +181,7 @@ func run(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
 	}
 	pv := &preview.Service{Cache: preview.Cache{Root: filepath.Join(o.dataDir, "preview"), CapBytes: int64(o.previewCacheMB) << 20}, Rec: rec}
 	srv := &server.Server{Token: token, Version: version, LibraryDir: o.libraryDir, DefaultHeight: o.maxHeight,
-		Jobs: mgr, Preview: pv, Tools: tm, Rec: rec, Log: log}
+		Jobs: mgr, Preview: pv, Related: &related.Service{Rec: rec}, Tools: tm, Rec: rec, Log: log}
 	hs := &http.Server{Handler: srv.Handler(), ReadHeaderTimeout: 5 * time.Second}
 	go func() {
 		if err := hs.Serve(ln); err != nil && !errors.Is(err, http.ErrServerClosed) {

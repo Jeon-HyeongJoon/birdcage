@@ -27,15 +27,17 @@ Premiere ─ CEP 메인 패널 (미리보기·옵션·현재 요청) ── ws:/
 | `loop/` | 루프 정책·스키마·백로그·반복 기록·증적 원장(커밋), `loop/.runs/`는 원본 산출물(로컬, gitignore) |
 | `tools/` | `loopctl`(루프 운영·검사·게이트·전제), `specgen`(SSOT 생성기) |
 
-## 현재 상태 (0.1.2)
+## 현재 상태 (0.2.0)
 
-**현재 흐름 = 링크 확인 → 단계적 미리보기 → 구간·화질·오디오·자막 선택 → 백그라운드 다운로드 → Premiere 배치.**
+**현재 흐름 = 유튜브 검색 또는 링크 → 단계적 미리보기 → 구간·화질·오디오·자막 선택 → 백그라운드 다운로드 → Premiere 배치. 미리보기 옆 탐색 목록(추천·같은 채널·비슷한 제목·검색 결과)에서 다음 레퍼런스로 이어 간다.**
 
 | 항목 | 상태 | 근거 |
 |---|---|---|
 | YouTube: 조회→다운로드→분석→정규화 | ✅ 검증 | 온라인 E2E(jNQXAC9IVRw), 만료된 미디어 URL 403은 메타데이터를 새로 조회해 1회 재시도 |
 | 미리보기·편집 옵션 | ✅ 검증 | 스토리보드→파형→360p 재생, In/Out·화질·오디오 전용·자막, 구간 프레임·오디오 정렬 테스트 |
 | Premiere 작업 흐름 | ✅ 부분 검증 | 15.2에서 패널 로드·Helper 연결·다운로드→`Birdcage/Youtube` 빈 자동 임포트(T-005, 2026-10-03 초기 빌드)와 H.264 미리보기 재생 확인. 구간 In/Out·새 빈 트랙 배치·캡션·단축키는 사람 확인 대기(T-023) |
+| 탐색 목록·유튜브 검색 (0.2.0) | ✅ 검증 | 시청 페이지 '다음 동영상'(9/10 시드, 중앙값 0.89s)→같은 채널→제목 검색 대체, 검색 첫 페이지 0.9–1.4s·더 보기, 넓으면 사이드바·좁으면 아래, [←] 복원. Premiere 15.2 실기 사용 후 병합(ADR 0012·0013). TikTok 검색은 로그인 없이 결과가 없어 제외 |
+| 패널 반응성 (0.2.0) | ✅ 실기 검증 | CEP 10의 시스템 글꼴 경로가 새 글자·단어마다 느려 검색 뒤 0.8–3.5s 멈춤 → 글꼴 이름 지정으로 멈춤 없음(T-037, uilint `no-system-font`) |
 | 백그라운드 다운로드 관리 | ✅ 검증 | 메인은 현재 링크에 집중, 별도 `Birdcage 다운로드 목록` 패널에서 진행·실패·완료 기록 관리, 중복 요청 방지 |
 | 완료 기록 공유 | ✅ 자동 검증 / Windows 재확인 대기 | 두 CEP 패널이 Helper 데이터 폴더의 `download-history.json`을 공유하고 기존 0.1.1 기록을 이관 |
 | 도구 설치: yt-dlp·Deno | ✅ 검증 | 체크섬 검증·롤백·zip-slip 거부. Windows Get-FileHash 형식 파싱 수정 후 사용자 실기에서 초기 설치 확인 |
@@ -43,11 +45,12 @@ Premiere ─ CEP 메인 패널 (미리보기·옵션·현재 요청) ── ws:/
 | 보안: 루프백·토큰·Origin | ✅ 검증 | server 테스트(잘못된 토큰 401, 웹 Origin 403, file:// 허용) |
 | 성능 기록: pprof + perf JSONL + 테스트 리포트/회귀 비교 | ✅ 검증 | `scripts/test-helper.sh`, E2E에서 pprof 엔드포인트 확인 |
 | 패널 코어 ↔ 실제 Helper (Node) | ✅ 검증 | `panel/core/test/integration.test.ts` (실행→연결→작업→자동 임포트 호출) |
-| CEP 패널·Windows x64 개인 배포 | ✅ 빌드 / 부분 실기 | CSXS 10, Chromium 74, ES3. Windows에서 확장 인식·도구 설치 확인, 0.1.2 ZIP에 Helper·FFmpeg·ffprobe·설치기 포함 |
+| CEP 패널·Windows x64 개인 배포 | ✅ 빌드 / 부분 실기 | CSXS 10, Chromium 74, ES3. Windows에서 확장 인식·도구 설치 확인(0.1.2), 0.2.0 ZIP에 Helper·FFmpeg·ffprobe·설치기 포함 |
+| macOS 개인 배포 (0.2.0) | ✅ 빌드 / 설치기 시험 | universal Helper + FFmpeg 8.1.2(evermeet, Intel·Apple Silicon은 Rosetta, 네이티브 ffmpeg 우선) + 체크섬·격리 속성 제거·PlayerDebugMode 설치기 |
 | TikTok 실링크 | ⏳ 미검증 | `BIRDCAGE_E2E_URLS`로 지정해 검증 예정 |
 | Instagram | 범위 제외 | 공개 Reel도 로그인 쿠키를 요구하는 사례를 재현해 지원 기능 명시에서 제외 |
 
-현재 범위에서 뺀 것: 쿠키/로그인, Instagram, 재생목록, 라이브, HDR 톤매핑, 프록시·메타데이터(원본 URL) 기록, L1–L5 폴백(실패 분류·정책만 구현), UXP 패널, macOS ffmpeg 자동 설치.
+현재 범위에서 뺀 것: 쿠키/로그인, Instagram, TikTok 검색, 재생목록, 라이브, HDR 톤매핑, 프록시·메타데이터(원본 URL) 기록, L1–L5 폴백(실패 분류·정책만 구현), UXP 패널.
 
 ## 빠른 시작 (macOS)
 
@@ -98,10 +101,19 @@ V0 실측(Apple Silicon, 이 Mac):
 | VP9/Opus 4초 → H.264/AAC | 정규화 ~0.3–0.4s (h264_videotoolbox) |
 | H.264 인코더 감지 | 185–191ms (1회, 캐시) |
 
-## Windows x64 개인용 배포
+## 개인용 배포 (Windows x64 · macOS)
 
-- 현재 배포 버전은 `panel/cep/package.json`의 **0.1.2**. `make package-windows`가 `artifacts/windows/Birdcage-Windows-x64-<version>.zip`을 만든다.
-- ZIP을 풀고 `install.cmd`를 실행한다. 관리자 권한은 필요 없고 기존 확장은 같은 CEP 폴더에 백업한다.
+- 현재 배포 버전은 `panel/cep/package.json`의 **0.2.0**.
+  `make package-windows` → `artifacts/windows/Birdcage-Windows-x64-<version>.zip`, `make package-macos` → `artifacts/macos/Birdcage-macOS-<version>.zip`.
+- 서명·공증 없는 개인용 배포판이다. 두 설치기 모두 SHA256SUMS로 파일을 확인하고, 기존 확장은 확장 폴더 밖(Birdcage 데이터 폴더의 `backups`)에 보관한다
+  (확장 폴더 안에 같은 ID의 사본이 남으면 CEP가 어느 쪽을 열지 보장되지 않는다). 서명 없는 패널을 열 수 있게 CSXS 10·11·12 PlayerDebugMode를 켠다.
+- macOS: ZIP을 풀고 `install.command`(처음엔 Control-클릭 → 열기, 또는 `bash install.command`). 설치한 사본에서만 격리 속성을 지운다.
+  FFmpeg 8.1.2는 ffmpeg.org가 안내하는 evermeet.cx 정적 빌드(Intel)라 Apple Silicon에서는 Rosetta로 돌고, Homebrew 등 네이티브 ffmpeg가 있으면 그쪽을 먼저 쓴다.
+  Helper 최소 macOS 13(Go 툴체인). 이 기기의 개발용 링크(`cep-dev-install.sh`)도 설치 시 백업으로 옮겨지므로 개발로 돌아가려면 스크립트를 다시 실행한다.
+
+### Windows x64
+
+- ZIP을 풀고 `install.cmd`를 실행한다. 관리자 권한은 필요 없다.
 - ZIP은 checksum으로 고정한 FFmpeg/ffprobe GPLv3 정적 빌드와 Windows x64 Helper를 포함한다. yt-dlp·Deno는 첫 실행 때 체크섬을 검증해 설치한다.
 - Premiere 메뉴는 `창 > 확장 > Birdcage`와 `Birdcage 다운로드 목록` 두 개다. 완료 기록은 `%LOCALAPPDATA%\Birdcage\download-history.json`에 저장된다.
 - 사용자 실기에서 Windows 확장 인식과 초기 도구 설치까지 확인했다. 남은 확인은 0.1.2 완료 기록 유지, 링크 1건의 Premiere 임포트, 한글 사용자명 경로, Defender·Job Object 동작이다.
@@ -109,4 +121,4 @@ V0 실측(Apple Silicon, 이 Mac):
 ## 라이선스 메모
 
 - `panel/cep`는 bolt-cep(MIT) 템플릿 기반: `panel/cep/THIRD_PARTY_LICENSE_bolt-cep.txt`
-- yt-dlp(Unlicense)·Deno(MIT)는 Helper가 최초 실행 시 설치한다. Windows 개인용 ZIP은 FFmpeg/ffprobe(GPLv3)를 번들하고 출처·라이선스 고지를 포함한다.
+- yt-dlp(Unlicense)·Deno(MIT)는 Helper가 최초 실행 시 설치한다. Windows·macOS 개인용 ZIP은 FFmpeg/ffprobe(GPLv3)를 번들하고 출처·라이선스 고지를 포함한다.
