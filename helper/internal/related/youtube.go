@@ -23,40 +23,52 @@ var initialDataMarkers = [][]byte{[]byte("var ytInitialData = "), []byte(`window
 // compactVideoRenderer → lockupViewModel로 바뀌었고(NewPipeExtractor PR #1320) 둘 다 읽는다.
 // 모르는 형식이면 ErrFormat을 돌려 호출자가 다른 출처로 넘어가게 한다.
 func ParseWatchPage(page []byte, seedID string) ([]Item, error) {
-	var root map[string]any
-	for _, m := range initialDataMarkers {
-		if i := bytes.Index(page, m); i >= 0 {
-			// 디코더는 첫 JSON 값에서 멈추므로 뒤따르는 ";</script>…"는 읽지 않는다.
-			if err := json.NewDecoder(bytes.NewReader(page[i+len(m):])).Decode(&root); err != nil {
-				return nil, fmt.Errorf("%w: ytInitialData: %v", ErrFormat, err)
-			}
-			break
-		}
-	}
-	if root == nil {
-		return nil, fmt.Errorf("%w: no ytInitialData", ErrFormat)
+	root, err := initialData(page)
+	if err != nil {
+		return nil, err
 	}
 	sec := dig(root, "contents", "twoColumnWatchNextResults", "secondaryResults")
 	if sec == nil {
 		return nil, fmt.Errorf("%w: no secondaryResults", ErrFormat)
 	}
+	return clean(collect(sec), seedID), nil
+}
+
+// initialData decodes the page's ytInitialData object.
+func initialData(page []byte) (map[string]any, error) {
+	for _, m := range initialDataMarkers {
+		if i := bytes.Index(page, m); i >= 0 {
+			var root map[string]any
+			// 디코더는 첫 JSON 값에서 멈추므로 뒤따르는 ";</script>…"는 읽지 않는다.
+			if err := json.NewDecoder(bytes.NewReader(page[i+len(m):])).Decode(&root); err != nil {
+				return nil, fmt.Errorf("%w: ytInitialData: %v", ErrFormat, err)
+			}
+			return root, nil
+		}
+	}
+	return nil, fmt.Errorf("%w: no ytInitialData", ErrFormat)
+}
+
+// collect gathers video items in document order: lockupViewModel(2025~), compactVideoRenderer(시청 페이지 과거 형식),
+// videoRenderer(검색 결과). 쇼츠(shortsLockupViewModel)·재생목록은 모으지 않는다.
+func collect(v any) []Item {
 	var items []Item
-	walk(sec, func(key string, v map[string]any) bool {
+	walk(v, func(key string, obj map[string]any) bool {
 		switch key {
 		case "lockupViewModel":
-			if it, ok := parseLockup(v); ok {
+			if it, ok := parseLockup(obj); ok {
 				items = append(items, it)
 			}
 			return false
-		case "compactVideoRenderer":
-			if it, ok := parseCompact(v); ok {
+		case "compactVideoRenderer", "videoRenderer":
+			if it, ok := parseCompact(obj); ok {
 				items = append(items, it)
 			}
 			return false
 		}
 		return true
 	})
-	return clean(items, seedID), nil
+	return items
 }
 
 // parseLockup reads the current (2025~) item shape.
@@ -104,11 +116,16 @@ func parseLockup(v map[string]any) (Item, bool) {
 	return it, !live
 }
 
-// parseCompact reads the pre-2025 item shape (YouTube가 일부 지역·실험에서 아직 쓸 수 있다).
+// parseCompact reads compactVideoRenderer (시청 페이지 과거 형식) and videoRenderer (검색 결과): 필드가 같다.
 func parseCompact(v map[string]any) (Item, bool) {
-	it := Item{ID: str(v, "videoId"), Title: text(dig(v, "title")), Channel: text(dig(v, "longBylineText"))}
-	if it.Channel == "" {
-		it.Channel = text(dig(v, "shortBylineText"))
+	it := Item{ID: str(v, "videoId"), Title: text(dig(v, "title"))}
+	for _, k := range []string{"longBylineText", "ownerText", "shortBylineText"} {
+		if it.Channel = text(dig(v, k)); it.Channel != "" {
+			break
+		}
+	}
+	if dig(v, "upcomingEventData") != nil {
+		return it, false // 예정된 생방송·프리미어는 아직 받을 수 없다
 	}
 	it.DurationSec, _ = parseDuration(text(dig(v, "lengthText")))
 	it.Meta = strings.Join(nonEmpty(text(dig(v, "viewCountText")), text(dig(v, "publishedTimeText"))), " · ")

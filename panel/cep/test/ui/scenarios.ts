@@ -12,6 +12,7 @@ import type {
   RelatedItem,
   RelatedListMsg,
   RelatedSource,
+  SearchListMsg,
   SequenceInfo,
   SourceInfo,
   Storyboard,
@@ -31,6 +32,8 @@ export interface Scenario {
   importFile?: (path: string) => ImportResult;
   /** related.list answers (default: relatedDefault). */
   related?: (probeId: string, source: RelatedSource) => Omit<RelatedListMsg, "probeId" | "requested"> | undefined;
+  /** search.list answers (default: searchDefault). */
+  search?: (query: string, page: number) => Omit<SearchListMsg, "query" | "page"> | undefined;
   /** Drives the controller after connecting (start() is awaited unless startHelper never resolves). */
   run?: (ctl: Controller, helper: FakeHelper) => Promise<void> | void;
 }
@@ -148,6 +151,20 @@ export const relatedDefault = (_probeId: string, source: RelatedSource): Omit<Re
   if (source === "search") return { source, items: relatedItems.slice(2, 4) };
   return { source, items: relatedItems };
 };
+
+// 유튜브 검색(T-026): 첫 페이지 6개 + 더 보기 2개(실제 결과 페이지 형식의 문구).
+const searchItems: RelatedItem[] = [
+  rel("sr1", "인터뷰 B-roll 촬영 팁 — 조명 하나로 분위기 바꾸기", "빅제임스 [Big James]", 346, "조회수 6,938회 · 8년 전", "#2f3e46"),
+  rel("sr2", "도심 야경 드론 4K", "sky lab", 182, "조회수 120만회 · 1년 전", "#354f52"),
+  rel("sr3", "인터뷰 촬영 세팅 모음(카메라 2대, 마이크 배치, 조명 위치까지 한 번에 정리)", "film class", 1260, "조회수 3.4만회 · 2개월 전", "#52796f"),
+  rel("sr4", "b-roll 아이디어 30가지", "editor kim", 611, "조회수 9.1천회 · 3주 전", "#84a98c"),
+  rel("sr5", "카페 인터뷰 브이로그", "daily cut", 95, "조회수 210회 · 5일 전", "#cad2c5"),
+  rel("sr6", "Me at the zoo 4K 복원", "restore lab", 19, "조회수 267만회 · 4일 전", "#3a5a40"),
+];
+
+/** Default search.list answers: page 0 = 6 items with more, page 1 = 2 items, then none. */
+export const searchDefault = (_query: string, page: number): Omit<SearchListMsg, "query" | "page"> =>
+  page === 0 ? { items: searchItems, more: true } : page === 1 ? { items: [rel("sr7", "인터뷰 조명 비교", "light lab", 240, "조회수 1.1만회 · 1년 전", "#2d6a4f"), rel("sr8", "B-roll 편집 리듬", "cut school", 420, "조회수 8천회 · 6개월 전", "#40916c")], more: false } : { items: [] };
 
 const baseJob = (jobId: string, state: JobSnapshot["state"], extra: Partial<JobSnapshot> = {}): JobSnapshot => ({
   jobId,
@@ -343,6 +360,33 @@ export const scenarios: Record<string, Scenario> = {
       await waitFor(() => ctl.state.draft.related?.lists.youtube?.status === "ready");
       ctl.openRelated(relatedItems[0]);
       await waitFor(() => ctl.state.draft.status === "probing");
+    },
+  },
+  "search-results": {
+    about: "링크 없이 유튜브 검색: 결과가 본문 폭(넓으면 여러 열), 받은 영상은 ✓ 받음, 더 보기",
+    run: async (ctl, helper) => {
+      helper.push("job.done", { job: baseJob("j9", "done", { info: info("sr6", "Me at the zoo 4K 복원"), file: "/Users/editor/Movies/Birdcage/Youtube/sr6.mp4" }) });
+      ctl.search("인터뷰 b-roll");
+      await waitFor(() => ctl.state.search?.status === "ready");
+    },
+  },
+  "search-preview": {
+    about: "검색 결과에서 연 영상: 미리보기는 위, 검색 탭은 목록(좁으면 아래·넓으면 사이드바)에 남고 추천 탭으로 바꿀 수 있다",
+    probe: (url) => ({ url, probeId: "p12", info: zoo }),
+    preview: () => [{ stage: "ready", progress: 1, cached: true, peaks: peaks(19), video: { path: "http://127.0.0.1:4173/assets/preview.mp4", width: 320, height: 180, fps: 10, durationSec: 19 } }],
+    run: async (ctl) => {
+      ctl.search("인터뷰 b-roll");
+      await waitFor(() => ctl.state.search?.status === "ready");
+      ctl.openRelated(searchItems[5], "search:youtube");
+      await waitFor(() => ctl.state.draft.preview?.stage === "ready");
+    },
+  },
+  "search-failed": {
+    about: "검색 실패 → 다시 시도",
+    search: () => ({ items: [], error: "검색 결과를 가져오지 못했습니다" }),
+    run: async (ctl) => {
+      ctl.search("인터뷰 b-roll");
+      await waitFor(() => ctl.state.search?.status === "failed");
     },
   },
   jobs: {

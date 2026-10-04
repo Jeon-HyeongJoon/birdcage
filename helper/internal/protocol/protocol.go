@@ -30,6 +30,7 @@ const (
 	TypePreviewOpen  = "preview.open"
 	TypePreviewClose = "preview.close"
 	TypeRelatedFetch = "related.fetch"
+	TypeSearchFetch  = "search.fetch"
 
 	// helper → panel
 	TypeHelloOK      = "hello.ok"
@@ -42,6 +43,7 @@ const (
 	TypeMediaInfo    = "media.info"
 	TypePreviewState = "preview.state"
 	TypeRelatedList  = "related.list"
+	TypeSearchList   = "search.list"
 	TypeError        = "error"
 )
 
@@ -126,6 +128,22 @@ type RelatedList struct {
 	Source    related.Source `json:"source,omitempty"`
 	Items     []related.Item `json:"items"`
 	Error     string         `json:"error,omitempty"`
+}
+
+// SearchFetch asks for one page of YouTube search results (answered by search.list, same id).
+// Pages are fetched in order: page n after page n-1 ('더 보기').
+type SearchFetch struct {
+	Query string `json:"query"`
+	Page  int    `json:"page,omitempty"`
+}
+
+// SearchList answers SearchFetch. Query is the normalized query the results are for.
+type SearchList struct {
+	Query string         `json:"query"`
+	Page  int            `json:"page"`
+	Items []related.Item `json:"items"`
+	More  bool           `json:"more,omitempty"`
+	Error string         `json:"error,omitempty"`
 }
 
 // MediaInfo answers MediaProbe with either the info or the classified failure.

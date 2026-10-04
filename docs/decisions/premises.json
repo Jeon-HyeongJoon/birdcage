@@ -476,6 +476,64 @@
         "verifiedAt": "2026-10-04",
         "ttlDays": 30
       }
+    },
+    {
+      "id": "P-0013-a",
+      "adr": "0013",
+      "level": "L1",
+      "claim": "녹화한 실제 유튜브 검색 결과 페이지(videoRenderer, 쇼츠 묶음 제외)와 더 보기 응답을 읽고, 결과 페이지가 깨지면 yt-dlp ytsearch로 첫 페이지를 채운다",
+      "check": {
+        "type": "command",
+        "dir": "helper",
+        "argv": [
+          "go",
+          "test",
+          "-count=1",
+          "-run",
+          "^(TestParseSearchPageRecorded|TestSearchPagesCacheAndFallback)$",
+          "./internal/related/"
+        ],
+        "timeoutSec": 120
+      }
+    },
+    {
+      "id": "P-0013-b",
+      "adr": "0013",
+      "level": "L3",
+      "claim": "실제 유튜브 검색어 5개 모두 첫 페이지 10개 이상, 첫 페이지 중앙값 1.5s 이하, 더 보기 +3개 이상(실측 12–20개, 0.91–1.37s, +4–13개)",
+      "sources": [
+        "session:2026-10-04 TestEndToEndOnlineSearch 4회"
+      ],
+      "check": {
+        "type": "command",
+        "dir": "helper",
+        "argv": [
+          "go",
+          "test",
+          "-count=1",
+          "-run",
+          "^TestEndToEndOnlineSearch$",
+          "./internal/related/"
+        ],
+        "timeoutSec": 180,
+        "requiresEnv": [
+          "BIRDCAGE_E2E"
+        ]
+      }
+    },
+    {
+      "id": "P-0013-c",
+      "adr": "0013",
+      "level": "L3",
+      "claim": "TikTok 검색은 로그인 없이 결과를 얻을 수 없다: yt-dlp에 검색 추출기가 없고, 검색 HTML에 결과가 없으며, 검색 API는 서명 없이 빈 응답이다(바뀌면 TikTok 검색을 다시 검토)",
+      "sources": [
+        "session:2026-10-04 yt-dlp 2026.08.19 --list-extractors; tiktok.com/search 0 results; /api/search/general/full/ 0 bytes"
+      ],
+      "check": {
+        "type": "expires",
+        "verifiedAt": "2026-10-04",
+        "ttlDays": 60
+      }
     }
   ]
 }

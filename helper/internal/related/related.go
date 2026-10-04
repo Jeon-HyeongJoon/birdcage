@@ -13,7 +13,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"io"
 	"net/http"
 	"net/url"
 	"strings"
@@ -82,8 +81,9 @@ type Service struct {
 	Max     int           // cached lists (0 = 64)
 	Rec     *perf.Recorder
 
-	mu    sync.Mutex
-	cache map[string]cached
+	mu       sync.Mutex
+	cache    map[string]cached
+	searches map[string]*search
 }
 
 type cached struct {
@@ -107,7 +107,7 @@ func (s *Service) List(ctx context.Context, seed Seed, want Source, lister engin
 	var errs []error
 	for _, src := range fallbacks[want] {
 		key := string(src) + "|" + seed.ID
-		if r, ok := s.get(key); ok {
+		if r, ok := s.cached(key); ok {
 			s.Rec.Start("related.list", "requested", string(want), "source", string(src), "items", len(r.Items), "cached", true).End(nil)
 			return r, nil
 		}
@@ -173,40 +173,16 @@ func listed(ctx context.Context, lister engine.Lister, u string, seed Seed) ([]I
 	return clean(items, seed.ID), nil
 }
 
-// watchPage fetches the watch page like a signed-out Korean browser would.
+// watchPage reads the "up next" list from the watch page.
 func (s *Service) watchPage(ctx context.Context, id string) ([]Item, error) {
-	base := s.BaseURL
-	if base == "" {
-		base = "https://www.youtube.com"
-	}
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, base+"/watch?v="+url.QueryEscape(id)+"&hl=ko&gl=KR", nil)
-	if err != nil {
-		return nil, err
-	}
-	req.Header.Set("User-Agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/151.0.0.0 Safari/537.36")
-	req.Header.Set("Accept-Language", "ko-KR,ko;q=0.9")
-	// EU 동의 화면을 건너뛰는 쿠키(yt-dlp _initialize_consent와 같은 값).
-	req.Header.Set("Cookie", "SOCS=CAI")
-	c := s.HTTP
-	if c == nil {
-		c = &http.Client{Timeout: 15 * time.Second}
-	}
-	resp, err := c.Do(req)
-	if err != nil {
-		return nil, err
-	}
-	defer resp.Body.Close()
-	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("watch page: HTTP %d", resp.StatusCode)
-	}
-	page, err := io.ReadAll(io.LimitReader(resp.Body, 8<<20)) // 실측 1.2MB
+	page, err := s.get(ctx, "/watch?v="+url.QueryEscape(id)+"&hl=ko&gl=KR") // 실측 1.2MB
 	if err != nil {
 		return nil, err
 	}
 	return ParseWatchPage(page, id)
 }
 
-func (s *Service) get(key string) (Result, bool) {
+func (s *Service) cached(key string) (Result, bool) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	c, ok := s.cache[key]

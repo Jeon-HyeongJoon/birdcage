@@ -16,7 +16,7 @@ import {
 } from "@birdcage/core";
 import { subscribeBackgroundColor } from "../lib/utils/bolt";
 import { Composer } from "./composer";
-import { RelatedPanel } from "./related";
+import { RelatedPanel, SearchBox } from "./related";
 import { SettingsRow, StatusDot } from "./status";
 import "./main.scss";
 
@@ -36,6 +36,9 @@ export type PanelController = Pick<
   | "loadRelated"
   | "openRelated"
   | "back"
+  | "search"
+  | "searchMore"
+  | "showList"
   | "retryConnection"
   | "installTools"
   | "updateSettings"
@@ -69,6 +72,7 @@ export const App = ({ controller: ctl, host, downloadHistory }: { controller: Pa
       <header className="row header">
         <strong>Birdcage</strong>
         <StatusDot s={s} missing={missing} retry={() => ctl.retryConnection()} />
+        {s.connection === "connected" && <SearchBox s={s} ctl={ctl} />}
         {focusMode && (
           <>
             <span className="spacer" />

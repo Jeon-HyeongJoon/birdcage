@@ -14,6 +14,7 @@ import {
   ProtocolError,
   RelatedListMsg,
   RelatedSource,
+  SearchListMsg,
   ServerMessages,
   ServerType,
 } from "./protocol";
@@ -114,6 +115,12 @@ export class HelperClient {
   async probe(url: string, maxHeight?: number, via?: string): Promise<MediaInfoMsg> {
     const env = await this.request("media.probe", { url, maxHeight, via }, ["media.info"], 90000);
     return env.data as MediaInfoMsg;
+  }
+
+  /** One page of YouTube search results (results page ~1s, "더 보기" ~1s). */
+  async search(query: string, page = 0): Promise<SearchListMsg> {
+    const env = await this.request("search.fetch", page ? { query, page } : { query }, ["search.list"], 45000);
+    return env.data as SearchListMsg;
   }
 
   /** Browse list for a probed link (watch page ~1s, yt-dlp fallbacks up to a few seconds). */

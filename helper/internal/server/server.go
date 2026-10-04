@@ -254,6 +254,14 @@ func (ss *session) handle(ctx context.Context, data []byte) {
 		}
 		go ss.related(ctx, env.ID, rf)
 
+	case protocol.TypeSearchFetch:
+		var sf protocol.SearchFetch
+		if err := protocol.DecodeData(env, &sf); err != nil {
+			ss.fail(ctx, env.ID, "bad_request", err.Error())
+			return
+		}
+		go ss.search(ctx, env.ID, sf)
+
 	case protocol.TypePreviewOpen:
 		var po protocol.PreviewOpen
 		if err := protocol.DecodeData(env, &po); err != nil {
@@ -358,6 +366,30 @@ func (ss *session) related(ctx context.Context, id string, rf protocol.RelatedFe
 		}
 	}
 	_ = ss.send(ctx, protocol.TypeRelatedList, id, msg)
+}
+
+// search answers search.fetch with one page of YouTube results.
+func (ss *session) search(ctx context.Context, id string, sf protocol.SearchFetch) {
+	msg := protocol.SearchList{Query: related.NormalizeQuery(sf.Query), Page: sf.Page, Items: []related.Item{}}
+	switch {
+	case ss.srv.Related == nil:
+		msg.Error = "검색을 쓸 수 없습니다"
+	case msg.Query == "":
+		msg.Error = "검색어를 입력하세요"
+	default:
+		var lister engine.Lister
+		if ts, err := ss.srv.Jobs.Toolset(ctx); err == nil {
+			lister, _ = ts.Engine.(engine.Lister)
+		}
+		res, err := ss.srv.Related.Search(ctx, msg.Query, sf.Page, lister)
+		if err != nil {
+			ss.log.Warn("search failed", "page", sf.Page, "err", err)
+			msg.Error = "검색 결과를 가져오지 못했습니다"
+		} else {
+			msg.Items, msg.More = res.Items, res.More
+		}
+	}
+	_ = ss.send(ctx, protocol.TypeSearchList, id, msg)
 }
 
 // openPreview cancels the session's previous preview and starts this one in the background.

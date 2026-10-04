@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// 탐색 목록(T-036) 적합성 집계: Helper 성능 로그에서 출처별로 보여 준 목록·연 영상·받은 영상을 센다.
+// 탐색 목록(T-036)·유튜브 검색(T-026) 적합성 집계: Helper 성능 로그에서 출처별로 보여 준 목록·연 영상·받은 영상을 센다.
 // 자동 기준(커버리지·지연·대체)과 함께 사람 판단(L5)의 근거로 쓴다(docs/decisions/0012).
 //
 //   node scripts/related-report.mjs [로그 파일 또는 폴더 ...]   # 기본: Helper 데이터 폴더 logs/perf-*.jsonl
@@ -21,13 +21,14 @@ if (paths.length === 0) {
 }
 const files = paths.flatMap((p) => (existsSync(p) && statSync(p).isDirectory() ? readdirSync(p).filter((f) => /^perf-.*\.jsonl$/.test(f)).map((f) => join(p, f)) : [p]));
 
-const sources = ["youtube", "channel", "search"];
+// youtube·channel·search = 탐색 목록 탭(추천·같은 채널·비슷한 제목), 검색 = 상단 유튜브 검색(via search:youtube).
+const sources = ["youtube", "channel", "search", "검색"];
 const row = () => ({ lists: 0, cached: 0, failed: 0, items: 0, ms: [], opened: 0, downloads: 0, ranged: 0 });
 const by = Object.fromEntries(sources.map((s) => [s, row()]));
 let first = "", last = "";
 for (const f of files) {
   for (const line of readFileSync(f, "utf8").split("\n")) {
-    if (!line.includes('"related.')) continue;
+    if (!line.includes('"related.') && !line.includes('"search.')) continue;
     let r;
     try {
       r = JSON.parse(line);
@@ -49,8 +50,19 @@ for (const f of files) {
         if (a.cached) req.cached++;
         else req.ms.push(r.dur_ms);
       }
+    } else if (r.name === "search.list") {
+      // 검색 결과 한 페이지(캐시 제외 지연, 대체는 source=yt-dlp로 남는다).
+      const b = by["검색"];
+      if (r.err) b.failed++;
+      else {
+        b.lists++;
+        b.items += a.items ?? 0;
+        if (a.source === "cache") b.cached++;
+        else b.ms.push(r.dur_ms);
+      }
     } else if (r.name === "related.open" || r.name === "related.download") {
-      const src = String(a.via ?? "").replace(/^related:/, "");
+      const via = String(a.via ?? "");
+      const src = via === "search:youtube" ? "검색" : via.replace(/^related:/, "");
       if (!by[src]) continue;
       if (r.name === "related.open") by[src].opened++;
       else {

@@ -1,6 +1,6 @@
 // In-browser fake Helper for UI fixtures: answers the protocol like the Go helper so the real
 // Controller (panel/core) produces the state the panel renders. 손으로 만든 State 대신 실제 상태 전이를 쓴다.
-import type { Envelope, HelloOK, MediaInfoMsg, PreviewState, RelatedListMsg, RelatedSource, WebSocketLike } from "@birdcage/core";
+import type { Envelope, HelloOK, MediaInfoMsg, PreviewState, RelatedListMsg, RelatedSource, SearchListMsg, WebSocketLike } from "@birdcage/core";
 
 export class FakeSocket implements WebSocketLike {
   readyState = 0;
@@ -39,6 +39,8 @@ export interface FakeHelperOptions {
   preview?: (probeId: string) => Omit<PreviewState, "probeId">[];
   /** related.list answer; undefined = never answers (loading). */
   related?: (probeId: string, source: RelatedSource) => Omit<RelatedListMsg, "probeId" | "requested"> | undefined;
+  /** search.list answer; undefined = never answers (loading). */
+  search?: (query: string, page: number) => Omit<SearchListMsg, "query" | "page"> | undefined;
 }
 
 export class FakeHelper {
@@ -78,6 +80,12 @@ export class FakeHelper {
           const d = env.data as { probeId: string; source: RelatedSource };
           const reply = this.opts.related?.(d.probeId, d.source);
           if (reply) sock.push("related.list", { probeId: d.probeId, requested: d.source, source: d.source, ...reply }, env.id);
+          break;
+        }
+        case "search.fetch": {
+          const d = env.data as { query: string; page?: number };
+          const reply = this.opts.search?.(d.query, d.page ?? 0);
+          if (reply) sock.push("search.list", { query: d.query, page: d.page ?? 0, ...reply }, env.id);
           break;
         }
         case "tools.ensure":

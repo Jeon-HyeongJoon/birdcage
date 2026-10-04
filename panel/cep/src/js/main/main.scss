@@ -729,6 +729,7 @@ button.icon {
     display: flex;
     flex-wrap: wrap;
     align-items: flex-start;
+    align-content: flex-start; // 줄이 패널 높이(min-height 100vh)만큼 늘어나 사이가 벌어지지 않게
     > * {
       flex: 0 0 100%;
       min-width: 0;
@@ -747,8 +748,53 @@ button.icon {
       top: 0;
       max-height: 100vh;
       overflow-y: auto;
+      // 한 축만 스크롤로 두면 다른 축도 auto가 된다: 행 정렬용 −4px 여백 때문에 가로 스크롤바가 생겼다(CEP 10 실기).
+      overflow-x: hidden;
+    }
+    > .related.full {
+      flex: 0 0 100%;
+      margin-left: 0;
+      position: static;
+      max-height: none;
+      overflow: visible;
     }
   }
+}
+.search-box {
+  display: flex;
+  flex: 1 1 auto;
+  min-width: 0;
+  max-width: 480px;
+  input.search {
+    flex: 1;
+    min-width: 0;
+    padding: 4px 6px;
+    border-radius: $radius;
+    border: 1px solid $line;
+    background: $field;
+    color: $fg;
+  }
+}
+// 미리보기 없이 검색만 했을 때: 목록이 본문 폭을 쓰고 넓은 패널에서는 행을 3–4열로 놓는다.
+@media (min-width: 960px) {
+  .related.full .related-list {
+    display: flex;
+    flex-wrap: wrap;
+    > li {
+      flex: 0 0 33.333%;
+      min-width: 0;
+    }
+  }
+}
+@media (min-width: 1600px) {
+  .related.full .related-list > li {
+    flex-basis: 25%;
+  }
+}
+.related-more {
+  display: block;
+  width: 100%;
+  margin: $space-2 0;
 }
 .related-tabs {
   display: flex;

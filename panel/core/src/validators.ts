@@ -53,6 +53,8 @@ const payloads: Record<string, Shape> = {
   "media.probe": { url: "string", maxHeight: "number?", via: "string?" },
   "related.fetch": { probeId: "string", source: "string?" },
   "related.list": { probeId: "string", requested: "string", source: "string?", items: "array", error: "string?" },
+  "search.fetch": { query: "string", page: "number?" },
+  "search.list": { query: "string", page: "number", items: "array", more: "boolean?", error: "string?" },
   "media.info": { url: "string", probeId: "string?", info: "object?", failure: "object?" },
   "preview.open": { probeId: "string" },
   "preview.close": { probeId: "string" },
@@ -147,6 +149,7 @@ export function validatePayload(type: string, data: unknown): string[] {
     for (const k of ["requested", "source"]) if (d[k] !== undefined && !RELATED_SOURCES.includes(String(d[k]))) errs.push(`${type}.${k}: unknown ${d[k]}`);
     if (Array.isArray(d.items)) d.items.forEach((it, i) => check(it, relatedItem, `${type}.items[${i}]`, errs));
   }
+  if (type === "search.list" && Array.isArray(d.items)) d.items.forEach((it, i) => check(it, relatedItem, `${type}.items[${i}]`, errs));
   if (Array.isArray(d.jobs)) d.jobs.forEach((j, i) => checkJob(j, `${type}.jobs[${i}]`, errs));
   if (Array.isArray(d.tools)) d.tools.forEach((t, i) => check(t, tool, `${type}.tools[${i}]`, errs));
   return errs;

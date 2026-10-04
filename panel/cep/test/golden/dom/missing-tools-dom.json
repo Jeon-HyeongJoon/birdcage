@@ -31,6 +31,26 @@
                 "title": "필요한 도구 없음: yt-dlp, ffmpeg, ffprobe, deno\nHelper 0.1.0-fixture"
               },
               "children": []
+            },
+            {
+              "tag": "form",
+              "attributes": {
+                "class": "search-box",
+                "role": "search"
+              },
+              "children": [
+                {
+                  "tag": "input",
+                  "attributes": {
+                    "class": "search",
+                    "type": "text",
+                    "placeholder": "유튜브 검색",
+                    "disabled": false,
+                    "value": ""
+                  },
+                  "children": []
+                }
+              ]
             }
           ]
         },

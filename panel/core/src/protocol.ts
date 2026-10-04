@@ -110,6 +110,21 @@ export interface RelatedItem {
   views?: number;
 }
 
+/** One page of YouTube search results; pages are fetched in order ("더 보기"). */
+export interface SearchFetch {
+  query: string;
+  page?: number;
+}
+
+/** Answer to search.fetch (query is the normalized query). */
+export interface SearchListMsg {
+  query: string;
+  page: number;
+  items: RelatedItem[];
+  more?: boolean;
+  error?: string;
+}
+
 /** Answer to related.fetch. source differs from requested when the helper fell back. */
 export interface RelatedListMsg {
   probeId: string;
@@ -360,6 +375,7 @@ export interface ClientMessages {
   "preview.open": { probeId: string };
   "preview.close": { probeId: string };
   "related.fetch": RelatedFetch;
+  "search.fetch": SearchFetch;
 }
 
 /** Messages the helper sends. */
@@ -374,6 +390,7 @@ export interface ServerMessages {
   "media.info": MediaInfoMsg;
   "preview.state": PreviewState;
   "related.list": RelatedListMsg;
+  "search.list": SearchListMsg;
   error: ProtocolError;
 }
 

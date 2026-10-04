@@ -87,6 +87,22 @@ export interface RelatedView {
   lists: Partial<Record<RelatedSource, RelatedListState>>;
 }
 
+/** YouTube search results shown in the browse list's 검색 tab; they survive opening a result and back(). */
+export interface SearchState {
+  query: string;
+  status: "loading" | "ready" | "failed";
+  items: RelatedItem[];
+  /** Last fetched page (0-based). */
+  page: number;
+  more: boolean;
+  loadingMore?: boolean;
+  moreError?: string;
+  error?: string;
+}
+
+/** Which list the browse panel shows. */
+export type ListTab = "search" | "related";
+
 /** A link left for another one; back() restores it with its choices. */
 export interface HistoryEntry {
   draft: Draft;
@@ -149,6 +165,8 @@ export interface State {
   sequence?: SequenceInfo | null;
   /** Links left for another one, oldest first ([← 이전 영상]). */
   history: HistoryEntry[];
+  search?: SearchState;
+  listTab: ListTab;
 }
 
 export interface ControllerOptions {
@@ -183,6 +201,7 @@ export class Controller {
   private disposed = false;
   private starting = false;
   private draftSeq = 0;
+  private searchSeq = 0;
 
 
   constructor(private opts: ControllerOptions) {
@@ -194,6 +213,7 @@ export class Controller {
       settings: { autoImport: true, maxHeight: 1080, ...opts.settings },
       draft: EMPTY_DRAFT,
       history: [],
+      listTab: "related",
     };
   }
 
@@ -366,6 +386,7 @@ export class Controller {
     if (d.status !== "ready" || !d.probeId || !supportsRelated(d.info)) return;
     const view: RelatedView = d.related ?? { tab: "youtube", lists: {} };
     const t = tab ?? view.tab;
+    if (tab && this._state.listTab !== "related") this.set({ listTab: "related" }); // 사용자가 추천 탭을 눌렀다
     const existing = view.lists[t];
     if (t !== view.tab) this.set({ draft: { ...d, related: { ...view, tab: t } } });
     if (existing && existing.status !== "failed") return;
@@ -387,13 +408,13 @@ export class Controller {
     );
   }
 
-  /** Opens a browse-list item; the current link goes to history so back() can return to it. */
-  openRelated(item: RelatedItem): void {
+  /** Opens a browse-list or search item; the current link goes to history so back() can return to it. */
+  openRelated(item: RelatedItem, via?: string): void {
     const from = this._state.draft.related?.tab ?? "youtube";
     this.draftSeq++;
     this.pushHistory();
     this.closePreview();
-    this.set({ draft: { ...EMPTY_DRAFT, url: item.url, hint: item, via: `related:${from}` } });
+    this.set({ draft: { ...EMPTY_DRAFT, url: item.url, hint: item, via: via ?? `related:${from}` } });
     if (this._state.connection === "connected") void this.probeDraft();
   }
 
@@ -415,6 +436,52 @@ export class Controller {
     const hint = p.info ? { id: p.info.id, url: p.url, title: p.info.title, thumbnail: p.info.thumbnail } : undefined;
     this.set({ draft: { ...EMPTY_DRAFT, url: p.url, via: p.via, hint } });
     if (this._state.connection === "connected") void this.probeDraft(p);
+  }
+
+  /** Searches YouTube; results show in the browse list's 검색 tab (the preview stays). */
+  search(query: string): void {
+    const q = query.trim().replace(/\s+/g, " ");
+    if (!q) return;
+    const seq = ++this.searchSeq;
+    this.set({ search: { query: q, status: "loading", items: [], page: 0, more: false }, listTab: "search" });
+    const done = (patch: Partial<SearchState>) => {
+      if (seq === this.searchSeq && this._state.search) this.set({ search: { ...this._state.search, ...patch } });
+    };
+    if (!this.client?.connected) {
+      done({ status: "failed", error: "Helper에 연결되지 않았습니다." });
+      return;
+    }
+    this.client.search(q, 0).then(
+      (res) => done(res.error ? { status: "failed", error: res.error } : { status: "ready", query: res.query || q, items: res.items, more: !!res.more }),
+      (e) => done({ status: "failed", error: (e as Error).message }),
+    );
+  }
+
+  /** Fetches the next page of the current search ("더 보기"). */
+  searchMore(): void {
+    const s = this._state.search;
+    if (!s || s.status !== "ready" || !s.more || s.loadingMore || !this.client?.connected) return;
+    const seq = this.searchSeq;
+    const page = s.page + 1;
+    this.set({ search: { ...s, loadingMore: true, moreError: undefined } });
+    const done = (patch: (cur: SearchState) => Partial<SearchState>) => {
+      const cur = this._state.search;
+      if (seq === this.searchSeq && cur) this.set({ search: { ...cur, loadingMore: false, ...patch(cur) } });
+    };
+    this.client.search(s.query, page).then(
+      (res) =>
+        done((cur) => {
+          if (res.error) return { moreError: res.error };
+          const seen = new Set(cur.items.map((i) => i.id));
+          return { items: cur.items.concat(res.items.filter((i) => !seen.has(i.id))), page, more: !!res.more };
+        }),
+      (e) => done(() => ({ moreError: (e as Error).message })),
+    );
+  }
+
+  /** Switches the browse panel between search results and the current link's lists. */
+  showList(tab: ListTab): void {
+    this.set({ listTab: tab });
   }
 
   private pushHistory(): void {

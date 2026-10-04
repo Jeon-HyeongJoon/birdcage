@@ -71,6 +71,14 @@ export const Composer = ({ s, ctl, focusMode = false, settings }: { s: State; ct
           placeholder="YouTube · TikTok 링크"
           value={d.url}
           onChange={(e) => ctl.setUrl(e.target.value)}
+          onKeyDown={(e) => {
+            // 링크가 아닌 글자 + Enter는 유튜브 검색으로 넘긴다(상단 검색창과 같다).
+            if (e.key === "Enter" && !isLink(d.url) && d.url.trim()) {
+              e.preventDefault();
+              ctl.search(d.url);
+              ctl.clearDraft();
+            }
+          }}
           disabled={!connected}
         />
         {d.url && (
