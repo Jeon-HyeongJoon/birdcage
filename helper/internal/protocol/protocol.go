@@ -11,6 +11,7 @@ import (
 
 	"birdcage/helper/internal/engine"
 	"birdcage/helper/internal/jobs"
+	"birdcage/helper/internal/related"
 	"birdcage/helper/internal/tools"
 )
 
@@ -28,6 +29,7 @@ const (
 	TypeMediaProbe   = "media.probe"
 	TypePreviewOpen  = "preview.open"
 	TypePreviewClose = "preview.close"
+	TypeRelatedFetch = "related.fetch"
 
 	// helper → panel
 	TypeHelloOK      = "hello.ok"
@@ -39,6 +41,7 @@ const (
 	TypeToolsStatus  = "tools.status"
 	TypeMediaInfo    = "media.info"
 	TypePreviewState = "preview.state"
+	TypeRelatedList  = "related.list"
 	TypeError        = "error"
 )
 
@@ -87,12 +90,15 @@ type JobCreate struct {
 	AudioOnly bool `json:"audioOnly,omitempty"`
 	// Subtitles fetches one track (media.info subtitles) as an SRT sidecar; failure is only a warning.
 	Subtitles *jobs.SubtitleRequest `json:"subtitles,omitempty"`
+	// Via names the browse list the link came from ("related:youtube"); recorded for the fitness review.
+	Via string `json:"via,omitempty"`
 }
 
 // MediaProbe asks for a link's metadata before downloading (answered by media.info, same id).
 type MediaProbe struct {
 	URL       string `json:"url"`
 	MaxHeight int    `json:"maxHeight,omitempty"`
+	Via       string `json:"via,omitempty"` // see JobCreate.Via
 }
 
 // PreviewOpen starts the staged preview of a probed link (answered by preview.state events).
@@ -104,6 +110,22 @@ type PreviewOpen struct {
 // PreviewClose stops the preview of a probe.
 type PreviewClose struct {
 	ProbeID string `json:"probeId"`
+}
+
+// RelatedFetch asks for the browse list of a probed YouTube link (answered by related.list, same id).
+type RelatedFetch struct {
+	ProbeID string         `json:"probeId"`
+	Source  related.Source `json:"source,omitempty"` // youtube (default) | channel | search
+}
+
+// RelatedList answers RelatedFetch. Source is the source that filled the list: it differs from
+// Requested when that source failed or was empty and the helper fell back (youtube → channel → search).
+type RelatedList struct {
+	ProbeID   string         `json:"probeId"`
+	Requested related.Source `json:"requested"`
+	Source    related.Source `json:"source,omitempty"`
+	Items     []related.Item `json:"items"`
+	Error     string         `json:"error,omitempty"`
 }
 
 // MediaInfo answers MediaProbe with either the info or the classified failure.

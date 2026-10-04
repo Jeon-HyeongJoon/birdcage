@@ -1,6 +1,6 @@
 // In-browser fake Helper for UI fixtures: answers the protocol like the Go helper so the real
 // Controller (panel/core) produces the state the panel renders. 손으로 만든 State 대신 실제 상태 전이를 쓴다.
-import type { Envelope, HelloOK, MediaInfoMsg, PreviewState, WebSocketLike } from "@birdcage/core";
+import type { Envelope, HelloOK, MediaInfoMsg, PreviewState, RelatedListMsg, RelatedSource, WebSocketLike } from "@birdcage/core";
 
 export class FakeSocket implements WebSocketLike {
   readyState = 0;
@@ -37,6 +37,8 @@ export interface FakeHelperOptions {
   probe?: (url: string) => MediaInfoMsg | undefined;
   /** preview.state messages sent after preview.open (in order). */
   preview?: (probeId: string) => Omit<PreviewState, "probeId">[];
+  /** related.list answer; undefined = never answers (loading). */
+  related?: (probeId: string, source: RelatedSource) => Omit<RelatedListMsg, "probeId" | "requested"> | undefined;
 }
 
 export class FakeHelper {
@@ -70,6 +72,12 @@ export class FakeHelper {
         case "preview.open": {
           const id = (env.data as { probeId: string }).probeId;
           (this.opts.preview?.(id) ?? []).forEach((st, i) => sock.push("preview.state", { ...st, probeId: id }, i === 0 ? env.id : undefined));
+          break;
+        }
+        case "related.fetch": {
+          const d = env.data as { probeId: string; source: RelatedSource };
+          const reply = this.opts.related?.(d.probeId, d.source);
+          if (reply) sock.push("related.list", { probeId: d.probeId, requested: d.source, source: d.source, ...reply }, env.id);
           break;
         }
         case "tools.ensure":

@@ -42,13 +42,17 @@ const subtitle: Shape = { lang: "string", name: "string?", auto: "boolean?" };
 const range: Shape = { startSec: "number", endSec: "number" };
 const storyboard: Shape = { width: "number", height: "number", cols: "number", rows: "number", intervalSec: "number", sprites: "array" };
 const sprite: Shape = { url: "string", startSec: "number", durationSec: "number" };
+const relatedItem: Shape = { id: "string", url: "string", title: "string", channel: "string?", durationSec: "number?", thumbnail: "string?", meta: "string?", views: "number?" };
+const RELATED_SOURCES = ["youtube", "channel", "search"];
 const peaks: Shape = { bucketSec: "number", count: "number", durationSec: "number", data: "string" };
 
 const payloads: Record<string, Shape> = {
   hello: { client: "string", clientVersion: "string", host: "object" },
   "hello.ok": { helperVersion: "string", protocol: "number", profile: "string", libraryDir: "string", tools: "array", jobs: "array" },
-  "job.create": { url: "string", maxHeight: "number?", probeId: "string?", formatId: "string?", range: "object?", audioOnly: "boolean?", subtitles: "object?" },
-  "media.probe": { url: "string", maxHeight: "number?" },
+  "job.create": { url: "string", maxHeight: "number?", probeId: "string?", formatId: "string?", range: "object?", audioOnly: "boolean?", subtitles: "object?", via: "string?" },
+  "media.probe": { url: "string", maxHeight: "number?", via: "string?" },
+  "related.fetch": { probeId: "string", source: "string?" },
+  "related.list": { probeId: "string", requested: "string", source: "string?", items: "array", error: "string?" },
   "media.info": { url: "string", probeId: "string?", info: "object?", failure: "object?" },
   "preview.open": { probeId: "string" },
   "preview.close": { probeId: "string" },
@@ -138,6 +142,10 @@ export function validatePayload(type: string, data: unknown): string[] {
     if (d.info !== undefined) checkInfo(d.info, `${type}.info`, errs);
     if (d.failure !== undefined) checkFailure(d.failure, `${type}.failure`, errs);
     if ((d.info === undefined) === (d.failure === undefined)) errs.push(`${type}: exactly one of info/failure`);
+  }
+  if (type === "related.list" || type === "related.fetch") {
+    for (const k of ["requested", "source"]) if (d[k] !== undefined && !RELATED_SOURCES.includes(String(d[k]))) errs.push(`${type}.${k}: unknown ${d[k]}`);
+    if (Array.isArray(d.items)) d.items.forEach((it, i) => check(it, relatedItem, `${type}.items[${i}]`, errs));
   }
   if (Array.isArray(d.jobs)) d.jobs.forEach((j, i) => checkJob(j, `${type}.jobs[${i}]`, errs));
   if (Array.isArray(d.tools)) d.tools.forEach((t, i) => check(t, tool, `${type}.tools[${i}]`, errs));

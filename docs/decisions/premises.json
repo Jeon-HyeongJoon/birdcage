@@ -417,6 +417,65 @@
         "verifiedAt": "2026-10-03",
         "ttlDays": 60
       }
+    },
+    {
+      "id": "P-0012-a",
+      "adr": "0012",
+      "level": "L1",
+      "claim": "녹화한 실제 시청 페이지(lockupViewModel)와 과거 형식(compactVideoRenderer)을 읽고, 시청 페이지가 깨지면 같은 채널 → 제목 검색으로 넘어가며 실제 출처를 알린다",
+      "check": {
+        "type": "command",
+        "dir": "helper",
+        "argv": [
+          "go",
+          "test",
+          "-count=1",
+          "-run",
+          "^(TestParseWatchPageRecorded|TestParseWatchPageLegacyAndFilters|TestParseWatchPageUnknownFormat|TestListFallsBackAndCaches)$",
+          "./internal/related/"
+        ],
+        "timeoutSec": 120
+      }
+    },
+    {
+      "id": "P-0012-b",
+      "adr": "0012",
+      "level": "L3",
+      "claim": "실제 YouTube 시청 페이지에서 시드 10개 중 90% 이상이 10개 이상의 '다음 동영상'을 주고 첫 목록 지연 중앙값이 1.5s 이하다(실측 9/10, 0.89s)",
+      "sources": [
+        "session:2026-10-04 TestEndToEndOnlineRelated 9/10 seeds 20–26 items, median 892ms"
+      ],
+      "check": {
+        "type": "command",
+        "dir": "helper",
+        "argv": [
+          "go",
+          "test",
+          "-count=1",
+          "-run",
+          "^TestEndToEndOnlineRelated$",
+          "./internal/related/"
+        ],
+        "timeoutSec": 180,
+        "requiresEnv": [
+          "BIRDCAGE_E2E"
+        ]
+      }
+    },
+    {
+      "id": "P-0012-c",
+      "adr": "0012",
+      "level": "L3",
+      "claim": "YouTube는 관련 영상을 공식 API로 주지 않고(relatedToVideoId 2023-08-07 폐지) 시청 페이지 ytInitialData의 secondaryResults에만 두며, 항목 형식은 lockupViewModel이다",
+      "sources": [
+        "https://developers.google.com/youtube/v3/revision_history",
+        "https://github.com/TeamNewPipe/NewPipeExtractor/pull/1320"
+      ],
+      "check": {
+        "type": "expires",
+        "verifiedAt": "2026-10-04",
+        "ttlDays": 30
+      }
     }
   ]
 }

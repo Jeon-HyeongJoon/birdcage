@@ -59,6 +59,8 @@ type Info struct {
 	Storyboards []Storyboard `json:"storyboards,omitempty"`
 	// InfoPath is the engine's cached info file reused by Download (yt-dlp --load-info-json).
 	InfoPath string `json:"-"`
+	// ChannelURL is the uploader's channel page (탐색 목록의 '같은 채널' 출처). 패널에는 보내지 않는다.
+	ChannelURL string `json:"-"`
 }
 
 // Variant is one selectable quality: a video format plus (for DASH) the audio it merges with.
@@ -192,6 +194,24 @@ type DownloadResult struct {
 // call, so a subtitle failure (자주 HTTP 429) never fails the media download.
 type SubtitleFetcher interface {
 	Subtitles(ctx context.Context, info *Info, lang string, auto bool, workDir string) (path string, err error)
+}
+
+// Entry is one item of a listing (channel videos, search results), read without full extraction.
+type Entry struct {
+	ID          string
+	URL         string
+	Title       string
+	Channel     string
+	DurationSec float64
+	Views       int64
+	Thumbnail   string
+	Live        bool
+}
+
+// Lister is implemented by engines that list a channel or search page without resolving each
+// entry's formats (yt-dlp --flat-playlist: 채널 0.8s, 검색 2.2s 실측, docs/decisions/0012).
+type Lister interface {
+	List(ctx context.Context, url string, limit int) ([]Entry, error)
 }
 
 // Engine downloads media for URLs it supports.

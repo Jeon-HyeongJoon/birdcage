@@ -6,13 +6,13 @@ import { DownloadsApp } from "../../src/js/downloads/downloads";
 import type { JobsAction } from "../../src/js/jobs-channel";
 import { App, type PanelHost } from "../../src/js/main/main";
 import { FakeHelper } from "./fake-helper";
-import { hello, scenarios } from "./scenarios";
+import { hello, relatedDefault, scenarios } from "./scenarios";
 
 const name = new URLSearchParams(window.location.search).get("scenario") || "empty";
 const scenario = scenarios[name];
 if (!scenario) throw new Error(`알 수 없는 UI 픽스처: ${name}`);
 
-const helper = new FakeHelper({ hello: { ...hello, ...scenario.hello }, probe: scenario.probe, preview: scenario.preview });
+const helper = new FakeHelper({ hello: { ...hello, ...scenario.hello }, probe: scenario.probe, preview: scenario.preview, related: scenario.related ?? relatedDefault });
 
 const host: HostAdapter = {
   info: () => ({ app: "PPRO", version: "15.2.0", api: "cep", os: "mac" }),

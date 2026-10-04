@@ -12,6 +12,8 @@ import {
   JobList,
   MediaInfoMsg,
   ProtocolError,
+  RelatedListMsg,
+  RelatedSource,
   ServerMessages,
   ServerType,
 } from "./protocol";
@@ -109,9 +111,15 @@ export class HelperClient {
   }
 
   /** Probes a link (yt-dlp -J takes seconds; the helper answers with media.info). */
-  async probe(url: string, maxHeight?: number): Promise<MediaInfoMsg> {
-    const env = await this.request("media.probe", { url, maxHeight }, ["media.info"], 90000);
+  async probe(url: string, maxHeight?: number, via?: string): Promise<MediaInfoMsg> {
+    const env = await this.request("media.probe", { url, maxHeight, via }, ["media.info"], 90000);
     return env.data as MediaInfoMsg;
+  }
+
+  /** Browse list for a probed link (watch page ~1s, yt-dlp fallbacks up to a few seconds). */
+  async related(probeId: string, source: RelatedSource): Promise<RelatedListMsg> {
+    const env = await this.request("related.fetch", { probeId, source }, ["related.list"], 45000);
+    return env.data as RelatedListMsg;
   }
 
   cancelJob(jobId: string): void {

@@ -339,6 +339,8 @@ type rawInfo struct {
 	Title        string      `json:"title"`
 	Uploader     string      `json:"uploader"`
 	Channel      string      `json:"channel"`
+	ChannelURL   string      `json:"channel_url"`
+	UploaderURL  string      `json:"uploader_url"`
 	ExtractorKey string      `json:"extractor_key"`
 	WebpageURL   string      `json:"webpage_url"`
 	Duration     float64     `json:"duration"`
@@ -373,6 +375,7 @@ func ParseInfo(b []byte) (*engine.Info, error) {
 		IsLive:      r.IsLive || r.LiveStatus == "is_live" || r.LiveStatus == "is_upcoming",
 		Thumbnail:   pickThumbnail(r.Thumbnails, r.Thumbnail, 192),
 		Subtitles:   subtitleList(r.Subtitles, r.AutoCaps, r.Language),
+		ChannelURL:  firstNonEmpty(r.ChannelURL, r.UploaderURL),
 	}
 	info.Variants, info.BestAudio = buildVariants(r.Formats)
 	info.Storyboards = buildStoryboards(r.Formats)

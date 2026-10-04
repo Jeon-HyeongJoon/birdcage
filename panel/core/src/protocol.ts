@@ -63,6 +63,8 @@ export interface JobCreate {
   audioOnly?: boolean;
   /** One subtitle track as an SRT sidecar (failure is only a warning). */
   subtitles?: SubtitleRequest;
+  /** Browse list the link came from ("related:youtube"); the helper records it for the fitness review. */
+  via?: string;
 }
 
 export interface SubtitleRequest {
@@ -85,6 +87,36 @@ export interface Clip {
 export interface MediaProbe {
   url: string;
   maxHeight?: number;
+  via?: string;
+}
+
+/** Where a browse list comes from: YouTube's own "up next", the same channel, or a title search. */
+export type RelatedSource = "youtube" | "channel" | "search";
+
+export interface RelatedFetch {
+  probeId: string;
+  source?: RelatedSource;
+}
+
+/** One video in a browse list (platform text such as views/age is in meta, as is). */
+export interface RelatedItem {
+  id: string;
+  url: string;
+  title: string;
+  channel?: string;
+  durationSec?: number;
+  thumbnail?: string;
+  meta?: string;
+  views?: number;
+}
+
+/** Answer to related.fetch. source differs from requested when the helper fell back. */
+export interface RelatedListMsg {
+  probeId: string;
+  requested: RelatedSource;
+  source?: RelatedSource;
+  items: RelatedItem[];
+  error?: string;
 }
 
 /** Answer to media.probe: info on success, a classified failure otherwise. */
@@ -327,6 +359,7 @@ export interface ClientMessages {
   "media.probe": MediaProbe;
   "preview.open": { probeId: string };
   "preview.close": { probeId: string };
+  "related.fetch": RelatedFetch;
 }
 
 /** Messages the helper sends. */
@@ -340,6 +373,7 @@ export interface ServerMessages {
   "tools.status": ToolsStatus;
   "media.info": MediaInfoMsg;
   "preview.state": PreviewState;
+  "related.list": RelatedListMsg;
   error: ProtocolError;
 }
 

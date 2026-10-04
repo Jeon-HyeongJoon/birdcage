@@ -652,6 +652,451 @@
           ]
         },
         {
+          "tag": "aside",
+          "attributes": {
+            "class": "related",
+            "aria-label": "탐색 목록"
+          },
+          "children": [
+            {
+              "tag": "div",
+              "attributes": {
+                "class": "related-tabs",
+                "role": "tablist"
+              },
+              "children": [
+                {
+                  "tag": "button",
+                  "attributes": {
+                    "class": "tab on",
+                    "type": "button",
+                    "role": "tab",
+                    "title": "유튜브가 이 영상 옆에 보여 주는 '다음 동영상'",
+                    "disabled": false
+                  },
+                  "children": [
+                    "추천"
+                  ]
+                },
+                {
+                  "tag": "button",
+                  "attributes": {
+                    "class": "tab",
+                    "type": "button",
+                    "role": "tab",
+                    "title": "이 채널의 최근 영상",
+                    "disabled": false
+                  },
+                  "children": [
+                    "같은 채널"
+                  ]
+                },
+                {
+                  "tag": "button",
+                  "attributes": {
+                    "class": "tab",
+                    "type": "button",
+                    "role": "tab",
+                    "title": "제목 핵심어로 검색한 영상",
+                    "disabled": false
+                  },
+                  "children": [
+                    "비슷한 제목"
+                  ]
+                }
+              ]
+            },
+            {
+              "tag": "ul",
+              "attributes": {
+                "class": "related-list"
+              },
+              "children": [
+                {
+                  "tag": "li",
+                  "attributes": {},
+                  "children": [
+                    {
+                      "tag": "button",
+                      "attributes": {
+                        "class": "related-item",
+                        "type": "button",
+                        "title": "동물원 브이로그 — 코끼리 우리 앞에서 찍은 첫 영상의 뒷이야기와 촬영 장비 이야기까지 한 번에",
+                        "disabled": false
+                      },
+                      "children": [
+                        {
+                          "tag": "span",
+                          "attributes": {
+                            "class": "thumb"
+                          },
+                          "children": [
+                            {
+                              "tag": "img",
+                              "attributes": {
+                                "src": "data:312"
+                              },
+                              "children": []
+                            },
+                            {
+                              "tag": "span",
+                              "attributes": {
+                                "class": "dur"
+                              },
+                              "children": [
+                                "12:34"
+                              ]
+                            }
+                          ]
+                        },
+                        {
+                          "tag": "span",
+                          "attributes": {
+                            "class": "text"
+                          },
+                          "children": [
+                            {
+                              "tag": "span",
+                              "attributes": {
+                                "class": "title"
+                              },
+                              "children": [
+                                "동물원 브이로그 — 코끼리 우리 앞에서 찍은 첫 영상의 뒷이야기와 촬영 장비 이야기까지 한 번에"
+                              ]
+                            },
+                            {
+                              "tag": "span",
+                              "attributes": {
+                                "class": "sub muted"
+                              },
+                              "children": [
+                                "zoo diary"
+                              ]
+                            },
+                            {
+                              "tag": "span",
+                              "attributes": {
+                                "class": "sub muted"
+                              },
+                              "children": [
+                                "조회수 7.8만회 · 4시간 전"
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "tag": "li",
+                  "attributes": {},
+                  "children": [
+                    {
+                      "tag": "button",
+                      "attributes": {
+                        "class": "related-item",
+                        "type": "button",
+                        "title": "코끼리 코 클로즈업 B-roll",
+                        "disabled": false
+                      },
+                      "children": [
+                        {
+                          "tag": "span",
+                          "attributes": {
+                            "class": "thumb"
+                          },
+                          "children": [
+                            {
+                              "tag": "img",
+                              "attributes": {
+                                "src": "data:312"
+                              },
+                              "children": []
+                            },
+                            {
+                              "tag": "span",
+                              "attributes": {
+                                "class": "dur"
+                              },
+                              "children": [
+                                "0:31"
+                              ]
+                            }
+                          ]
+                        },
+                        {
+                          "tag": "span",
+                          "attributes": {
+                            "class": "text"
+                          },
+                          "children": [
+                            {
+                              "tag": "span",
+                              "attributes": {
+                                "class": "title"
+                              },
+                              "children": [
+                                "코끼리 코 클로즈업 B-roll"
+                              ]
+                            },
+                            {
+                              "tag": "span",
+                              "attributes": {
+                                "class": "sub muted"
+                              },
+                              "children": [
+                                "stock clips"
+                              ]
+                            },
+                            {
+                              "tag": "span",
+                              "attributes": {
+                                "class": "sub muted"
+                              },
+                              "children": [
+                                "조회수 1.2천회 · 2주 전"
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "tag": "li",
+                  "attributes": {},
+                  "children": [
+                    {
+                      "tag": "button",
+                      "attributes": {
+                        "class": "related-item",
+                        "type": "button",
+                        "title": "Me at the zoo 4K 복원",
+                        "disabled": false
+                      },
+                      "children": [
+                        {
+                          "tag": "span",
+                          "attributes": {
+                            "class": "thumb"
+                          },
+                          "children": [
+                            {
+                              "tag": "img",
+                              "attributes": {
+                                "src": "data:312"
+                              },
+                              "children": []
+                            },
+                            {
+                              "tag": "span",
+                              "attributes": {
+                                "class": "dur"
+                              },
+                              "children": [
+                                "0:19"
+                              ]
+                            }
+                          ]
+                        },
+                        {
+                          "tag": "span",
+                          "attributes": {
+                            "class": "text"
+                          },
+                          "children": [
+                            {
+                              "tag": "span",
+                              "attributes": {
+                                "class": "title"
+                              },
+                              "children": [
+                                "Me at the zoo 4K 복원"
+                              ]
+                            },
+                            {
+                              "tag": "span",
+                              "attributes": {
+                                "class": "sub muted"
+                              },
+                              "children": [
+                                "restore lab"
+                              ]
+                            },
+                            {
+                              "tag": "span",
+                              "attributes": {
+                                "class": "sub muted"
+                              },
+                              "children": [
+                                "조회수 267만회 · 4일 전"
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "tag": "li",
+                  "attributes": {},
+                  "children": [
+                    {
+                      "tag": "button",
+                      "attributes": {
+                        "class": "related-item",
+                        "type": "button",
+                        "title": "샌디에이고 동물원 하루 투어",
+                        "disabled": false
+                      },
+                      "children": [
+                        {
+                          "tag": "span",
+                          "attributes": {
+                            "class": "thumb"
+                          },
+                          "children": [
+                            {
+                              "tag": "img",
+                              "attributes": {
+                                "src": "data:312"
+                              },
+                              "children": []
+                            },
+                            {
+                              "tag": "span",
+                              "attributes": {
+                                "class": "dur"
+                              },
+                              "children": [
+                                "1:02:05"
+                              ]
+                            }
+                          ]
+                        },
+                        {
+                          "tag": "span",
+                          "attributes": {
+                            "class": "text"
+                          },
+                          "children": [
+                            {
+                              "tag": "span",
+                              "attributes": {
+                                "class": "title"
+                              },
+                              "children": [
+                                "샌디에이고 동물원 하루 투어"
+                              ]
+                            },
+                            {
+                              "tag": "span",
+                              "attributes": {
+                                "class": "sub muted"
+                              },
+                              "children": [
+                                "travel kr"
+                              ]
+                            },
+                            {
+                              "tag": "span",
+                              "attributes": {
+                                "class": "sub muted"
+                              },
+                              "children": [
+                                "조회수 85만회 · 1년 전"
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "tag": "li",
+                  "attributes": {},
+                  "children": [
+                    {
+                      "tag": "button",
+                      "attributes": {
+                        "class": "related-item",
+                        "type": "button",
+                        "title": "유튜브 첫 영상 분석",
+                        "disabled": false
+                      },
+                      "children": [
+                        {
+                          "tag": "span",
+                          "attributes": {
+                            "class": "thumb"
+                          },
+                          "children": [
+                            {
+                              "tag": "img",
+                              "attributes": {
+                                "src": "data:312"
+                              },
+                              "children": []
+                            },
+                            {
+                              "tag": "span",
+                              "attributes": {
+                                "class": "dur"
+                              },
+                              "children": [
+                                "8:18"
+                              ]
+                            }
+                          ]
+                        },
+                        {
+                          "tag": "span",
+                          "attributes": {
+                            "class": "text"
+                          },
+                          "children": [
+                            {
+                              "tag": "span",
+                              "attributes": {
+                                "class": "title"
+                              },
+                              "children": [
+                                "유튜브 첫 영상 분석"
+                              ]
+                            },
+                            {
+                              "tag": "span",
+                              "attributes": {
+                                "class": "sub muted"
+                              },
+                              "children": [
+                                "media talk"
+                              ]
+                            },
+                            {
+                              "tag": "span",
+                              "attributes": {
+                                "class": "sub muted"
+                              },
+                              "children": [
+                                "조회수 12만회 · 3년 전"
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
           "tag": "div",
           "attributes": {
             "class": "row options muted small"
