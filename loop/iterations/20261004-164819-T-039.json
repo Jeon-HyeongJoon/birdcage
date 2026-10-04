@@ -1,0 +1,30 @@
+{
+  "$schema": "../schema/iteration.schema.json",
+  "id": "20261004-164819-T-039",
+  "task": "T-039",
+  "session": {
+    "kind": "worker"
+  },
+  "startedAt": "2026-10-04T16:48:19Z",
+  "base": {
+    "branch": "chore/release-cleanup",
+    "commit": "9634b32e92a7",
+    "dirty": true
+  },
+  "state": "running",
+  "hypothesis": "골든 화면 카탈로그와 명시적 로컬 산출물 제외 규칙을 추가하고 검증된 0.2.0 설치 ZIP을 Release로 게시하면 저장소 탐색성과 배포 재현성을 함께 개선할 수 있다",
+  "approvals": [
+    {
+      "action": "git.merge.main",
+      "by": "user",
+      "at": "2026-10-04T16:48:50Z",
+      "note": "프로젝트를 정리해 main에 반영해 달라는 요청으로 승인"
+    },
+    {
+      "action": "git.push",
+      "by": "user",
+      "at": "2026-10-04T16:48:50Z",
+      "note": "설치 파일을 GitHub Release에 올리고 main에 정리해 달라는 요청으로 승인"
+    }
+  ]
+}

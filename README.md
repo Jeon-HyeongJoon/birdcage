@@ -14,6 +14,8 @@ Premiere ─ CEP 메인 패널 (미리보기·옵션·현재 요청) ── ws:/
 
 **에이전트·루프 작업 규칙: [AGENTS.md](AGENTS.md)** (생성물 — SSOT는 `specs/principles.json` + `loop/policy.json`)
 
+**설치 파일: [Birdcage 0.2.0 Release](https://github.com/Jeon-HyeongJoon/birdcage/releases/tag/v0.2.0)**
+
 ## 구조
 
 | 경로 | 내용 |
@@ -22,6 +24,7 @@ Premiere ─ CEP 메인 패널 (미리보기·옵션·현재 요청) ── ws:/
 | `protocol/fixtures/` | 패널↔Helper 메시지 계약(Go가 생성, TS가 검증) |
 | `panel/core/` | 호스트 무관 TS 코어: 프로토콜 타입, HelperClient, Controller(재연결·자동 임포트), HostAdapter |
 | `panel/cep/` | 메인·다운로드 목록 CEP 패널(bolt-cep). `src/js/host/cep-host.ts`(Helper 실행·임포트), `src/jsx/ppro/ppro.ts`(ExtendScript) |
+| `panel/cep/test/golden/` | [UI 골든 화면 카탈로그](panel/cep/test/golden/README.md): 픽셀 화면 24개·DOM 구조 22개와 갱신 규칙 |
 | `scripts/` | `test-helper.sh`(테스트+성능 기록), `build-helper.sh`, `cep-dev-install.sh/.ps1` |
 | `specs/` | SSOT 명세: 원칙(`principles.json`), 실패 분류표(`failures.json`) → `make gen`으로 Go·TS·AGENTS.md 생성 |
 | `loop/` | 루프 정책·스키마·백로그·반복 기록·증적 원장(커밋), `loop/.runs/`는 원본 산출물(로컬, gitignore) |
@@ -103,6 +106,7 @@ V0 실측(Apple Silicon, 이 Mac):
 
 ## 개인용 배포 (Windows x64 · macOS)
 
+- 다운로드: [Windows x64 ZIP](https://github.com/Jeon-HyeongJoon/birdcage/releases/download/v0.2.0/Birdcage-Windows-x64-0.2.0.zip) · [macOS ZIP](https://github.com/Jeon-HyeongJoon/birdcage/releases/download/v0.2.0/Birdcage-macOS-0.2.0.zip) · [릴리스 노트](docs/releases/0.2.0.md)
 - 현재 배포 버전은 `panel/cep/package.json`의 **0.2.0**.
   `make package-windows` → `artifacts/windows/Birdcage-Windows-x64-<version>.zip`, `make package-macos` → `artifacts/macos/Birdcage-macOS-<version>.zip`.
 - 서명·공증 없는 개인용 배포판이다. 두 설치기 모두 SHA256SUMS로 파일을 확인하고, 기존 확장은 확장 폴더 밖(Birdcage 데이터 폴더의 `backups`)에 보관한다

@@ -1,14 +1,38 @@
+# 운영체제·편집기 로컬 파일
 .DS_Store
+Thumbs.db
+Desktop.ini
+.idea/
+.vscode/
+*.swp
+*~
+
+# 로컬 환경·실행 로그
+.env
+.env.local
+.env.*.local
+*.log
+*.tmp
+*.pid
+
+# Node 의존성·범용 테스트 보고서
 node_modules/
+coverage/
+.nyc_output/
+playwright-report/
+
 # Helper 테스트 성능 기록 (scripts/test-helper.sh)
-helper/.perf/
-# 패널 빌드 산출물
-panel/cep/dist/
-panel/cep/test-results/
-panel/cep/src/bin/
-panel/cep/.debug
-panel/cep/.package-cache/
-# 로컬 배포 산출물(서명 없는 Windows ZIP 등)
-artifacts/
+/helper/.perf/
+
+# 패널 빌드·테스트·패키지 캐시
+/panel/cep/dist/
+/panel/cep/test-results/
+/panel/cep/src/bin/
+/panel/cep/.debug
+/panel/cep/.package-cache/
+
+# 로컬 배포 산출물(Windows·macOS ZIP)
+/artifacts/
+
 # 루프 원본 산출물(로그·출력·프로파일): 로컬 보관, 원장(loop/ledger)이 sha256으로 참조
-loop/.runs/
+/loop/.runs/
