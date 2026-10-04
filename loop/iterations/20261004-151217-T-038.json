@@ -1,0 +1,32 @@
+{
+  "$schema": "../schema/iteration.schema.json",
+  "id": "20261004-151217-T-038",
+  "task": "T-038",
+  "session": {
+    "kind": "worker",
+    "id": "2df3dff7-1152-4794-b7b9-d1f8c6d6a92c",
+    "model": "claude-opus-5-5"
+  },
+  "startedAt": "2026-10-04T15:12:17Z",
+  "base": {
+    "branch": "feat/search",
+    "commit": "8f6eca8dd76b",
+    "dirty": true
+  },
+  "state": "running",
+  "hypothesis": "feat/search(추천·검색·글꼴 수정)를 0.2.0으로 main에 병합하고, 기존 Windows 패키저와 같은 구조로 macOS 패키저(universal Helper + ffmpeg.org가 안내하는 evermeet FFmpeg 8.1.2 번들 + 체크섬 검증·격리 속성 제거·PlayerDebugMode 설치기)를 만들면 두 OS에 같은 버전을 배포할 수 있다.",
+  "approvals": [
+    {
+      "action": "session.multitask",
+      "by": "전형준",
+      "at": "2026-10-04T15:12:18Z",
+      "note": "2026-10-05 지시: 현재 버전으로 메인 머지하고 Windows·mac 배포 파일 만들기"
+    },
+    {
+      "action": "git.merge.main",
+      "by": "전형준",
+      "at": "2026-10-04T15:12:18Z",
+      "note": "2026-10-05 지시: '현재 버전으로 메인 머지하고 배포할수있게' (feat/search → main, push는 요청 없음)"
+    }
+  ]
+}

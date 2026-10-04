@@ -1,0 +1,20 @@
+FFmpeg 8.1.2 static builds for macOS (Intel x86_64)
+=====================================================
+
+Binary provider: evermeet.cx (Helmut K. C. Tessarek) — the macOS static build listed on
+https://ffmpeg.org/download.html ("Static builds for macOS 64-bit")
+ffmpeg URL:  https://evermeet.cx/ffmpeg/ffmpeg-8.1.2.zip
+ffmpeg SHA-256 (archive):  e91df72a1ee7c26606f90dd2dd4dcccc6a75140ff9ea6fdd50faae828b82ba69
+ffprobe URL: https://evermeet.cx/ffmpeg/ffprobe-8.1.2.zip
+ffprobe SHA-256 (archive): 399b93f0b9862f69767afa343e90c2f48d7e7958cadbb6deb76a012d0e3b7ce3
+GPG signatures: https://evermeet.cx/ffmpeg/ffmpeg-8.1.2.zip.sig, https://evermeet.cx/ffmpeg/ffprobe-8.1.2.zip.sig
+Build information: https://evermeet.cx/ffmpeg/
+FFmpeg source: https://ffmpeg.org/releases/ffmpeg-8.1.2.tar.xz
+FFmpeg project: https://ffmpeg.org/
+
+The build reports "--enable-gpl --enable-version3" and includes libx264 among other
+libraries, so the binaries are distributed under the GNU GPL version 3 (licenses/ffmpeg/GPL-3.0.txt).
+The unmodified ffmpeg and ffprobe are redistributed as separate programs invoked by Birdcage.
+
+These are Intel (x86_64) binaries. On Apple Silicon they run through Rosetta 2. If a native
+ffmpeg/ffprobe is installed (for example Homebrew in /opt/homebrew/bin), Birdcage uses that first.

@@ -53,6 +53,10 @@ type Locator struct {
 	Overrides  map[Name]string // explicit paths
 	LookPath   func(string) (string, error)
 	SystemDirs []string // GUI apps may not inherit shell PATH (notably Homebrew on macOS)
+	// BundledLast tries PATH and SystemDirs before the bundled copy. macOS 배포판의 FFmpeg는 Intel 전용
+	// 정적 빌드(ffmpeg.org가 안내하는 evermeet.cx)라 Apple Silicon에서는 Rosetta로 돈다: 기기에 설치된
+	// 네이티브 ffmpeg(Homebrew 등)가 있으면 그것을 먼저 쓴다. Windows는 번들이 우선이다(PATH의 ffmpeg는 출처가 제각각).
+	BundledLast bool
 
 	mu    sync.Mutex
 	cache map[Name]Tool
@@ -60,7 +64,7 @@ type Locator struct {
 
 // NewLocator returns a locator using exec.LookPath for PATH lookups.
 func NewLocator(root, bundled string, overrides map[Name]string) *Locator {
-	return &Locator{Root: root, BundledDir: bundled, Overrides: overrides, LookPath: exec.LookPath, SystemDirs: systemToolDirs(runtime.GOOS)}
+	return &Locator{Root: root, BundledDir: bundled, Overrides: overrides, LookPath: exec.LookPath, SystemDirs: systemToolDirs(runtime.GOOS), BundledLast: runtime.GOOS == "darwin"}
 }
 
 // systemToolDirs are conventional package-manager locations omitted from the PATH of
@@ -113,8 +117,13 @@ func (l *Locator) find(ctx context.Context, n Name) (Tool, error) {
 			cands = append(cands, cand{p, "installed"})
 		}
 	}
-	if l.BundledDir != "" {
-		cands = append(cands, cand{filepath.Join(l.BundledDir, string(n), exeFor(n)), "bundled"})
+	bundled := func() {
+		if l.BundledDir != "" {
+			cands = append(cands, cand{filepath.Join(l.BundledDir, string(n), exeFor(n)), "bundled"})
+		}
+	}
+	if !l.BundledLast {
+		bundled()
 	}
 	if l.LookPath != nil {
 		if p, err := l.LookPath(string(n)); err == nil {
@@ -123,6 +132,9 @@ func (l *Locator) find(ctx context.Context, n Name) (Tool, error) {
 	}
 	for _, dir := range l.SystemDirs {
 		cands = append(cands, cand{filepath.Join(dir, exeFor(n)), "path"})
+	}
+	if l.BundledLast {
+		bundled()
 	}
 	var lastErr error
 	for _, c := range cands {
