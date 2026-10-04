@@ -10,7 +10,8 @@ out="$root/panel/cep/src/bin"
 target="${1:-all}"
 cd "$root/helper"
 
-ver="${BIRDCAGE_VERSION:-0.1.0-dev}"
+package_ver="$(node -p "require('$root/panel/cep/package.json').version")"
+ver="${BIRDCAGE_VERSION:-${package_ver}-dev}"
 if [ -z "${BIRDCAGE_VERSION:-}" ] && sha=$(git -C "$root" rev-parse --short HEAD 2>/dev/null); then
   ver="$ver+$sha"
   git -C "$root" diff --quiet 2>/dev/null || ver="$ver.dirty"

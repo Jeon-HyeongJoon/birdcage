@@ -146,7 +146,7 @@
     },
     {
       "id": "T-007",
-      "title": "Instagram·TikTok 실링크 온라인 E2E",
+      "title": "TikTok 실링크 온라인 E2E",
       "mode": "discovery",
       "status": "open",
       "passes": false,
@@ -155,7 +155,7 @@
         {
           "kind": "test",
           "maxLevel": "L3",
-          "what": "BIRDCAGE_E2E_URLS로 IG·TikTok 각 1건 done 또는 분류된 실패"
+          "what": "BIRDCAGE_E2E_URLS로 TikTok 1건 done 또는 분류된 실패"
         }
       ]
     },
@@ -837,6 +837,30 @@
       "evidence": [
         "E-20261004-084431-011",
         "E-20261004-084431-001"
+      ]
+    },
+    {
+      "id": "T-035",
+      "title": "현재 구현·검증·Windows 배포 정보를 문서와 설치 스크립트에 동기화하고 main 병합 준비",
+      "mode": "compile",
+      "status": "done",
+      "passes": true,
+      "priority": 1,
+      "acceptance": [
+        {
+          "kind": "spec",
+          "maxLevel": "L2",
+          "what": "README·ADR·Windows 설치 안내가 0.1.2 구현과 실제 검증 범위·남은 제한을 일관되게 설명함"
+        },
+        {
+          "kind": "test",
+          "maxLevel": "L1",
+          "what": "전체 게이트와 Windows 배포 패키지 검증을 통과해 main에 병합 가능한 상태임"
+        }
+      ],
+      "evidence": [
+        "E-20261004-103802-004",
+        "E-20261004-103802-006"
       ]
     }
   ]

@@ -1,4 +1,4 @@
-# Windows: 서명 없는 개발용 CEP 패널을 Premiere에서 열 수 있게 한다. (Windows 테스트는 추후 — 미검증)
+# Windows: 서명 없는 개발용 CEP 패널을 Premiere에서 열 수 있게 한다.
 #  1) HKCU\Software\Adobe\CSXS.10/11/12 PlayerDebugMode=1
 #  2) Helper(win x64) 빌드 + 패널 빌드 + %APPDATA%\Adobe\CEP\extensions\com.birdcage.panel → dist\cep 링크(junction)
 #     (일반 `npm run build`는 링크를 남기지 않는다 — 링크는 여기서만 만든다)
@@ -24,7 +24,8 @@ $out = "$root\panel\cep\src\bin\win32-x64"
 New-Item -ItemType Directory -Force -Path $out | Out-Null
 Push-Location "$root\helper"
 $env:GOOS = "windows"; $env:GOARCH = "amd64"; $env:CGO_ENABLED = "0"
-go build -trimpath -ldflags "-s -w -X main.version=0.1.0-dev" -o "$out\birdcage-helper.exe" .\cmd\birdcage-helper
+$version = (Get-Content "$root\panel\cep\package.json" -Raw | ConvertFrom-Json).version
+go build -trimpath -ldflags "-s -w -X main.version=${version}-dev" -o "$out\birdcage-helper.exe" .\cmd\birdcage-helper
 Pop-Location
 
 Push-Location "$root\panel\cep"

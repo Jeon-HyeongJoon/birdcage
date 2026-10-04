@@ -4,10 +4,10 @@ YouTube · TikTok 링크로 영상을 받아 **Premiere에서 바로 편집 가�
 개인·비상업 용도. Windows + macOS, Premiere 2021(15.x)–26.
 
 ```
-Premiere ─ CEP 패널 (TS + React 18, bolt-cep) ── ws://127.0.0.1 (토큰·Origin) ──▶ Go Helper
-            └ ExtendScript: importFiles → Birdcage/<플랫폼> 빈                          ├ yt-dlp(onedir) + deno
-                                                                                    ├ ffprobe 분석(VFR 감지) → ffmpeg 정규화
-                                                                                    └ 성능 로그(JSONL) + pprof
+Premiere ─ CEP 메인 패널 (미리보기·옵션·현재 요청) ── ws://127.0.0.1 (토큰·Origin) ──▶ Go Helper
+           ├ 다운로드 목록 패널 (진행·실패·완료 기록)                                  ├ yt-dlp(onedir) + deno
+           └ ExtendScript: importFiles → Birdcage/<플랫폼> 빈                          ├ ffprobe 분석(VFR 감지) → ffmpeg 정규화
+                                                                                     └ 성능 로그(JSONL) + pprof
 ```
 
 설계 결정과 근거: [docs/decisions](docs/decisions/README.md) (모두 초안, 각 결정은 실행 가능한 전제를 가짐)
@@ -21,30 +21,33 @@ Premiere ─ CEP 패널 (TS + React 18, bolt-cep) ── ws://127.0.0.1 (토큰�
 | `helper/` | Go Helper. `cmd/birdcage-helper`(실행 파일), `cmd/perfreport`(성능 요약), `internal/{engine,media,jobs,server,tools,proc,perf,library,protocol}` |
 | `protocol/fixtures/` | 패널↔Helper 메시지 계약(Go가 생성, TS가 검증) |
 | `panel/core/` | 호스트 무관 TS 코어: 프로토콜 타입, HelperClient, Controller(재연결·자동 임포트), HostAdapter |
-| `panel/cep/` | CEP 패널(bolt-cep). `src/js/host/cep-host.ts`(Helper 실행·임포트), `src/jsx/ppro/ppro.ts`(ExtendScript) |
+| `panel/cep/` | 메인·다운로드 목록 CEP 패널(bolt-cep). `src/js/host/cep-host.ts`(Helper 실행·임포트), `src/jsx/ppro/ppro.ts`(ExtendScript) |
 | `scripts/` | `test-helper.sh`(테스트+성능 기록), `build-helper.sh`, `cep-dev-install.sh/.ps1` |
 | `specs/` | SSOT 명세: 원칙(`principles.json`), 실패 분류표(`failures.json`) → `make gen`으로 Go·TS·AGENTS.md 생성 |
 | `loop/` | 루프 정책·스키마·백로그·반복 기록·증적 원장(커밋), `loop/.runs/`는 원본 산출물(로컬, gitignore) |
 | `tools/` | `loopctl`(루프 운영·검사·게이트·전제), `specgen`(SSOT 생성기) |
 
-## V0 상태
+## 현재 상태 (0.1.2)
 
-**V0 = 링크 하나가 Helper를 거쳐 Premiere-ready 파일이 되고 임포트 호출까지 가는 한 사이클.**
+**현재 흐름 = 링크 확인 → 단계적 미리보기 → 구간·화질·오디오·자막 선택 → 백그라운드 다운로드 → Premiere 배치.**
 
 | 항목 | 상태 | 근거 |
 |---|---|---|
-| Helper: 탐색→다운로드→분석→정규화→검증 | ✅ 검증 | 로컬 E2E(실제 yt-dlp generic), 온라인 E2E(YouTube jNQXAC9IVRw) |
-| 도구 설치: yt-dlp/deno 체크섬 검증·롤백 | ✅ 검증 | 실제 GitHub 릴리스로 설치(yt-dlp 53.9MB, deno 38.5MB) + 가짜 서버 테스트(불일치·zip-slip 거부) |
+| YouTube: 조회→다운로드→분석→정규화 | ✅ 검증 | 온라인 E2E(jNQXAC9IVRw), 만료된 미디어 URL 403은 메타데이터를 새로 조회해 1회 재시도 |
+| 미리보기·편집 옵션 | ✅ 검증 | 스토리보드→파형→360p 재생, In/Out·화질·오디오 전용·자막, 구간 프레임·오디오 정렬 테스트 |
+| Premiere 작업 흐름 | ✅ 부분 검증 | 15.2에서 패널 로드·Helper 연결·H.264 미리보기 재생 확인. 실제 다운로드→빈 임포트·캡션·새 트랙 배치는 사람 확인 대기 |
+| 백그라운드 다운로드 관리 | ✅ 검증 | 메인은 현재 링크에 집중, 별도 `Birdcage 다운로드 목록` 패널에서 진행·실패·완료 기록 관리, 중복 요청 방지 |
+| 완료 기록 공유 | ✅ 자동 검증 / Windows 재확인 대기 | 두 CEP 패널이 Helper 데이터 폴더의 `download-history.json`을 공유하고 기존 0.1.1 기록을 이관 |
+| 도구 설치: yt-dlp·Deno | ✅ 검증 | 체크섬 검증·롤백·zip-slip 거부. Windows Get-FileHash 형식 파싱 수정 후 사용자 실기에서 초기 설치 확인 |
 | 정규화: VP9/Opus→H.264/AAC 48k, VFR→CFR, passthrough | ✅ 검증 | ffmpeg 픽스처 테스트(VideoToolbox), 결과 재분석 |
 | 보안: 루프백·토큰·Origin | ✅ 검증 | server 테스트(잘못된 토큰 401, 웹 Origin 403, file:// 허용) |
 | 성능 기록: pprof + perf JSONL + 테스트 리포트/회귀 비교 | ✅ 검증 | `scripts/test-helper.sh`, E2E에서 pprof 엔드포인트 확인 |
 | 패널 코어 ↔ 실제 Helper (Node) | ✅ 검증 | `panel/core/test/integration.test.ts` (실행→연결→작업→자동 임포트 호출) |
-| CEP 패널 빌드(CSXS 10, chrome74, ES3 ExtendScript) | ✅ 빌드 | `npm run build` 산출물·매니페스트 확인 |
-| **Premiere 안에서 패널 로드·importFiles** | ⏳ 미검증 | 이 Mac의 Premiere 2021은 x86_64 전용이고 Rosetta 미설치 |
-| **Windows** | ⏳ 미검증 | 크로스 컴파일·vet만 통과(Job Object, 경로 처리 코드 포함) |
+| CEP 패널·Windows x64 개인 배포 | ✅ 빌드 / 부분 실기 | CSXS 10, Chromium 74, ES3. Windows에서 확장 인식·도구 설치 확인, 0.1.2 ZIP에 Helper·FFmpeg·ffprobe·설치기 포함 |
 | TikTok 실링크 | ⏳ 미검증 | `BIRDCAGE_E2E_URLS`로 지정해 검증 예정 |
+| Instagram | 범위 제외 | 공개 Reel도 로그인 쿠키를 요구하는 사례를 재현해 지원 기능 명시에서 제외 |
 
-V0에서 일부러 뺀 것: 쿠키/로그인, 재생목록, 라이브, HDR 톤매핑, 프록시·메타데이터(원본 URL) 기록, L1–L5 폴백(실패 분류·정책만 구현), UXP 패널, ffmpeg 자동 설치.
+현재 범위에서 뺀 것: 쿠키/로그인, Instagram, 재생목록, 라이브, HDR 톤매핑, 프록시·메타데이터(원본 URL) 기록, L1–L5 폴백(실패 분류·정책만 구현), UXP 패널, macOS ffmpeg 자동 설치.
 
 ## 빠른 시작 (macOS)
 
@@ -53,7 +56,7 @@ V0에서 일부러 뺀 것: 쿠키/로그인, 재생목록, 라이브, HDR 톤�
 cd helper && go run ./cmd/birdcage-helper --ensure-tools   # yt-dlp·deno 설치(체크섬 검증) → ~/Library/Application Support/Birdcage/tools
 cd .. && make test                                      # Helper 테스트(성능 기록) + 패널 코어 테스트
 scripts/cep-dev-install.sh                              # PlayerDebugMode + Helper·패널 빌드 + CEP 확장 폴더 링크(되돌리기: --uninstall)
-# Premiere 재시작 → 창 > 확장 > Birdcage
+# Premiere 재시작 → 창 > 확장 > Birdcage / Birdcage 다운로드 목록
 ```
 
 `npm run build`(panel/cep)만으로는 시스템에 아무것도 남지 않는다. bolt-cep는 빌드마다 CEP 확장 폴더에 링크를 만들지만
@@ -95,13 +98,13 @@ V0 실측(Apple Silicon, 이 Mac):
 | VP9/Opus 4초 → H.264/AAC | 정규화 ~0.3–0.4s (h264_videotoolbox) |
 | H.264 인코더 감지 | 185–191ms (1회, 캐시) |
 
-## Windows x64 (실기 테스트 전)
+## Windows x64 개인용 배포
 
-- Helper: `GOOS=windows go build ./cmd/birdcage-helper` (크로스 컴파일 확인됨). 자식 프로세스는 Job Object로 묶어 종료.
-- 개발 설치: `scripts/cep-dev-install.ps1` (PlayerDebugMode 레지스트리 + 빌드).
-- 개인용 배포 ZIP: `make package-windows` → `artifacts/windows/Birdcage-Windows-x64-<version>.zip`.
-- 배포 ZIP은 checksum으로 고정한 FFmpeg/ffprobe GPLv3 정적 빌드를 Helper 옆 `tools/`에 포함한다. PATH·별도 설치는 필요 없다.
-- 미검증 항목: 패널의 `bin/win32-x64` 경로, 한글 사용자명 경로, Defender 오탐, 콘솔 창 숨김.
+- 현재 배포 버전은 `panel/cep/package.json`의 **0.1.2**. `make package-windows`가 `artifacts/windows/Birdcage-Windows-x64-<version>.zip`을 만든다.
+- ZIP을 풀고 `install.cmd`를 실행한다. 관리자 권한은 필요 없고 기존 확장은 같은 CEP 폴더에 백업한다.
+- ZIP은 checksum으로 고정한 FFmpeg/ffprobe GPLv3 정적 빌드와 Windows x64 Helper를 포함한다. yt-dlp·Deno는 첫 실행 때 체크섬을 검증해 설치한다.
+- Premiere 메뉴는 `창 > 확장 > Birdcage`와 `Birdcage 다운로드 목록` 두 개다. 완료 기록은 `%LOCALAPPDATA%\Birdcage\download-history.json`에 저장된다.
+- 사용자 실기에서 Windows 확장 인식과 초기 도구 설치까지 확인했다. 남은 확인은 0.1.2 완료 기록 유지, 링크 1건의 Premiere 임포트, 한글 사용자명 경로, Defender·Job Object 동작이다.
 
 ## 라이선스 메모
 
