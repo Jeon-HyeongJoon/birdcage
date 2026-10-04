@@ -63,7 +63,7 @@ export const Composer = ({ s, ctl, focusMode = false, settings }: { s: State; ct
         <input
           className="url"
           type="text"
-          placeholder="YouTube · Instagram · TikTok 링크"
+          placeholder="YouTube · TikTok 링크"
           value={d.url}
           onChange={(e) => ctl.setUrl(e.target.value)}
           disabled={!connected}

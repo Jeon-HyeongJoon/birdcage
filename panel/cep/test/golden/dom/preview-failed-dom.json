@@ -51,7 +51,7 @@
                   "attributes": {
                     "class": "url",
                     "type": "text",
-                    "placeholder": "YouTube · Instagram · TikTok 링크",
+                    "placeholder": "YouTube · TikTok 링크",
                     "disabled": false,
                     "value": "https://www.youtube.com/watch?v=jNQXAC9IVRw"
                   },

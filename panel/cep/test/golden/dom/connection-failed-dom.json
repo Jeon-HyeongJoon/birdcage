@@ -77,7 +77,7 @@
                   "attributes": {
                     "class": "url",
                     "type": "text",
-                    "placeholder": "YouTube · Instagram · TikTok 링크",
+                    "placeholder": "YouTube · TikTok 링크",
                     "disabled": true,
                     "value": ""
                   },

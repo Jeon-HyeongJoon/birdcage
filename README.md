@@ -1,6 +1,6 @@
 # Birdcage
 
-YouTube · Instagram · TikTok 링크로 영상을 받아 **Premiere에서 바로 편집 가능한 형태로 정규화해 프로젝트에 넣는** 패널.
+YouTube · TikTok 링크로 영상을 받아 **Premiere에서 바로 편집 가능한 형태로 정규화해 프로젝트에 넣는** 패널.
 개인·비상업 용도. Windows + macOS, Premiere 2021(15.x)–26.
 
 ```
@@ -42,7 +42,7 @@ Premiere ─ CEP 패널 (TS + React 18, bolt-cep) ── ws://127.0.0.1 (토큰�
 | CEP 패널 빌드(CSXS 10, chrome74, ES3 ExtendScript) | ✅ 빌드 | `npm run build` 산출물·매니페스트 확인 |
 | **Premiere 안에서 패널 로드·importFiles** | ⏳ 미검증 | 이 Mac의 Premiere 2021은 x86_64 전용이고 Rosetta 미설치 |
 | **Windows** | ⏳ 미검증 | 크로스 컴파일·vet만 통과(Job Object, 경로 처리 코드 포함) |
-| Instagram / TikTok 실링크 | ⏳ 미검증 | `BIRDCAGE_E2E_URLS`로 지정해 검증 예정 |
+| TikTok 실링크 | ⏳ 미검증 | `BIRDCAGE_E2E_URLS`로 지정해 검증 예정 |
 
 V0에서 일부러 뺀 것: 쿠키/로그인, 재생목록, 라이브, HDR 톤매핑, 프록시·메타데이터(원본 URL) 기록, L1–L5 폴백(실패 분류·정책만 구현), UXP 패널, ffmpeg 자동 설치.
 

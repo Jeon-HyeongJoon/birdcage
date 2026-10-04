@@ -1,0 +1,50 @@
+{
+  "$schema": "../schema/iteration.schema.json",
+  "id": "20261004-082950-T-007",
+  "task": "T-007",
+  "session": {
+    "kind": "worker"
+  },
+  "startedAt": "2026-10-04T08:29:50Z",
+  "endedAt": "2026-10-04T08:43:43Z",
+  "base": {
+    "branch": "feat/editing-options",
+    "commit": "747cf6a40846"
+  },
+  "head": {
+    "branch": "feat/editing-options",
+    "commit": "747cf6a40846",
+    "dirty": true
+  },
+  "state": "success",
+  "hypothesis": "Instagram 추출 결과가 YouTube처럼 formats 배열을 제공하지 않거나 extractor_key가 달라 현재 포맷 선택 단계에서 실패한다. 실링크 JSON과 실패 로그를 비교하면 플랫폼별 최소 수정점을 찾을 수 있다.",
+  "summary": "공개 Instagram Reel에서 최신 yt-dlp가 empty media response와 cookies 요구로 실패함을 재현하고, 요청에 따라 Instagram을 제품 지원 문구와 링크 입력 안내에서 제외했다. UI DOM·픽셀 골든을 갱신했으며 make gates 전체가 통과했다.",
+  "metrics": {
+    "durationMin": 13.8,
+    "evidence": 12,
+    "evidenceByLevel": {
+      "L1": 6,
+      "L2": 5,
+      "L3": 1
+    },
+    "pass": 12,
+    "fail": 0,
+    "skip": 0
+  },
+  "retro": {
+    "lessons": [
+      "인증이 필요한 플랫폼을 기능 문구에 포함하기 전에 비로그인 공개 링크 E2E 근거가 필요하다."
+    ]
+  },
+  "next": [
+    "TikTok 실링크 검증은 T-007의 남은 범위로 유지한다."
+  ],
+  "approvals": [
+    {
+      "action": "verifier.change",
+      "by": "user",
+      "at": "2026-10-04T08:43:43Z",
+      "note": "Instagram 지원 문구 제거 요청에 필요한 UI DOM·픽셀 골든 갱신을 승인함"
+    }
+  ]
+}
