@@ -164,11 +164,11 @@ func (in *Installer) InstallDeno(ctx context.Context) (Tool, error) {
 		if err != nil {
 			return "", err
 		}
-		f := strings.Fields(string(body))
-		if len(f) == 0 {
-			return "", fmt.Errorf("empty checksum file %s", sumURL)
+		sum, err := checksumForAsset(body, asset)
+		if err != nil {
+			return "", fmt.Errorf("%w in %s", err, sumURL)
 		}
-		return strings.ToLower(f[0]), nil
+		return sum, nil
 	})
 }
 
@@ -301,20 +301,66 @@ func (in *Installer) get(ctx context.Context, url string, limit int64) ([]byte, 
 	return io.ReadAll(io.LimitReader(resp.Body, limit))
 }
 
-// sumFromList finds asset's hash in a "<hex>  <name>" checksum list.
+// checksumForAsset accepts both checksum formats published by upstream tools:
+//
+//   - Unix:   <hex>  <asset>
+//   - Windows Get-FileHash: Algorithm : SHA256 / Hash : <hex> / Path : ...\<asset>
+func checksumForAsset(body []byte, asset string) (string, error) {
+	var windowsHash, windowsPath string
+	sc := bufio.NewScanner(strings.NewReader(string(body)))
+	for sc.Scan() {
+		line := strings.TrimSpace(sc.Text())
+		f := strings.Fields(line)
+		if len(f) == 2 && strings.TrimPrefix(f[1], "*") == asset {
+			if sum, ok := normalizeSHA256(f[0]); ok {
+				return sum, nil
+			}
+		}
+		key, value, ok := strings.Cut(line, ":")
+		if !ok {
+			continue
+		}
+		switch strings.ToLower(strings.TrimSpace(key)) {
+		case "hash":
+			windowsHash = strings.TrimSpace(value)
+		case "path":
+			windowsPath = strings.TrimSpace(value)
+		}
+	}
+	if err := sc.Err(); err != nil {
+		return "", err
+	}
+	name := path.Base(strings.ReplaceAll(windowsPath, `\`, "/"))
+	if name == asset {
+		if sum, ok := normalizeSHA256(windowsHash); ok {
+			return sum, nil
+		}
+	}
+	return "", fmt.Errorf("valid SHA-256 for %s not found", asset)
+}
+
+func normalizeSHA256(s string) (string, bool) {
+	s = strings.ToLower(strings.TrimSpace(s))
+	if len(s) != sha256.Size*2 {
+		return "", false
+	}
+	if _, err := hex.DecodeString(s); err != nil {
+		return "", false
+	}
+	return s, true
+}
+
+// sumFromList finds asset's hash in a checksum response.
 func (in *Installer) sumFromList(ctx context.Context, url, asset string) (string, error) {
 	body, err := in.get(ctx, url, 1<<20)
 	if err != nil {
 		return "", err
 	}
-	sc := bufio.NewScanner(strings.NewReader(string(body)))
-	for sc.Scan() {
-		f := strings.Fields(sc.Text())
-		if len(f) == 2 && strings.TrimPrefix(f[1], "*") == asset {
-			return strings.ToLower(f[0]), nil
-		}
+	sum, err := checksumForAsset(body, asset)
+	if err != nil {
+		return "", fmt.Errorf("%w in %s", err, url)
 	}
-	return "", fmt.Errorf("%s not listed in %s", asset, url)
+	return sum, nil
 }
 
 // download streams url to a temp file in dir while hashing it.

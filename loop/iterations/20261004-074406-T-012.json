@@ -1,0 +1,42 @@
+{
+  "$schema": "../schema/iteration.schema.json",
+  "id": "20261004-074406-T-012",
+  "task": "T-012",
+  "session": {
+    "kind": "worker"
+  },
+  "startedAt": "2026-10-04T07:44:06Z",
+  "endedAt": "2026-10-04T07:48:25Z",
+  "base": {
+    "branch": "feat/editing-options",
+    "commit": "9e67cdf5e572"
+  },
+  "head": {
+    "branch": "feat/editing-options",
+    "commit": "9e67cdf5e572",
+    "dirty": true
+  },
+  "state": "success",
+  "hypothesis": "Deno 릴리스 checksum JSON을 공백 필드로 파싱해 헤더 키 algorithm을 해시로 오인한다. 자산명 키를 정확히 조회하면 Windows 초기 도구 설치가 성공한다.",
+  "summary": "Windows Deno v2.9.7의 Get-FileHash checksum 응답에서 Algorithm을 해시로 오인하던 원인을 실제 응답으로 재현했다. 일반 checksum 목록과 Windows Algorithm/Hash/Path 형식을 모두 자산명·64자리 hex로 검증하도록 수정하고 0.1.1 Windows ZIP을 재생성했다. 회귀 테스트, Windows amd64 테스트 교차 컴파일, 패키지 자체 검증과 전체 게이트가 통과했다.",
+  "metrics": {
+    "durationMin": 4.3,
+    "evidence": 12,
+    "evidenceByLevel": {
+      "L1": 6,
+      "L2": 5,
+      "L3": 1
+    },
+    "pass": 12,
+    "fail": 0,
+    "skip": 0
+  },
+  "retro": {
+    "newChecks": [
+      "Windows Get-FileHash 형식 Deno checksum 파서 회귀 테스트"
+    ]
+  },
+  "next": [
+    "Windows에서 Premiere를 종료하고 0.1.1 install.cmd로 덮어쓴 뒤 다시 확인을 눌러 Deno와 yt-dlp 설치 완료 및 미리보기 분석을 사람 확인한다."
+  ]
+}

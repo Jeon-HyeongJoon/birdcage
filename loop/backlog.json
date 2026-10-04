@@ -247,8 +247,8 @@
       "id": "T-012",
       "title": "Windows ffmpeg/ffprobe 설치기(체크섬 검증)",
       "mode": "compile",
-      "status": "open",
-      "passes": false,
+      "status": "done",
+      "passes": true,
       "priority": 3,
       "acceptance": [
         {
@@ -256,6 +256,9 @@
           "maxLevel": "L1",
           "what": "가짜 릴리스 서버로 설치·검증·롤백 테스트"
         }
+      ],
+      "evidence": [
+        "E-20261004-074406-006"
       ]
     },
     {
