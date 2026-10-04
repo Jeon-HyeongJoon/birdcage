@@ -9,11 +9,13 @@ Birdcage macOS 개인용 배포판
 설치
 1. ZIP을 압축 해제합니다.
 2. Premiere Pro를 종료합니다.
-3. install.command를 실행합니다.
-   - 처음에는 "확인되지 않은 개발자" 경고가 뜰 수 있습니다. Finder에서 install.command를
-     Control-클릭 → [열기] → [열기]를 누르거나, 터미널에서 다음을 실행합니다.
-       bash install.command
-   - 관리자 권한은 필요 없습니다.
+3. 터미널(응용 프로그램 > 유틸리티 > 터미널)을 열고 bash 와 빈칸 하나를 입력한 뒤,
+   압축을 푼 폴더의 install.command를 터미널 창에 끌어다 놓고 Enter를 누릅니다.
+       bash /…/Birdcage-macOS-0.2.0/install.command
+   - 서명·공증되지 않은 배포판이라 install.command를 더블클릭하면 macOS가
+     "확인되지 않은 개발자"로 막습니다. 터미널에서 bash로 실행하면 이 경고가 없습니다.
+     (더블클릭으로 하려면 시스템 설정 > 개인정보 보호 및 보안 > [그래도 열기])
+   - 관리자 권한은 필요 없습니다. 설치 뒤에는 추가 경고 없이 실행됩니다.
 4. Premiere Pro를 시작하고 [창 > 확장 > Birdcage]를 엽니다.
    진행·완료 기록은 같은 메뉴의 [Birdcage 다운로드 목록]에서 확인합니다.
 

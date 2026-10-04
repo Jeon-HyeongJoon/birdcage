@@ -116,7 +116,7 @@
     },
     {
       "id": "T-005",
-      "title": "Premiere 15.2에서 CEP 패널 로드·다운로드·Birdcage/<플랫폼> 빈 임포트 확인",
+      "title": "Premiere 15.2에서 CEP 패널 로드·다운로드·Birdcage/\u003c플랫폼\u003e 빈 임포트 확인",
       "mode": "human",
       "status": "done",
       "passes": true,
@@ -531,7 +531,7 @@
     },
     {
       "id": "T-023",
-      "title": "Premiere 실기(15.2·26): 구간 In/Out(setInPoint 단위 자기 검증), 새 빈 트랙 배치(QE addTracks·대체 경로), 시퀀스 없을 때 소스 모니터, 캡션 트랙, 시퀀스 정보, 미리보기 <video> 재생, Space·I·O 단축키가 패널로 오는지(registerKeyEventsInterest)",
+      "title": "Premiere 실기(15.2·26): 구간 In/Out(setInPoint 단위 자기 검증), 새 빈 트랙 배치(QE addTracks·대체 경로), 시퀀스 없을 때 소스 모니터, 캡션 트랙, 시퀀스 정보, 미리보기 \u003cvideo\u003e 재생, Space·I·O 단축키가 패널로 오는지(registerKeyEventsInterest)",
       "mode": "human",
       "status": "open",
       "passes": false,
@@ -942,7 +942,7 @@
         {
           "kind": "perf",
           "maxLevel": "L3",
-          "what": "실제 Premiere 15.2 패널에서 검색 결과 표시 뒤 긴 작업(>50ms)이 사라지고 썸네일까지 표시가 1.5s 이하(수정 전 3.5s 멈춤·4.5s)"
+          "what": "실제 Premiere 15.2 패널에서 검색 결과 표시 뒤 긴 작업(\u003e50ms)이 사라지고 썸네일까지 표시가 1.5s 이하(수정 전 3.5s 멈춤·4.5s)"
         }
       ],
       "evidence": [
@@ -954,7 +954,7 @@
       "id": "T-038",
       "title": "0.2.0 배포: 탐색 목록(T-036)·유튜브 검색(T-026)·글꼴 멈춤 수정(T-037)을 main에 병합하고 Windows x64 ZIP·macOS ZIP(Helper universal, FFmpeg 8.1.2 번들, 설치기) 만들기",
       "mode": "compile",
-      "status": "doing",
+      "status": "open",
       "passes": false,
       "priority": 1,
       "acceptance": [

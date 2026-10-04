@@ -107,7 +107,8 @@ V0 실측(Apple Silicon, 이 Mac):
   `make package-windows` → `artifacts/windows/Birdcage-Windows-x64-<version>.zip`, `make package-macos` → `artifacts/macos/Birdcage-macOS-<version>.zip`.
 - 서명·공증 없는 개인용 배포판이다. 두 설치기 모두 SHA256SUMS로 파일을 확인하고, 기존 확장은 확장 폴더 밖(Birdcage 데이터 폴더의 `backups`)에 보관한다
   (확장 폴더 안에 같은 ID의 사본이 남으면 CEP가 어느 쪽을 열지 보장되지 않는다). 서명 없는 패널을 열 수 있게 CSXS 10·11·12 PlayerDebugMode를 켠다.
-- macOS: ZIP을 풀고 `install.command`(처음엔 Control-클릭 → 열기, 또는 `bash install.command`). 설치한 사본에서만 격리 속성을 지운다.
+- macOS: ZIP을 풀고 터미널에서 `bash install.command`(더블클릭은 Gatekeeper가 서명 없는 스크립트로 거부한다 — `spctl` 실측 rejected).
+  설치기는 설치한 사본의 격리 속성을 파일마다 지우고(macOS 27의 `xattr`에는 `-r`이 없음) Helper·FFmpeg 실행을 확인한다. 격리 속성이 남으면 Helper가 강제 종료된다(exit 137 실측).
   FFmpeg 8.1.2는 ffmpeg.org가 안내하는 evermeet.cx 정적 빌드(Intel)라 Apple Silicon에서는 Rosetta로 돌고, Homebrew 등 네이티브 ffmpeg가 있으면 그쪽을 먼저 쓴다.
   Helper 최소 macOS 13(Go 툴체인). 이 기기의 개발용 링크(`cep-dev-install.sh`)도 설치 시 백업으로 옮겨지므로 개발로 돌아가려면 스크립트를 다시 실행한다.
 

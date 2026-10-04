@@ -8,13 +8,44 @@
     "model": "claude-opus-5-5"
   },
   "startedAt": "2026-10-04T15:12:17Z",
+  "endedAt": "2026-10-04T15:36:38Z",
   "base": {
     "branch": "feat/search",
     "commit": "8f6eca8dd76b",
     "dirty": true
   },
-  "state": "running",
+  "head": {
+    "branch": "release/0.2.0",
+    "commit": "97c7a557b4d2",
+    "dirty": true
+  },
+  "state": "success",
   "hypothesis": "feat/search(추천·검색·글꼴 수정)를 0.2.0으로 main에 병합하고, 기존 Windows 패키저와 같은 구조로 macOS 패키저(universal Helper + ffmpeg.org가 안내하는 evermeet FFmpeg 8.1.2 번들 + 체크섬 검증·격리 속성 제거·PlayerDebugMode 설치기)를 만들면 두 OS에 같은 버전을 배포할 수 있다.",
+  "summary": "0.2.0 macOS 설치 안내를 더블클릭·Finder 우선에서 터미널 bash install.command 우선으로 바꾸고 README와 배포 패키지에 반영했다. macOS ZIP을 재생성해 SHA-256 53113d936d238df68c20d99282ce575eebe6245e84ac1052614cc538dce1b41b(60,893,853바이트)로 고정했다. 압축·SHA256SUMS·--verify-only·Premiere 실행 중 차단·격리 속성을 심은 임시 CEP 설치·격리 제거·Helper 0.2.0 universal·FFmpeg/ffprobe 8.1.2·manifest 0.2.0·payload 제외를 검증했고 전체 게이트가 통과했다.",
+  "failureSignatures": [
+    "sig:f328d9683ee3"
+  ],
+  "metrics": {
+    "durationMin": 24.3,
+    "evidence": 47,
+    "evidenceByLevel": {
+      "L1": 22,
+      "L2": 21,
+      "L3": 3,
+      "L5": 1
+    },
+    "pass": 46,
+    "fail": 1,
+    "skip": 0
+  },
+  "retro": {
+    "lessons": [
+      "서명·공증 없는 macOS 배포는 Finder 실행을 기본 안내로 두지 말고 bash 실행을 첫 경로로 제시하며, 패키지 검증은 실제 격리 속성을 심은 임시 설치까지 포함해야 한다."
+    ]
+  },
+  "next": [
+    "사용자가 Windows와 macOS 0.2.0 패키지를 실제 설치·실행해 T-038의 L5 조건을 확인한다. 이번 기록은 release/0.2.0에 커밋한 뒤 main에 fast-forward 반영하고 push는 하지 않는다."
+  ],
   "approvals": [
     {
       "action": "session.multitask",
