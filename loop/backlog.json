@@ -814,6 +814,30 @@
         "E-20261003-154424-006",
         "E-20261003-154424-001"
       ]
+    },
+    {
+      "id": "T-034",
+      "title": "Windows: 다운로드 완료 기록을 두 CEP 패널이 공유하고 다운로드 창 표시명을 명확화",
+      "mode": "compile",
+      "status": "done",
+      "passes": true,
+      "priority": 1,
+      "acceptance": [
+        {
+          "kind": "test",
+          "maxLevel": "L1",
+          "what": "메인 패널이 닫혀 있어도 다운로드 패널이 Birdcage 공용 데이터 파일에서 완료 기록을 읽고 지울 수 있음(G-ui·G-cep)"
+        },
+        {
+          "kind": "build",
+          "maxLevel": "L2",
+          "what": "Windows 배포 ZIP의 CEP 메뉴 표시명이 Birdcage 다운로드 목록이며 패널·Helper 빌드가 성공함"
+        }
+      ],
+      "evidence": [
+        "E-20261004-084431-011",
+        "E-20261004-084431-001"
+      ]
     }
   ]
 }

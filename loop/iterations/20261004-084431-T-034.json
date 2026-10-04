@@ -1,0 +1,54 @@
+{
+  "$schema": "../schema/iteration.schema.json",
+  "id": "20261004-084431-T-034",
+  "task": "T-034",
+  "session": {
+    "kind": "worker"
+  },
+  "startedAt": "2026-10-04T08:44:31Z",
+  "endedAt": "2026-10-04T09:35:37Z",
+  "base": {
+    "branch": "feat/editing-options",
+    "commit": "8f0d55b4aec9",
+    "dirty": true
+  },
+  "head": {
+    "branch": "feat/editing-options",
+    "commit": "8f0d55b4aec9",
+    "dirty": true
+  },
+  "state": "success",
+  "hypothesis": "Windows CEP의 확장별 localStorage와 메인 패널 생명주기 의존을 제거하고 두 패널이 공용 Birdcage 데이터 파일을 읽게 하면 다운로드 창을 단독으로 열어도 완료 기록이 보존된다.",
+  "summary": "Windows에서 확장별 localStorage와 메인 패널 생명주기에 묶였던 완료 기록을 Helper와 같은 공용 데이터 파일로 이전했다. 다운로드 패널이 시작·1초 주기로 파일을 직접 읽고 독립적으로 완료 기록을 지우며 0.1.1 기록을 최초 실행 때 이관한다. CEP 메뉴·문서 제목을 Birdcage 다운로드 목록으로 변경하고 0.1.2 Windows ZIP을 생성했다. 전체 게이트, 두 저장소 파일 I/O 스모크 테스트, ZIP 구조·체크섬 검증이 통과했다.",
+  "failureSignatures": [
+    "sig:6066376d948c"
+  ],
+  "metrics": {
+    "durationMin": 51.1,
+    "evidence": 19,
+    "evidenceByLevel": {
+      "L1": 9,
+      "L2": 9,
+      "L3": 1
+    },
+    "pass": 18,
+    "fail": 1,
+    "skip": 0
+  },
+  "retro": {
+    "lessons": [
+      "별도 CEP 확장 사이의 영속 상태는 패널별 localStorage나 상대 패널의 실행 여부가 아니라 명시적인 공용 저장소에 둬야 한다."
+    ]
+  },
+  "next": [
+    "Windows Premiere에서 0.1.2를 설치해 다운로드 완료 후 메인 패널을 닫고 다운로드 목록만 다시 열어 기록 유지 여부를 확인한다."
+  ],
+  "approvals": [
+    {
+      "action": "session.multitask",
+      "by": "user",
+      "at": "2026-10-04T08:44:37Z",
+      "note": "한 요청에서 Instagram 지원 표기 제거와 Windows 다운로드 기록·패널 명칭 수정을 함께 요청함"
+    }
+  ]
+}

@@ -1,17 +1,98 @@
 import type { JobView } from "@birdcage/core";
+import { fs, node_process, os, path } from "./lib/cep/node";
 
 const HISTORY_KEY = "birdcage.downloadHistory.v1";
 const HISTORY_LIMIT = 100;
+const HISTORY_FILE = "download-history.json";
 
 type HistoryStore = Pick<Storage, "getItem" | "setItem" | "removeItem">;
 
-const storage = (store?: HistoryStore): HistoryStore | undefined => {
-  if (store) return store;
+const browserStorage = (): HistoryStore | undefined => {
   try {
     return localStorage;
   } catch {
     return undefined;
   }
+};
+
+const birdcageDataDir = (): string => {
+  const home = os.homedir();
+  const platform = os.platform();
+  if (platform === "darwin") return path.join(home, "Library", "Application Support", "Birdcage");
+  if (platform === "win32") {
+    const localAppData = node_process.env?.LOCALAPPDATA;
+    return path.join(localAppData || path.join(home, "AppData", "Local"), "Birdcage");
+  }
+  const xdgDataHome = node_process.env?.XDG_DATA_HOME;
+  return xdgDataHome ? path.join(xdgDataHome, "birdcage") : path.join(home, ".local", "share", "birdcage");
+};
+
+/** 두 CEP 패널이 함께 쓰는 원자적 파일 저장소. 경로 인자는 실제 파일 I/O 검증에도 사용한다. */
+export const createFileHistoryStore = (file: string): HistoryStore => {
+  return {
+    getItem: () => {
+      try {
+        return fs.readFileSync(file, "utf8");
+      } catch {
+        return null;
+      }
+    },
+    setItem: (_key, value) => {
+      const dir = path.dirname(file);
+      const temporary = `${file}.${node_process.pid || "cep"}.${Date.now()}.${Math.random().toString(16).slice(2)}.tmp`;
+      fs.mkdirSync(dir, { recursive: true });
+      fs.writeFileSync(temporary, value, "utf8");
+      try {
+        fs.renameSync(temporary, file);
+      } catch {
+        // 일부 Windows 파일시스템은 기존 파일 위 rename을 거부하므로 덮어쓰기로 폴백한다.
+        try {
+          fs.copyFileSync(temporary, file);
+          fs.unlinkSync(temporary);
+        } catch (error) {
+          try {
+            fs.unlinkSync(temporary);
+          } catch {
+            /* 임시 파일 정리 실패보다 원래 쓰기 오류를 우선한다. */
+          }
+          throw error;
+        }
+      }
+    },
+    // 빈 파일을 남겨 다른 CEP 패널의 과거 localStorage가 다시 이관되지 않게 한다.
+    removeItem: () => {
+      fs.mkdirSync(path.dirname(file), { recursive: true });
+      fs.writeFileSync(file, "[]", "utf8");
+    },
+  };
+};
+
+/** CEP 확장 ID가 달라도 같은 완료 기록을 읽도록 Helper 데이터 폴더의 파일을 사용한다. */
+const sharedFileStorage = (): HistoryStore | undefined => {
+  if (typeof window === "undefined" || typeof window.cep === "undefined" || typeof fs.readFileSync !== "function") return undefined;
+  return createFileHistoryStore(path.join(birdcageDataDir(), HISTORY_FILE));
+};
+
+const storage = (store?: HistoryStore): HistoryStore | undefined => {
+  if (store) return store;
+  const shared = sharedFileStorage();
+  if (shared) {
+    // 0.1.1까지의 메인 패널 기록을 최초 한 번 공용 파일로 옮긴다.
+    if (shared.getItem(HISTORY_KEY) === null) {
+      const legacy = browserStorage();
+      const value = legacy?.getItem(HISTORY_KEY);
+      if (value) {
+        try {
+          shared.setItem(HISTORY_KEY, value);
+          legacy?.removeItem(HISTORY_KEY);
+        } catch {
+          return legacy;
+        }
+      }
+    }
+    return shared;
+  }
+  return browserStorage();
 };
 
 const isCompleted = (view: unknown): view is JobView => {

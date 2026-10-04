@@ -42,7 +42,7 @@ const config: CEP_Config = {
     {
       mainPath: "./downloads/index.html",
       name: "downloads",
-      panelDisplayName: "Birdcage \ub2e4\uc6b4\ub85c\ub4dc",
+      panelDisplayName: "Birdcage \ub2e4\uc6b4\ub85c\ub4dc \ubaa9\ub85d",
       autoVisible: false,
       width: 420,
       height: 560,
