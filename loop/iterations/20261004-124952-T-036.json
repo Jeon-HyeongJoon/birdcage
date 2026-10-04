@@ -63,6 +63,12 @@
       "by": "전형준",
       "at": "2026-10-04T13:35:35Z",
       "note": "2026-10-04 승인: 탐색 목록 추가로 기존 UI 골든 6개(probed·preview-ready·preview-downloading·preview-placed·preview-failed·audio-only) 갱신. 차이는 aside.related 추가뿐(목록 제외 시 기존 DOM과 동일, 6/6 확인)"
+    },
+    {
+      "action": "verifier.change",
+      "by": "전형준",
+      "at": "2026-10-04T14:02:27Z",
+      "note": "2026-10-04 사후 승인: UI 하네스 3개(panel/cep/test/ui/fake-helper.ts·fixture.tsx·scenarios.ts) 변경 — 가짜 Helper related.fetch 응답, 기본 목록, related-* 시나리오 4개"
     }
   ]
 }
