@@ -37,11 +37,17 @@ restore() {
   rm -rf "$staging"
   if [ -n "$backup" ] && [ ! -e "$target" ] && [ ! -L "$target" ]; then mv "$backup" "$target"; fi
 }
-trap restore ERR
+trap restore EXIT  # 실패(오류·fail)하면 임시 사본을 지우고 이전 설치를 되돌린다
 
 ditto "$src" "$staging"
-xattr -dr com.apple.quarantine "$staging" 2>/dev/null || true
+# 인터넷에서 받은 표시(격리 속성)가 남으면 macOS가 서명 없는 Helper를 강제 종료한다(실측 exit 137).
+# xattr에 -r이 없는 macOS가 있어(27.0) 파일·폴더마다 지우고, 남았는지 다시 확인한다.
+find "$staging" -exec xattr -d com.apple.quarantine {} + 2>/dev/null || true
+if find "$staging" -exec xattr -p com.apple.quarantine {} + 2>/dev/null | grep -q .; then
+  fail "인터넷에서 받은 파일 표시(격리 속성)를 지우지 못했습니다."
+fi
 chmod +x "$staging/bin/darwin/birdcage-helper" "$staging/bin/darwin/tools/ffmpeg/ffmpeg" "$staging/bin/darwin/tools/ffprobe/ffprobe"
+"$staging/bin/darwin/birdcage-helper" --version >/dev/null 2>&1 || fail "Helper를 실행하지 못했습니다(macOS 보안 설정을 확인하세요)."
 
 if [ -e "$target" ] || [ -L "$target" ]; then
   # 백업을 확장 폴더 밖에 둔다: 같은 확장 ID가 두 개면 CEP가 어느 쪽을 열지 보장되지 않는다.
@@ -50,7 +56,7 @@ if [ -e "$target" ] || [ -L "$target" ]; then
   mv "$target" "$backup"
 fi
 mv "$staging" "$target"
-trap - ERR
+trap - EXIT
 
 if [ -z "${BIRDCAGE_NO_DEBUG_MODE:-}" ]; then
   for v in 10 11 12; do defaults write "com.adobe.CSXS.$v" PlayerDebugMode 1; done
@@ -60,6 +66,11 @@ echo
 echo "Birdcage를 설치했습니다:"
 echo "  $target"
 [ -n "$backup" ] && echo "이전 설치는 여기에 보관했습니다:" && echo "  $backup"
+
+echo "Helper $("$target/bin/darwin/birdcage-helper" --version 2>/dev/null)"
+if "$target/bin/darwin/tools/ffmpeg/ffmpeg" -hide_banner -version >/dev/null 2>&1; then
+  echo "포함된 FFmpeg 실행 확인"
+fi
 
 # 번들 FFmpeg는 Intel 빌드다. Apple Silicon에서 Rosetta도 네이티브 ffmpeg도 없으면 알린다.
 if [ "$(uname -m)" = "arm64" ] && ! /usr/bin/arch -x86_64 /usr/bin/true 2>/dev/null; then
