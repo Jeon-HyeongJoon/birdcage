@@ -42,5 +42,19 @@
   },
   "next": [
     "Premiere에서 저장된 프로젝트·미저장 프로젝트·다른 이름으로 저장 후 각각 다운로드해 실제 경로 표시와 소스 연결을 확인한다"
+  ],
+  "approvals": [
+    {
+      "action": "git.merge.main",
+      "by": "user",
+      "at": "2026-10-15T11:38:54Z",
+      "note": "메인 병합하고 push 요청"
+    },
+    {
+      "action": "git.push",
+      "by": "user",
+      "at": "2026-10-15T11:38:54Z",
+      "note": "메인 병합하고 push 요청"
+    }
   ]
 }
