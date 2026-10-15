@@ -115,8 +115,8 @@ export const App = ({ controller: ctl, host, downloadHistory }: { controller: Pa
 
       {!focusMode && (
         <footer className="row footer muted small">
-          <span title={s.helper?.libraryDir}>
-            저장 위치: {s.helper?.libraryDir ?? "-"}
+          <span title={s.outputDir ?? s.helper?.libraryDir}>
+            저장 위치: {s.outputDir ?? s.helper?.libraryDir ?? "-"}
           </span>
           {s.jobs.some((j) => TERMINAL_STATES.includes(j.snap.state)) && (
             <button onClick={() => ctl.clearFinished()}>완료 항목 지우기</button>

@@ -28,7 +28,7 @@ const job: Shape = {
 };
 
 const nested: Record<string, Shape> = {
-  "job.options": { maxHeight: "number", profile: "string", probeId: "string?", formatId: "string?", range: "object?", audioOnly: "boolean?", subtitles: "object?" },
+  "job.options": { maxHeight: "number", profile: "string", outputDir: "string?", probeId: "string?", formatId: "string?", range: "object?", audioOnly: "boolean?", subtitles: "object?" },
   "job.clip": { inSec: "number", outSec: "number" },
   "job.download": { status: "string", downloadedBytes: "number", fraction: "number", totalBytes: "number?", speedBps: "number?" },
   "job.info": { id: "string", title: "string", extractor: "string", webpageUrl: "string", selected: "array?", thumbnail: "string?", variants: "array?", subtitles: "array?", storyboards: "array?" },
@@ -49,7 +49,7 @@ const peaks: Shape = { bucketSec: "number", count: "number", durationSec: "numbe
 const payloads: Record<string, Shape> = {
   hello: { client: "string", clientVersion: "string", host: "object" },
   "hello.ok": { helperVersion: "string", protocol: "number", profile: "string", libraryDir: "string", tools: "array", jobs: "array" },
-  "job.create": { url: "string", maxHeight: "number?", probeId: "string?", formatId: "string?", range: "object?", audioOnly: "boolean?", subtitles: "object?", via: "string?" },
+  "job.create": { url: "string", maxHeight: "number?", outputDir: "string?", probeId: "string?", formatId: "string?", range: "object?", audioOnly: "boolean?", subtitles: "object?", via: "string?" },
   "media.probe": { url: "string", maxHeight: "number?", via: "string?" },
   "related.fetch": { probeId: "string", source: "string?" },
   "related.list": { probeId: "string", requested: "string", source: "string?", items: "array", error: "string?" },

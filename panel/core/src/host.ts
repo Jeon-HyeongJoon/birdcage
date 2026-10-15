@@ -51,4 +51,6 @@ export interface HostAdapter {
   captureKeys?(): void;
   /** The active sequence, or null when none is open (optional: recommendations fall back to settings). */
   sequenceInfo?(): Promise<SequenceInfo | null>;
+  /** Project-local media root, or null when the project has no usable local path. */
+  projectOutputDir?(): Promise<string | null>;
 }

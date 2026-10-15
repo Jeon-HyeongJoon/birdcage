@@ -53,6 +53,8 @@ export interface HelloOK {
 export interface JobCreate {
   url: string;
   maxHeight?: number;
+  /** Preferred absolute destination root. The helper falls back to libraryDir when unusable. */
+  outputDir?: string;
   /** media.info probeId: the helper downloads from the cached probe without re-extraction. */
   probeId?: string;
   /** Chosen variant (Variant.formatId). */
@@ -319,6 +321,7 @@ export interface JobSnapshot {
   options: {
     maxHeight: number;
     profile: Profile | "";
+    outputDir?: string;
     probeId?: string;
     formatId?: string;
     range?: TimeRange;

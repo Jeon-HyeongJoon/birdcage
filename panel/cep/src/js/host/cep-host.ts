@@ -195,6 +195,12 @@ export class CepHost implements HostAdapter {
     return { name: res.name ?? "", width: res.width, height: res.height, fps: res.fps ?? 0 };
   }
 
+  async projectOutputDir(): Promise<string | null> {
+    const res = (await evalTS("birdcageProjectDir")) as { ok: boolean; path?: string } | undefined;
+    if (!res?.ok || !res.path || !path.isAbsolute(res.path)) return null;
+    return path.join(res.path, "Birdcage");
+  }
+
   /**
    * Keeps the preview shortcuts (Space, I, O, ←/→, Home/End) in the panel while it has focus;
    * otherwise Premiere handles them for its own timeline. 전체 키를 가로채지 않고 이 키만(Shift 조합 포함).

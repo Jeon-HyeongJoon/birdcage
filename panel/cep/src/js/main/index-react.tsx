@@ -25,7 +25,12 @@ const host = new CepHost();
 const ctl = new Controller({ host, clientName: "birdcage-cep", clientVersion: version, settings: loadSettings() });
 let history = loadDownloadHistory();
 const allJobs = () => withDownloadHistory(ctl.state.jobs, history);
-const publish = () => publishJobs({ jobs: allJobs(), liveJobIds: ctl.state.jobs.map((view) => view.snap.jobId), libraryDir: ctl.state.helper?.libraryDir });
+const publish = () => publishJobs({
+  jobs: allJobs(),
+  liveJobIds: ctl.state.jobs.map((view) => view.snap.jobId),
+  libraryDir: ctl.state.helper?.libraryDir,
+  outputDir: ctl.state.outputDir,
+});
 ctl.subscribe((s) => {
   try {
     localStorage.setItem(SETTINGS_KEY, JSON.stringify(s.settings));

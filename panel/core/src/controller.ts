@@ -154,6 +154,8 @@ export interface State {
   connection: ConnectionState;
   error?: string;
   helper?: Pick<HelloOK, "helperVersion" | "profile" | "libraryDir">;
+  /** Effective destination shown to the user. Project-local when available, otherwise helper libraryDir. */
+  outputDir?: string;
   endpoint?: HelperEndpoint;
   tools: ToolStatus[];
   toolsInstalling: boolean;
@@ -257,6 +259,7 @@ export class Controller {
         // Helper가 다시 떴으면 그쪽 목록이 기준. 이전 세션 작업(임포트 상태 포함)은 뒤에 유지.
         jobs: mergeJobs(ok.jobs.map((s) => ({ snap: s, import: known.get(s.jobId)?.import })), this._state.jobs),
       });
+      void this.refreshOutputDir();
     } catch (e) {
       this.starting = false;
       this.scheduleReconnect((e as Error).message);
@@ -267,7 +270,8 @@ export class Controller {
 
   async submit(url: string): Promise<void> {
     const c = this.requireClient();
-    await c.createJob(url.trim(), this._state.settings.maxHeight);
+    const outputDir = await this.refreshOutputDir();
+    await c.createJob(url.trim(), this._state.settings.maxHeight, { outputDir });
   }
 
   /** Updates the link field; a valid link is probed after a short pause (paste → info). */
@@ -302,7 +306,11 @@ export class Controller {
     });
     try {
       // 시퀀스는 조회와 함께 읽는다(추천이 현재 시퀀스를 따른다).
-      const [res] = await Promise.all([this.requireClient().probe(url, this._state.settings.maxHeight, cur.via), this.refreshSequence()]);
+      const [res] = await Promise.all([
+        this.requireClient().probe(url, this._state.settings.maxHeight, cur.via),
+        this.refreshSequence(),
+        this.refreshOutputDir(),
+      ]);
       if (seq !== this.draftSeq) return; // 사용자가 그새 링크를 바꿨다
       if (res.failure || !res.info) {
         this.set({ draft: { ...this._state.draft, status: "failed", checking: false, failure: res.failure } });
@@ -362,7 +370,8 @@ export class Controller {
     const { range, error } = rangeToSend(d.range, d.info?.durationSec);
     if (error) throw new Error(error);
     const subtitles = d.subtitle ? { lang: d.subtitle.replace(/:auto$/, ""), auto: d.subtitle.endsWith(":auto") || undefined } : undefined;
-    const common = { range, audioOnly: d.audioOnly || undefined, subtitles, via: d.via };
+    const outputDir = await this.refreshOutputDir();
+    const common = { range, audioOnly: d.audioOnly || undefined, subtitles, via: d.via, outputDir };
     const extra = d.status === "ready" ? { probeId: d.probeId, formatId: d.audioOnly ? undefined : d.formatId, ...common } : common;
     const variant = d.info?.variants?.find((v) => v.formatId === d.formatId);
     const jobId = await c.createJob(url, variant?.res ?? this._state.settings.maxHeight, JSON.parse(JSON.stringify(extra)));
@@ -509,6 +518,22 @@ export class Controller {
     } catch {
       this.set({ sequence: null });
     }
+  }
+
+  /** Reads the active project for every request so Save As and project switches take effect immediately. */
+  private async refreshOutputDir(): Promise<string | undefined> {
+    let projectDir: string | null = null;
+    try {
+      projectDir = (await this.opts.host.projectOutputDir?.()) ?? null;
+    } catch {
+      projectDir = null;
+    }
+    const outputDir = projectDir || this._state.helper?.libraryDir;
+    if (outputDir !== this._state.outputDir) {
+      this.set({ outputDir });
+    }
+    // Only send a project-local preference. Omitting it makes the helper use its configured fallback.
+    return projectDir || undefined;
   }
 
   cancel(jobId: string): void {

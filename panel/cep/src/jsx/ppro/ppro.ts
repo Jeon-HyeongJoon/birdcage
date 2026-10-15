@@ -334,3 +334,16 @@ export const birdcageSequenceInfo = () => {
 export const birdcageHostInfo = () => {
   return { version: app.version, build: app.build, projectOpen: !!(app.project && app.project.path) };
 };
+
+/** Local folder containing the active saved .prproj. Unsaved/cloud projects have no usable path. */
+export const birdcageProjectDir = () => {
+  if (!app.project || !app.project.path) return { ok: false };
+  try {
+    const project = new File(app.project.path);
+    const parent = project.parent;
+    if (!parent || !parent.fsName) return { ok: false };
+    return { ok: true, path: parent.fsName };
+  } catch (e) {
+    return { ok: false };
+  }
+};

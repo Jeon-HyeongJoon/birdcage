@@ -1,0 +1,46 @@
+{
+  "$schema": "../schema/iteration.schema.json",
+  "id": "20261015-113208-T-045",
+  "task": "T-045",
+  "session": {
+    "kind": "worker"
+  },
+  "startedAt": "2026-10-15T11:32:08Z",
+  "endedAt": "2026-10-15T11:36:50Z",
+  "base": {
+    "branch": "feat/project-local-downloads",
+    "commit": "2ce78e46da17",
+    "dirty": true
+  },
+  "head": {
+    "branch": "feat/project-local-downloads",
+    "commit": "2ce78e46da17",
+    "dirty": true
+  },
+  "state": "success",
+  "hypothesis": "CEP가 다운로드 직전에 활성 .prproj의 부모/Birdcage 경로를 전달하고 Helper가 절대·쓰기 가능 경로만 우선 사용한 뒤 기존 libraryDir로 폴백하면 프로젝트 이동 시 소스 상대 구조를 유지할 수 있다",
+  "summary": "활성 .prproj 부모/Birdcage 경로를 다운로드마다 CEP에서 읽어 Helper로 전달하고, Helper가 절대 경로와 쓰기 가능 여부를 확인해 플랫폼 하위 폴더에 저장하며 실패 시 기존 사용자 libraryDir로 경고와 함께 폴백하도록 구현했다. 전체 게이트와 UI 골든이 통과했다",
+  "metrics": {
+    "durationMin": 4.7,
+    "evidence": 14,
+    "evidenceByLevel": {
+      "L1": 8,
+      "L2": 5,
+      "L3": 1
+    },
+    "pass": 14,
+    "fail": 0,
+    "skip": 0
+  },
+  "retro": {
+    "newChecks": [
+      "프로젝트 전환별 job.create outputDir와 상대·쓰기 불가 경로 폴백 단위 테스트 추가"
+    ],
+    "specChanges": [
+      "README에 프로젝트 폴더/Birdcage/\u003c플랫폼\u003e 기본 저장 및 사용자 폴더 폴백 규칙 명시"
+    ]
+  },
+  "next": [
+    "Premiere에서 저장된 프로젝트·미저장 프로젝트·다른 이름으로 저장 후 각각 다운로드해 실제 경로 표시와 소스 연결을 확인한다"
+  ]
+}

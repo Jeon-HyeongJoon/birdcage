@@ -84,8 +84,10 @@ type HelloOK struct {
 type JobCreate struct {
 	URL       string `json:"url"`
 	MaxHeight int    `json:"maxHeight,omitempty"` // 0 → helper default (1080)
-	ProbeID   string `json:"probeId,omitempty"`   // media.info probeId: download without re-extraction
-	FormatID  string `json:"formatId,omitempty"`  // chosen variant (media.info variants[].formatId)
+	// OutputDir is a preferred absolute project-local root. Jobs fall back to the configured library.
+	OutputDir string `json:"outputDir,omitempty"`
+	ProbeID   string `json:"probeId,omitempty"`  // media.info probeId: download without re-extraction
+	FormatID  string `json:"formatId,omitempty"` // chosen variant (media.info variants[].formatId)
 	// Range downloads only this part of the source (plus 1s handles); job.done carries clip In/Out.
 	Range *engine.Section `json:"range,omitempty"`
 	// AudioOnly downloads the best audio as WAV (PCM 16-bit 48 kHz).

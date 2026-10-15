@@ -46,6 +46,8 @@ func (s State) Terminal() bool { return s == Done || s == Failed || s == Cancell
 type Options struct {
 	MaxHeight int           `json:"maxHeight"`
 	Profile   media.Profile `json:"profile"`
+	// OutputDir is the project-local root preferred by the panel. LibraryDir is the fallback.
+	OutputDir string `json:"outputDir,omitempty"`
 	// ProbeID reuses a Probe result: the download starts from its info.json without re-extraction.
 	ProbeID string `json:"probeId,omitempty"`
 	// FormatID is the chosen variant (engine.Variant.FormatID); "" selects by MaxHeight.
@@ -814,7 +816,7 @@ func (m *Manager) pipeline(ctx context.Context, j *job) (string, error) {
 	if opts.AudioOnly {
 		ext = ".wav"
 	}
-	dest, release, err := library.ReserveTagged(m.deps.LibraryDir, info.Extractor, info.Title, info.ID, rangeTag(rng), ext)
+	dest, release, destinationWarning, err := m.reserveDestination(opts.OutputDir, info.Extractor, info.Title, info.ID, rangeTag(rng), ext)
 	if err != nil {
 		return "", engine.Fail(engine.KindInternal, err.Error())
 	}
@@ -823,6 +825,9 @@ func (m *Manager) pipeline(ctx context.Context, j *job) (string, error) {
 		pl := plan
 		s.Plan = &pl
 		s.Warnings = append(s.Warnings, plan.Warnings...)
+		if destinationWarning != "" {
+			s.Warnings = append(s.Warnings, destinationWarning)
+		}
 	})
 
 	sp = m.deps.Rec.StartJob(id, "stage.normalize", "video", string(plan.Video), "audio", string(plan.Audio),
@@ -878,6 +883,64 @@ func (m *Manager) pipeline(ctx context.Context, j *job) (string, error) {
 		}
 	}
 	return dest, nil
+}
+
+// reserveDestination prefers a project-local absolute root, but never lets an unavailable
+// project folder prevent the download. The configured library is the stable per-user fallback.
+func (m *Manager) reserveDestination(preferred, extractor, title, id, tag, ext string) (string, func(), string, error) {
+	fallback := filepath.Clean(m.deps.LibraryDir)
+	preferred = strings.TrimSpace(preferred)
+	var preferredErr error
+	if preferred != "" {
+		preferred = filepath.Clean(preferred)
+		if !filepath.IsAbs(preferred) {
+			preferredErr = fmt.Errorf("project destination is not absolute: %q", preferred)
+		} else {
+			dest, release, err := reserveWritable(preferred, extractor, title, id, tag, ext)
+			if err == nil {
+				return dest, release, "", nil
+			}
+			preferredErr = err
+		}
+	}
+
+	dest, release, err := reserveWritable(fallback, extractor, title, id, tag, ext)
+	if err != nil {
+		if preferredErr != nil {
+			return "", nil, "", fmt.Errorf("project destination: %v; fallback destination %q: %w", preferredErr, fallback, err)
+		}
+		return "", nil, "", fmt.Errorf("fallback destination %q: %w", fallback, err)
+	}
+	if preferredErr == nil {
+		return dest, release, "", nil
+	}
+	warning := fmt.Sprintf("프로젝트 폴더에 저장할 수 없어 기본 저장 위치를 사용했습니다: %s", fallback)
+	return dest, release, warning, nil
+}
+
+func reserveWritable(root, extractor, title, id, tag, ext string) (string, func(), error) {
+	dest, release, err := library.ReserveTagged(root, extractor, title, id, tag, ext)
+	if err != nil {
+		return "", nil, err
+	}
+	dir := filepath.Dir(dest)
+	probe, err := os.CreateTemp(dir, ".birdcage-write-")
+	if err != nil {
+		release()
+		return "", nil, err
+	}
+	name := probe.Name()
+	closeErr := probe.Close()
+	removeErr := os.Remove(name)
+	if closeErr != nil {
+		release()
+		return "", nil, closeErr
+	}
+	if removeErr != nil {
+		release()
+		return "", nil, removeErr
+	}
+	return dest, release, nil
 }
 
 // subtitles fetches one track, shifts it onto the file's timeline and writes "<file>.<lang>.srt".

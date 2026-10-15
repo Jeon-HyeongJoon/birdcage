@@ -31,7 +31,9 @@ export const DownloadsApp = ({ snapshot, action, openMain }: { snapshot?: JobsSn
         </div>
       )}
       <footer className="row footer muted small">
-        <span title={snapshot?.libraryDir}>저장 위치: {snapshot?.libraryDir ?? "-"}</span>
+        <span title={snapshot?.outputDir ?? snapshot?.libraryDir}>
+          저장 위치: {snapshot?.outputDir ?? snapshot?.libraryDir ?? "-"}
+        </span>
       </footer>
     </div>
   );

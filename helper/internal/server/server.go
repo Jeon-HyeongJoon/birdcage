@@ -228,7 +228,7 @@ func (ss *session) handle(ctx context.Context, data []byte) {
 		if jc.Via != "" {
 			ss.srv.Rec.Start("related.download", "via", jc.Via, "range", jc.Range != nil).End(nil) // 적합성 검토용
 		}
-		id, err := ss.srv.Jobs.Submit(jc.URL, jobs.Options{MaxHeight: h, Profile: prof, ProbeID: jc.ProbeID, FormatID: jc.FormatID, Range: jc.Range, AudioOnly: jc.AudioOnly, Subtitles: jc.Subtitles})
+		id, err := ss.srv.Jobs.Submit(jc.URL, jobs.Options{MaxHeight: h, Profile: prof, OutputDir: jc.OutputDir, ProbeID: jc.ProbeID, FormatID: jc.FormatID, Range: jc.Range, AudioOnly: jc.AudioOnly, Subtitles: jc.Subtitles})
 		if err != nil {
 			ss.fail(ctx, env.ID, "bad_request", err.Error())
 			return

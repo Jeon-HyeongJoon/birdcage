@@ -1004,6 +1004,35 @@
         "E-20261004-164819-006",
         "E-20261004-164819-001"
       ]
+    },
+    {
+      "id": "T-045",
+      "title": "Premiere 프로젝트 로컬 저장: 현재 .prproj 폴더/Birdcage를 기본 다운로드 위치로 사용하고 경로 없음·쓰기 실패 시 사용자 Birdcage 폴더로 폴백",
+      "mode": "compile",
+      "status": "done",
+      "passes": true,
+      "priority": 1,
+      "acceptance": [
+        {
+          "kind": "test",
+          "maxLevel": "L1",
+          "what": "패널이 다운로드마다 현재 프로젝트 저장 폴더를 전달하고 Helper가 그 아래 Birdcage/플랫폼에 저장함"
+        },
+        {
+          "kind": "test",
+          "maxLevel": "L1",
+          "what": "미저장 프로젝트·상대 경로·쓰기 불가 프로젝트 폴더는 기존 사용자 Birdcage 폴더로 폴백하고 경고를 남김"
+        },
+        {
+          "kind": "build",
+          "maxLevel": "L2",
+          "what": "Go macOS·Windows 교차 vet, CEP·ExtendScript 타입 검사와 전체 게이트가 통과함"
+        }
+      ],
+      "evidence": [
+        "E-20261015-113208-006",
+        "E-20261015-113208-001"
+      ]
     }
   ]
 }
